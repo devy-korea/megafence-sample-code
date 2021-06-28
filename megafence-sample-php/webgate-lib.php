@@ -1,7 +1,7 @@
 ﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 공통모듈(PHP) V.21.1.0
+    * 메가펜스 유량제어서비스 공통모듈(PHP) V.21.1.1
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하되 해당 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외에서의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -12,6 +12,7 @@
     * 2021-03-24 : response.setContentType() 처리 추가
     * 2021-04-03 : UI응답부 template fileload 대체
     *              server list update
+    * 2021-06-28 : [minor fix] WG_GetWaitingUi() html & body style (width 100 --> 100%)
     * ==============================================================================================
     */
 
@@ -220,7 +221,7 @@
             . "    <meta charset='utf-8'>\r\n"
             . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
             . "    <title></title>\r\n"
-            . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100; height:100%;} </style> "
+            . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
             . "</head>\r\n"
             . "<body>\r\n"
             . "    <div id='wg-body-wrapper'></div>\r\n"
