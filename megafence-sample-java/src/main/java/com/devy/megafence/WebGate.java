@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /* 
 * ==============================================================================================
-* * 메가펜스 유량제어서비스 BACKEND 공통모듈(JAVA) V.21.1.0
+* * 메가펜스 유량제어서비스 BACKEND 공통모듈(JAVA) V.21.1.1
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하되 해당 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외에서의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -35,22 +35,30 @@ import javax.servlet.http.HttpServletResponse;
 * 2021-03-24 : response.setContentType() 처리 추가
 * 2021-04-03 : UI응답부 template fileload 대체
 *              server list update
+* V.21.1.1 (2021-06-29) ------------------------------------------------------------------------
+* 	minor fix & 안정화
 * ==============================================================================================
 */
 
 public class WebGate {
 	//private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	String  $WG_VERSION            = "V.21.1.0";           
+	String  $WG_VERSION            = "V.21.1.1";           
 	String  $WG_SERVICE_ID         = "";          			// 할당받은 Service ID
 	String  $WG_GATE_ID            = "";             		// 사용할 GATE ID
 	int     $WG_MAX_TRY_COUNT      = 3;                    	// [fixed] failover api retry count
 	boolean $WG_IS_CHECKOUT_OK     = false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
 	String  $WG_GATE_SERVERS[]     = { 					   	// [fixed] 대기표 발급서버 LIST
-			"a00.devy.kr","a01.devy.kr","a02.devy.kr","a03.devy.kr","a04.devy.kr",
-			"a05.devy.kr","a06.devy.kr","a07.devy.kr","a08.devy.kr","a09.devy.kr",
-			"a10.devy.kr","a11.devy.kr","a12.devy.kr","a13.devy.kr","a14.devy.kr",
-			"a15.devy.kr","a16.devy.kr","a17.devy.kr","a18.devy.kr","a19.devy.kr" }; 
+		    "9000-0.devy.kr",
+            "9000-1.devy.kr",
+            "9000-2.devy.kr",
+            "9000-3.devy.kr",
+            "9000-4.devy.kr",
+		    "9000-5.devy.kr",
+            "9000-6.devy.kr",
+            "9000-7.devy.kr",
+            "9000-8.devy.kr",
+            "9000-9.devy.kr"}; 
 
 	String  $WG_TOKEN_NO           	= "";                   // 대기표 ID
 	String  $WG_TOKEN_KEY          	= "";                   // 대기표 key
@@ -299,27 +307,25 @@ public class WebGate {
 	}
 	
 	public String WG_GetWaitingUi() {
-		String html =""
-				+ "<!DOCTYPE html>\r\n"
-				+ "<html>\r\n"
-				+ "<head>\r\n"
-				+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n"
-				+ "    <meta charset='utf-8'>\r\n"
-				+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
-				+ "    <title></title>\r\n"
-				+ "    <link href='//cdn.devy.kr/WG_SERVICE_ID/css/default.css' rel='stylesheet'>\r\n"				
-				+ "</head>\r\n"
-				+ "<body>\r\n"
-				+ "    <div id='mf-body-wrapper'></div>\r\n"
-				+ "    <script type='text/javascript' src='//cdn.devy.kr/WG_SERVICE_ID/wg/js/WebGate-All.js?v=WG_TIMESPAN'></script>\r\n"
-				+ "    <script>\r\n"
-				+ "        window.addEventListener('load', function () {\r\n"
-				+ "            $WG_StartWebGate('WG_GATE_ID', window.location.href); //reload \r\n"
-				+ "        });\r\n"
-				+ "    </script>\r\n"
-				+ "</body>\r\n"
-				+ "</html>\r\n"
-				+ "";
+		String html = "<!DOCTYPE html>\r\n"
+					+ "<html>\r\n"
+					+ "<head>\r\n"
+					+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n"
+					+ "    <meta charset='utf-8'>\r\n"
+					+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
+					+ "    <title></title>\r\n"
+					+ "    <link href='//cdn.devy.kr/WG_SERVICE_ID/css/default.css' rel='stylesheet'>\r\n"				
+					+ "</head>\r\n"
+					+ "<body>\r\n"
+					+ "    <div id='mf-body-wrapper'></div>\r\n"
+					+ "    <script type='text/javascript' src='//cdn.devy.kr/WG_SERVICE_ID/wg/js/WebGate-All.js?v=WG_TIMESPAN'></script>\r\n"
+					+ "    <script>\r\n"
+					+ "        window.addEventListener('load', function () {\r\n"
+					+ "            $WG_StartWebGate('WG_GATE_ID', window.location.href); //reload \r\n"
+					+ "        });\r\n"
+					+ "    </script>\r\n"
+					+ "</body>\r\n"
+					+ "</html>";
 				 
 		return html
 				.replaceAll("WG_SERVICE_ID", $WG_SERVICE_ID)
