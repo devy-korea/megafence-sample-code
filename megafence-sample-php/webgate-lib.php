@@ -12,7 +12,9 @@
     * 2021-03-24 : response.setContentType() 처리 추가
     * 2021-04-03 : UI응답부 template fileload 대체
     *              server list update
-    * 2021-06-28 : [minor fix] WG_GetWaitingUi() html & body style (width 100 --> 100%)
+    * V.21.1.1 (2021-06-28) ------------------------------------------------------------------------
+    *   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
+    *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
     * ==============================================================================================
     */
 
@@ -21,7 +23,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.0";
+        $WG_VERSION         = "V.21.1.1";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -213,27 +215,26 @@
     function WG_GetWaitingUi($service_id, $gate_id)
     {
         // template html
-		$html =""
-            . "<!DOCTYPE html>\r\n"
-            . "<html>\r\n"
-            . "<head>\r\n"
-            . "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n"
-            . "    <meta charset='utf-8'>\r\n"
-            . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
-            . "    <title></title>\r\n"
-            . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
-            . "</head>\r\n"
-            . "<body>\r\n"
-            . "    <div id='wg-body-wrapper'></div>\r\n"
-            . "    <link href='https://cdn.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>\r\n"
-            . "    <script type='text/javascript' src='https://cdn.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>\r\n"
-            . "    <script>\r\n"
-            . "        window.addEventListener('load', function () {\r\n"
-            . "            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload \r\n"
-            . "        });\r\n"
-            . "    </script>\r\n"
-            . "</body>\r\n"
-            . "</html>\r\n";
+		$html = "<!DOCTYPE html>\r\n"
+                . "<html>\r\n"
+                . "<head>\r\n"
+                . "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n"
+                . "    <meta charset='utf-8'>\r\n"
+                . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
+                . "    <title></title>\r\n"
+                . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
+                . "</head>\r\n"
+                . "<body>\r\n"
+                . "    <div id='wg-body-wrapper'></div>\r\n"
+                . "    <link href='https://cdn.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>\r\n"
+                . "    <script type='text/javascript' src='https://cdn.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>\r\n"
+                . "    <script>\r\n"
+                . "        window.addEventListener('load', function () {\r\n"
+                . "            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload \r\n"
+                . "        });\r\n"
+                . "    </script>\r\n"
+                . "</body>\r\n"
+                . "</html>\r\n";
 				 
         // replace
         $html =  str_replace("WG_SERVICE_ID", $service_id, $html); 
