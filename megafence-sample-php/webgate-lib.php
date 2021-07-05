@@ -15,6 +15,7 @@
     * V.21.1.1 (2021-06-28) ------------------------------------------------------------------------
     *   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
     *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
+    *   [fix] WG_GetRandomString() index overflow
     * ==============================================================================================
     */
 
@@ -23,7 +24,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.1";
+        $WG_VERSION         = "V.21.1.2";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -45,6 +46,8 @@
         $WG_WAS_IP          = "";           // 대기표 발급서버
         $WG_TRACE           = "";           // TRACE 정보 (쿠키응답)
         $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
+
+
 
 	    /*
         JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
@@ -249,7 +252,7 @@
         $characters = '0123456789ABCDEF';
         $randstring = '';
         for ($i = 0; $i < $length; $i++) {
-            $randstring .= $characters[rand(0, strlen($characters))];
+            $randstring .= $characters[rand(0, strlen($characters)-1)];
         }
         return $randstring;
     }
