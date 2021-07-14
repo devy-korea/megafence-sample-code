@@ -96,8 +96,8 @@
                     Click 이벤트에서 WG_StartWebGate() 호출하도, 기존 업무로직 함수는  bind 처리
                     BEFORE : onclick="yourProcess(p1, p2, ...)
                     AFTER  : onclick= "WG_StartWebGate(GATE_ID, yourProcess.bind(this, p1, p2, ...)" -->
-                <button class="button is-oreder is-link" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'A'))">A상품 주문</button>
-                <button class="button is-oreder is-link" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'B'))">B상품 주문</button>
+                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'A'))">A상품 주문</button>
+                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'B'))">B상품 주문</button>
                 <!-- END OF 유량제어 호출 
                 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲-->
 
