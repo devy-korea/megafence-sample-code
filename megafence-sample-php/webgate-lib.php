@@ -1,46 +1,39 @@
 ﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 공통모듈(PHP) V.21.1.1
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.3
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
-    * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하되 해당 내용은 반드시 공급처에 통보해야 합니다.
-    * 허가된 고객 및 환경 이외에서의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
+    * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
+    * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     * 작성자 : ysd@devy.co.kr
+    * All rights reserved to DEVY / https://devy.kr
+    * ==============================================================================================
+    * V.21.1.3 (2021-07-23) 
+    *   [minor update] auto make $WG_GATE_SERVERS list
     * ----------------------------------------------------------------------------------------------
-    * 2021-01-20 : 부하발생용 parameter 처리
-    * 	            api call timeout 1초 --> 2초
-    * 2021-03-24 : response.setContentType() 처리 추가
-    * 2021-04-03 : UI응답부 template fileload 대체
-    *              server list update
-    * V.21.1.1 (2021-06-28) ------------------------------------------------------------------------
+    * V.21.1.1 (2021-06-28) 
     *   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
     *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
     *   [fix] WG_GetRandomString() index overflow
+    * ----------------------------------------------------------------------------------------------
+    * 2021-04-03 : UI응답부 template fileload 대체
+    *              server list update
+    * 2021-03-24 : response.setContentType() 처리 추가
+    * 2021-01-20 : 부하발생용 parameter 처리
+    * 	            api call timeout 1초 --> 2초
     * ==============================================================================================
     */
 
-
-    
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.2";
+        $WG_VERSION         = "V.21.1.3";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
         $WG_IS_CHECKOUT_OK  = false;        // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        $WG_GATE_SERVERS    = array (       // [fixed] 대기표 발급서버 Address List
-		    "9000-0.devy.kr",
-            "9000-1.devy.kr",
-            "9000-2.devy.kr",
-            "9000-3.devy.kr",
-            "9000-4.devy.kr",
-		    "9000-5.devy.kr",
-            "9000-6.devy.kr",
-            "9000-7.devy.kr",
-            "9000-8.devy.kr",
-            "9000-9.devy.kr"); 
-
+        $WG_GATE_SERVER_MAX = 10;           // [fixed] was dns record count
+        $WG_GATE_SERVERS    = array ();     // [fixed] 대기표 발급서버 Address List
         $WG_TOKEN_NO        = "";           // 대기표 ID
         $WG_TOKEN_KEY       = "";           // 대기표 key
         $WG_WAS_IP          = "";           // 대기표 발급서버
@@ -48,6 +41,11 @@
         $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
 
 
+        /* init gate server list */
+        for($i=0; $i < $WG_GATE_SERVER_MAX; $i++)
+        {
+            array_push($WG_GATE_SERVERS, $service_id."-".$i.".devy.kr");
+        }
 
 	    /*
         JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)

@@ -6,7 +6,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import javax.servlet.http.Cookie;
@@ -18,53 +20,48 @@ import javax.servlet.http.HttpServletResponse;
 
 /* 
 * ==============================================================================================
-* * 메가펜스 유량제어서비스 BACKEND 공통모듈(JAVA) V.21.1.1
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.21.1.3
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
-* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하되 해당 내용은 반드시 공급처에 통보해야 합니다.
-* 허가된 고객 및 환경 이외에서의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
+* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
+* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
 * 작성자 : ysd@devy.co.kr
+* All rights reserved to DEVY / https://devy.kr
 * ----------------------------------------------------------------------------------------------
 * <주의>
 * 0. 이 파일은 코드 수정이 필요 없습니다. (import용 library) 
 * 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 주의)
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
-*
-* 2021-01-20 : 부하발생용 parameter 처리
-* 	            api call timeout 1초 --> 2초
-* 2021-03-24 : response.setContentType() 처리 추가
+* ---------------------------------------------------------------------------------------------
+* <이력>
+* V.21.1.3 (2021-07-23) 
+*   [minor update] auto make $WG_GATE_SERVERS list
+*   [minor update] change api protocol http --> https   
+* V.21.1.1 (2021-06-29) 
+* 	minor fix & 안정화
 * 2021-04-03 : UI응답부 template fileload 대체
 *              server list update
-* V.21.1.1 (2021-06-29) ------------------------------------------------------------------------
-* 	minor fix & 안정화
+* 2021-03-24 : response.setContentType() 처리 추가
+* 2021-01-20 : 부하발생용 parameter 처리
+* 	            api call timeout 1초 --> 2초
 * ==============================================================================================
 */
 
 public class WebGate {
 	//private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	String  $WG_VERSION            = "V.21.1.1";           
-	String  $WG_SERVICE_ID         = "";          			// 할당받은 Service ID
-	String  $WG_GATE_ID            = "";             		// 사용할 GATE ID
-	int     $WG_MAX_TRY_COUNT      = 3;                    	// [fixed] failover api retry count
-	boolean $WG_IS_CHECKOUT_OK     = false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-	String  $WG_GATE_SERVERS[]     = { 					   	// [fixed] 대기표 발급서버 LIST
-		    "9000-0.devy.kr",
-            "9000-1.devy.kr",
-            "9000-2.devy.kr",
-            "9000-3.devy.kr",
-            "9000-4.devy.kr",
-		    "9000-5.devy.kr",
-            "9000-6.devy.kr",
-            "9000-7.devy.kr",
-            "9000-8.devy.kr",
-            "9000-9.devy.kr"}; 
-
-	String  $WG_TOKEN_NO           	= "";                   // 대기표 ID
-	String  $WG_TOKEN_KEY          	= "";                   // 대기표 key
-	String  $WG_WAS_IP             	= "";                   // 대기표 발급서버
-	String  $WG_TRACE              	= "";                   // TRACE 정보 (쿠키응답)
-	String  $WG_IS_LOADTEST		   	= "N";					//jmeter 등으로 발생시킨 요청인지 여부
+	String  $WG_VERSION            	= "V.21.1.3";           
+	String  $WG_SERVICE_ID        	= "";          				// 할당받은 Service ID
+	String  $WG_GATE_ID            	= "";             			// 사용할 GATE ID
+	int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
+	boolean $WG_IS_CHECKOUT_OK     	= false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
+	int		$WG_GATE_SERVER_MAX	   	= 10;						// [fixed] was dns record count
+	List<String>  $WG_GATE_SERVERS 	= new ArrayList<String>();	// [fixed] 대기표 발급서버 LIST
+	String  $WG_TOKEN_NO           	= "";                   	// 대기표 ID
+	String  $WG_TOKEN_KEY          	= "";                   	// 대기표 key
+	String  $WG_WAS_IP             	= "";                   	// 대기표 발급서버
+	String  $WG_TRACE              	= "";                   	// TRACE 정보 (쿠키응답)
+	String  $WG_IS_LOADTEST		   	= "N";						// jmeter 등으로 발생시킨 요청인지 여부
 
 	HttpServletRequest  $REQUEST ;
     HttpServletResponse $RESPONSE;
@@ -90,6 +87,13 @@ public class WebGate {
 		HttpServletRequest  $request = $REQUEST;
 	    HttpServletResponse $response = $RESPONSE;
 		
+        /* init gate server list */
+        for(int i=0; i < $WG_GATE_SERVER_MAX; i++)
+        {
+            $WG_GATE_SERVERS.add($WG_SERVICE_ID + "-"  + i + ".devy.kr");
+        }
+	    
+	    
 
 		/******************************************************************************
 	    STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
@@ -115,7 +119,7 @@ public class WebGate {
 	                    && $WG_WAS_IP    != null && $WG_WAS_IP.equals("")    == false)
 	                {
 	                    // 대기표 Validation(checkout api call)
-	                    URL $url = new URL("http://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST);
+	                    URL $url = new URL("https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST);
 	                    URLConnection $con = $url.openConnection();
 	                    $con.setConnectTimeout(2000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
 	                    $con.setReadTimeout(2000);    //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
@@ -178,7 +182,7 @@ public class WebGate {
 	                && $WG_WAS_IP    != null && $WG_WAS_IP.equals("")    == false)
 	            {
 
-	            	String $urlText = "http://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+	            	String $urlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 	                //logger.info($urlText);
 
 	                // 대기표 Validation(checkout api call)
@@ -219,8 +223,8 @@ public class WebGate {
 
 	    	String $lineText="";
 	        String $receiveText="";
-	        int $serverCount = $WG_GATE_SERVERS.length;
-	        int $drawResult = new Random().nextInt($WG_GATE_SERVERS.length) + 0;
+	        int $serverCount = $WG_GATE_SERVERS.size();
+	        int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
 
 	        
 	        // Fail-over를 위해 최대 3차까지 시도
@@ -230,8 +234,8 @@ public class WebGate {
 	                // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
 
 	                // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-	                String $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
-	            	String $apiUrl = "http://" + $serverIp + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+	                String $serverIp = $WG_GATE_SERVERS.get(($drawResult++)%($serverCount));
+	            	String $apiUrl = "https://" + $serverIp + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 
 	                // 대기표 Validation(checkout api call)
 	                URL $url = new URL($apiUrl);
