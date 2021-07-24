@@ -53,20 +53,46 @@
 
     <!-- custom css -->
     <link href="//cdn.devy.kr/dist/bulma-0.7.1/bulma.css" rel="stylesheet" />
+
+    <style>
+        html, body {
+            width:100%;
+            height:100%;
+            overflow-y : hidden;
+
+        }
+
+        video {
+            position: fixed; right: 0; bottom: 0;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto; z-index: -100;
+            max-width: none !important;
+
+        }
+
+    </style>
+
 </head>
 <body>
+    <video id="myvideo" autoplay muted loop>
+        <source src="movie/videoblocks-night-view-from-the-hotel-window-on-the-moon-and-sea_b8_v-rcrr_720__D.mp4" type="video/mp4">
+        video 요소를 지원하지 않는 브라우저입니다. 동영상은 다운로드 후 볼 수 있습니다.
+    </video>
+
+
     <div id="app" class="container">
         <form id="form1">
             <div class="notification is-info">
-                <h1 class="title">Hello, World!!!</h1>
-                <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
-                <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
+                <h1 class="title">[DEMO] WELLCOME, TO THE MOON TRAVEL!!!</h1>
             </div>
 
-            <hr/>
-            <div class="notification is-white has-text-centered">
-                <span class="tag is-light is-large is-rounded">다른 데모 : </span>
-                <a class="button is-dark" href="frontend.html">Frontend 방식 DEMO</a> <a class="button is-dark" href="landing.html">Landing 방식 DEMO</a>
+            <div class="notification is-white has-text-centered" style="position:fixed; width:100%; left:0; bottom:0; background-color:#000000ee;">
+                <h2 class="has-text-light">Backend 방식의 유량제어가 적용된 SAMPLE 업무페이지입니다.</h2>
+                <h2 class="has-text-light">CDN Landing 방식을 거쳐서 왔다면 바로 열리지만 새로고침이나 직접 접속하는 경우 유량제어가 동작합니다.</h2>
+                <h2 class="has-text-light">Backend 방식은 대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
+                <hr/>
+                <a class="button is-warning" href="frontend.html">Frontend 방식 DEMO</a> 
+                <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

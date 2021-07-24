@@ -25,14 +25,13 @@
             bottom: 0;
             min-width: 100%;
             min-height: 100%;
-            opacity: 0.2;
         }
 
         .container {
             position: absolute;
             left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            bottom:2rem;
+            transform: translateX(-50%);
             padding: 20px;
             text-align: left;
             max-width: 800px;
@@ -57,7 +56,8 @@
 
     <div id="app" class="container">
         <form id="form1">
-            <h1 class="title">TO THE MOON 여행 패키지 신청
+            <h1 class="title">
+                [DEMO] TO THE MOON 여행 패키지 신청
             </h1>
             <h2 class="subtitle"></h2>
             <div class="field">
@@ -74,7 +74,7 @@
                 </div>
             </div>
 
-            <div class="field">
+            <div class="field ">
                 <label class="label">Course</label>
                 <div class="control">
                     <div class="select">
@@ -85,20 +85,20 @@
                 </div>
             </div>
         </form>
-
         <hr />
+
 
         <div class="field is-grouped">
             <div class="control">
-                <!-- 
+                <!--
                 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-                    BEGIN OF 유량제어 호출  
+                    BEGIN OF 유량제어 호출
                     Click 이벤트에서 WG_StartWebGate() 호출하도, 기존 업무로직 함수는  bind 처리
                     BEFORE : onclick="yourProcess(p1, p2, ...)
                     AFTER  : onclick= "WG_StartWebGate(GATE_ID, yourProcess.bind(this, p1, p2, ...)" -->
-                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'A'))">A상품 주문</button>
-                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'B'))">B상품 주문</button>
-                <!-- END OF 유량제어 호출 
+                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'A'))">주문하기</button>
+                <button class="button is-oreder is-link" type="button" onclick="WG_StartWebGate(1, yourProcess.bind(this, 'B'))">상담예약</button>
+                <!-- END OF 유량제어 호출
                 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲-->
 
             </div>
@@ -106,15 +106,12 @@
                 <button class="button is-text" onclick="window.location.href='/';">Cancel</button>
             </div>
         </div>
-        <p class="has-text-info">Submit 버튼 Click 시 Frontend 방식의 유량제어 서비스를 호출합니다.</p>
-        <hr />
-        <div class="notification is-white has-text-centered">
-            <span class="tag is-light is-large is-rounded">다른 데모 : </span>
-            <a class="button is-dark" href="backend.php">Backend 방식 DEMO</a> <a class="button is-dark" href="landing.html">Landing 방식 DEMO</a>
+        <p class="has-text-grey has-text-weight-bold">버튼 Click 시 Frontend 방식의 유량제어 서비스를 호출합니다.</p>
+        <div class="notification is-white has-text-centered" style="padding-bottom:0;">
+            <a class="button is-warning" href="backend.php">Backend 방식 DEMO</a>
+            <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
         </div>
-
     </div>
-
 
 
     <!-- Custom lib -->
@@ -125,11 +122,12 @@
 
 
     <!--
-    ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 
+    ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
         BEGIN OF 유량제어 include
-        1. 아래의 css 및 js 경로에서 "9000" 대신 할당받은 SERVICE-ID로 수정 --> 
-    <link  href="https://cdn.devy.kr/9000/css/webgate.css?v=21.1.0" rel="stylesheet" />
-    <script src="https://cdn.devy.kr/9000/js/webgate.js?v=21.1.0"></script>
+        1. 아래의 css 및 js 경로에서 "9000" 대신 할당받은 SERVICE-ID로 수정 -->
+    <link href="https://cdn.devy.kr/9000/css/webgate.css?v=210716" rel="stylesheet" />
+    <link href="https://cdn.devy.kr/9000/css/webgate-front.css?v=210716" rel="stylesheet" />
+    <script src="https://cdn.devy.kr/9000/js/webgate.js?v=210716"></script>
 
     <!-- END OF 유량제어 include
     ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲-->
