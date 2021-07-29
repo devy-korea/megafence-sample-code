@@ -9,22 +9,10 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
-    '* V.21.1.3 (2021-07-23) 
-    '*   [minor update] auto make $WG_GATE_SERVERS list
-    '* ----------------------------------------------------------------------------------------------
-    '* V.21.1.1 (2021-06-28) 
-    '*   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
-    '*   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
-    '*   [fix] WG_GetRandomString() index overflow
-    '* ----------------------------------------------------------------------------------------------
-    '* 2021-04-03 : UI응답부 template fileload 대체
-    '*              server list update
-    '* 2021-03-24 : response.setContentType() 처리 추가
-    '* 2021-01-20 : 부하발생용 parameter 처리
-    '* 	            api call timeout 1초 --> 2초
+    '* V.21.1.3 (2021-07-30) 
+    '*   최초 작성
     '* ==============================================================================================
     '*/
-    
     
     FUNCTION WG_IsNeedToWaiting(WG_SERVICE_ID, WG_GATE_ID)
         Dim WG_VERSION         
