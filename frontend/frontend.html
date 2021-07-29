@@ -19,6 +19,7 @@
             overflow-y: hidden;
             background-color: black;
         }
+
         #myVideo {
             position: fixed;
             right: 0;
@@ -26,10 +27,11 @@
             min-width: 100%;
             min-height: 100%;
         }
+
         .container {
             position: absolute;
             left: 50%;
-            bottom:2rem;
+            bottom: 2rem;
             transform: translateX(-50%);
             padding: 20px;
             text-align: left;
@@ -39,6 +41,7 @@
             border-radius: 20px;
             overflow-y: hidden;
         }
+
         label.error {
             font-size: 0.9rem;
             color: red;
@@ -114,9 +117,9 @@
      BEGIN OF 유량제어 include (body 하단부에 배치해 주세요)
      --------------------------------------------------------------------------------
      ※테스트 성공 후 아래의 css 및 js 경로에서 "9000" 대신 할당받은 SERVICE-ID로 변경하세요-->
-    <link   href="https://cdn.devy.kr/9000/css/webgate.css?v=210716" rel="stylesheet" />
-    <link   href="https://cdn.devy.kr/9000/css/webgate-frontend.css?v=210716" rel="stylesheet" />
-    <script src ="https://cdn.devy.kr/9000/js/webgate.js?v=210716"></script>
+    <link href="https://cdn.devy.kr/9000/css/webgate.css?v=210716" rel="stylesheet" />
+    <link href="https://cdn.devy.kr/9000/css/webgate-frontend.css?v=210716" rel="stylesheet" />
+    <script src="https://cdn.devy.kr/9000/js/webgate.js?v=210716"></script>
     <!-- END OF 유량제어 include -->
 
     <script>
@@ -136,7 +139,7 @@
             });
         document.getElementById("reservation-button")
             .addEventListener("click", function () {
-                WG_StartWebGate(1, doYourProcess.bind(null, "B"));
+                WG_StartWebGate(1, doYourProcess.bind(null));
             });
         /* END OF 유량제어 호출 */
 
@@ -154,11 +157,10 @@
          * Ajax 호출, post 처리 등 원래 처리되고 있던 Business logic을 여기에 구현합니다.
          * */
         function doYourProcess(productId) {
-
-            setTimeout(function () {
+            if (productId)
                 alert(productId + " 상품 주문이 접수되었습니다.");
-            }, 500);
-
+            else
+                alert("예약이 접수되었습니다.");
         }
     </script>
 </body>
