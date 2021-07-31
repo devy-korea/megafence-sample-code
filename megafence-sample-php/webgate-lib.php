@@ -1,13 +1,18 @@
 ﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.3
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.5
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
+    * V.21.1.5 (2021-07-31) 
+    *   [minor fix] change api url protocol, http --> https
+    * ----------------------------------------------------------------------------------------------
+    * V.21.1.4 (2021-07-29) 
+    *   [minor fix] missing getparm of IsLoadTest
     * V.21.1.3 (2021-07-23) 
     *   [minor update] auto make $WG_GATE_SERVERS list
     * ----------------------------------------------------------------------------------------------
@@ -27,7 +32,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.3";
+        $WG_VERSION         = "V.21.1.5";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -50,6 +55,10 @@
 	    /*
         JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
 	    */
+        if (isset($_GET["IsLoadTest"]))
+        {
+            $WG_IS_LOADTEST = $_GET["IsLoadTest"];
+        }
         if($WG_IS_LOADTEST != null || $WG_IS_LOADTEST == "Y" )
         {
             $WG_IS_LOADTEST = "Y";
@@ -69,7 +78,7 @@
             {
                 $WG_TRACE .= "STEP1, ";
 
-                // WG_TOKEN paramter를 '|'로 분리 및 분리된 개수 체크
+                // WG_TOKEN paramter를 ','로 분리 및 분리된 개수 체크
                 $parameterValues = explode(",", $_GET["WG_TOKEN"]);
                 if (count($parameterValues) == count(explode(",", "GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP")))
                 {
@@ -83,7 +92,8 @@
                         && $WG_WAS_IP    !== null   && $WG_WAS_IP    !== "")
                     {
                         // 대기표 Validation(checkout api call)
-                        $apiUrl = "http://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+
                         $responseText = file_get_contents($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
@@ -125,7 +135,7 @@
                 if($WG_TOKEN_NO !== null && $WG_TOKEN_NO !=="" && $WG_TOKEN_KEY !== null && $WG_TOKEN_KEY !== "" && $WG_WAS_IP !== null && $WG_WAS_IP !== "")
                 {
                     // 대기표 Validation(checkout api call)
-                    $apiUrl = "http://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     
                     $responseText = file_get_contents($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -162,7 +172,7 @@
                 try
                 {
                     $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
-                    $apiUrl =  "http://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     $responseText = file_get_contents($apiUrl);
                     if($responseText == null || $responseText == "") { continue; }  
 

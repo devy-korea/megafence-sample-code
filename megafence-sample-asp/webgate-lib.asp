@@ -9,6 +9,9 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.21.1.5 (2021-07-31) 
+    '*   [minor fix] change api url protocol, http --> https
+    '* ----------------------------------------------------------------------------------------------
     '* V.21.1.3 (2021-07-30) 
     '*   최초 작성
     '* ==============================================================================================
@@ -27,7 +30,7 @@
         Dim WG_IS_LOADTEST, WG_IS_LOADTEST_PARAM     
 
 
-        WG_VERSION              = "V.21.1.3"
+        WG_VERSION              = "V.21.1.5"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 10                           '[fixed] was dns record count
@@ -80,7 +83,7 @@
                     'Response.Write( "WG_TOKEN_NO:" & TEMP_TOKEN_NO & ", WG_TOKEN_KEY:" & TEMP_TOKEN_KEY & ", WG_WAS_IP:" & TEMP_WAS_IP)                
                     
                     '대기표 Validation(checkout api call)
-                    ApiUrl =  "http://" & TEMP_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & TEMP_TOKEN_NO & "&TokenKey=" & TEMP_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                    ApiUrl =  "https://" & TEMP_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & TEMP_TOKEN_NO & "&TokenKey=" & TEMP_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                     'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
 
                     ' Call API
@@ -116,7 +119,7 @@
                    Not IsNull(WG_WAS_IP) And Not IsEmpty(WG_WAS_IP) Then
 
                     '대기표 Validation(checkout api call)
-                    ApiUrl =  "http://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                    ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
 
                     ' Call API
                     ResponseText = WG_GetTextFromUrl(ApiUrl, XmlHttp)
@@ -150,7 +153,7 @@
                 'Try 시작
                 On Error Resume Next   
                     WG_WAS_IP = WG_GATE_SERVERS((DrawResult+i) Mod WG_GATE_SERVER_MAX)
-                    ApiUrl =  "http://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                    ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                     ' Call API
                     ResponseText = WG_GetTextFromUrl(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
