@@ -128,18 +128,16 @@
          * -------------------------------------------------------------------------------
             1. 버튼의 click 이벤트에서 WG_StartWebGate() 호출하고, 기존 업무로직은 bind 처리
                 BEFORE: function() { doYourProcess(p1, p2, ...); }
-                AFTER : function() { WG_StartWebGate(GATE-ID, doYourProcess.bind(null, p1, p2, ...); }
-            2. 이 샘플에서 대기UI가 표시되면 OK, GATE - ID를 할당받은 값으로 변경해서 사용합니다.
+                AFTER : function() { WG_StartWebGate(GATE-ID, doYourProcess.bind(null, p1, p2, ..., "FRONTEND"); }
+            2. 이 샘플에서 대기UI가 표시되면 테스트 성공 
+               테스트 성공 시, script 바로위의 link 및 script 경로에서 SERVICE-ID를, 아래에서 GATE-ID를 할당받은 값으로 수정해서 사용)
+                
         */
 
-        // 주문버튼 OR 상담예약 클릭 시 GATE-ID 1로 유량제어 호출합니다
+        // 버튼 클릭 시 GATE-ID 1로 유량제어 호출합니다
         document.getElementById("order-button")
             .addEventListener("click", function () {
-                WG_StartWebGate(1, doYourProcess.bind(null, "A"));
-            });
-        document.getElementById("reservation-button")
-            .addEventListener("click", function () {
-                WG_StartWebGate(1, doYourProcess.bind(null));
+                WG_StartWebGate(1/*GATE-ID*/, doYourProcess.bind(null), "FRONTEND"/*fixed*/);
             });
         /* END OF 유량제어 호출 */
 

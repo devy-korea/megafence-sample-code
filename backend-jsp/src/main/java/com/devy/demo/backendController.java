@@ -20,12 +20,7 @@ public class backendController {
     @GetMapping("/")
     public String index(HttpServletRequest request, HttpServletResponse response) throws Exception {
     	
-    	return "backend-sample";
+    	return "index";
     }
 
-    @GetMapping("/backend-sample")
-    public String backendSample(HttpServletRequest request, HttpServletResponse response) throws Exception {
-    	
-    	return "backend-sample";
-    }
 }

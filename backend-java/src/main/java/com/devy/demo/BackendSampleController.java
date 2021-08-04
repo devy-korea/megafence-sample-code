@@ -36,7 +36,7 @@ import com.devy.megafence.WebGate;
 @Controller
 public class BackendSampleController {
 
-    @GetMapping("/backend-sample") 
+    @GetMapping("/") 
     public String index(HttpServletRequest request, HttpServletResponse response) {
 
     	

@@ -36,6 +36,9 @@
 <%@page import="java.net.URLEncoder"%>
 <%@page import="java.util.*"%>
 <%@page import="java.text.SimpleDateFormat"%>
+<%@page import="javax.servlet.http.*"%>
+
+
 
 <%!  
 public boolean WG_IsNeedToWaiting(String $service_id, String $gate_id,  HttpServletRequest $request, HttpServletResponse $response) 

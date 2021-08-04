@@ -31,7 +31,7 @@ Light business logic ....
 <!--
 BEGIN OF 유량제어 코드삽입
 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼--> 
-<%@ include file="webgate-lib.jsp" %>
+<%@ include file="./webgate-lib.jsp" %>
 <%
 	// Setting 
 	String serviceId 	= "9000"; // 할당받은 SERVICE ID (fixed)
