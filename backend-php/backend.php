@@ -92,7 +92,7 @@
                 <h2 class="has-text-light">Backend 방식은 대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
                 <hr/>
                 <a class="button is-warning" href="frontend.html">Frontend 방식 DEMO</a> 
-                <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
+                <a class="button is-warning" href="https://cdn2.devy.kr/9000/landing.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

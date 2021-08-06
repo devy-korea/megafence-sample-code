@@ -209,8 +209,8 @@
                 "</head>"                                                                                                                               & vbCrLf &_
                 "<body>"                                                                                                                                & vbCrLf &_
                 "    <div id='wg-body-wrapper'></div>"                                                                                                  & vbCrLf &_
-                "    <link href='https://cdn.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>"                                         & vbCrLf &_
-                "    <script type='text/javascript' src='https://cdn.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>"                           & vbCrLf &_
+                "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>"                                         & vbCrLf &_
+                "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>"                           & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
                 "        window.addEventListener('load', function () {"                                                                                 & vbCrLf &_
                 "            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload "                                                            & vbCrLf &_
