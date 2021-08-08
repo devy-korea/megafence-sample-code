@@ -34,8 +34,8 @@ BEGIN OF 유량제어 코드삽입
 <%@ include file="./webgate-lib.jsp" %>
 <%
 	// Setting 
-	int serviceId 	= 9000; // 할당받은 SERVICE ID (fixed)
-	int gateId 		= 1; 	  // 사용할 GATE ID (할당받은 GATE ID 중에서 사용) 
+	String serviceId 	= "9000"; // 할당받은 SERVICE ID (fixed)
+	String gateId 		= "1"; 	  // 사용할 GATE ID (할당받은 GATE ID 중에서 사용) 
 
 	// 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
 	if(WG_IsNeedToWaiting(serviceId, gateId,  request, response))

@@ -45,11 +45,11 @@
 
 
 <%!  
-public boolean WG_IsNeedToWaiting (int serviceId, int gateId,  HttpServletRequest req, HttpServletResponse res) {
+public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 	// begin of declare variable
 	String  $WG_VERSION            	= "V.21.1.4";           
-	int     $WG_SERVICE_ID        	= 0;          				// 할당받은 Service ID
-	int     $WG_GATE_ID            	= 0;             			// 사용할 GATE ID
+	String  $WG_SERVICE_ID        	= "0";          				// 할당받은 Service ID
+	String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 	int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
 	boolean $WG_IS_CHECKOUT_OK     	= false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
 	int		$WG_GATE_SERVER_MAX	   	= 10;						// [fixed] was dns record count
@@ -102,11 +102,12 @@ public boolean WG_IsNeedToWaiting (int serviceId, int gateId,  HttpServletReques
                 $WG_TOKEN_NO    = tokenPparamValues[1];
                 $WG_TOKEN_KEY   = tokenPparamValues[2];
                 $WG_WAS_IP      = tokenPparamValues[3];
+                String paramGateId = tokenPparamValues[0];
 
                 if( $WG_TOKEN_NO     != null && $WG_TOKEN_NO.equals("")  == false 
                     && $WG_TOKEN_KEY != null && $WG_TOKEN_KEY.equals("") == false 
                     && $WG_WAS_IP    != null && $WG_WAS_IP.equals("")    == false
-                    && Integer.toString($WG_GATE_ID).equals(cookieGateId))
+                    && $WG_GATE_ID.equals(paramGateId))
                 {
                     // 대기표 Validation(checkout api call)
                     String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
@@ -162,7 +163,7 @@ public boolean WG_IsNeedToWaiting (int serviceId, int gateId,  HttpServletReques
             if( $WG_TOKEN_NO     != null && $WG_TOKEN_NO.equals("")  == false 
                 && $WG_TOKEN_KEY != null && $WG_TOKEN_KEY.equals("") == false 
                 && $WG_WAS_IP    != null && $WG_WAS_IP.equals("")    == false
-                && Integer.toString($WG_GATE_ID).equals(cookieGateId))
+                && $WG_GATE_ID.equals(cookieGateId))
             {
 
             	String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
@@ -257,7 +258,7 @@ public boolean WG_IsNeedToWaiting (int serviceId, int gateId,  HttpServletReques
 	return $WG_IS_NEED_TO_WAIT;
 }
 
-public String WG_GetWaitingUi(int serviceId, int gateId) {
+public String WG_GetWaitingUi(String serviceId, String gateId) {
 	String html = "<!DOCTYPE html>\r\n"
 				+ "<html>\r\n"
 				+ "<head>\r\n"
@@ -279,8 +280,8 @@ public String WG_GetWaitingUi(int serviceId, int gateId) {
 				+ "</html>";
 			 
 	return html
-			.replaceAll("WG_SERVICE_ID", Integer.toString(serviceId))
-			.replaceAll("WG_GATE_ID", Integer.toString(gateId));
+			.replaceAll("WG_SERVICE_ID", serviceId)
+			.replaceAll("WG_GATE_ID", gateId);
 	
 }
 

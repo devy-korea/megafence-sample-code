@@ -48,8 +48,8 @@ public class BackendSampleController {
     	
     	/* BEGIN OF 유량제어 코드삽입
     	▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */ 
-    	int serviceId 	= 9000; 	// 할당받은 SERVICE ID (fixed)
-    	int gateId 		= 1;  	// 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
+    	String serviceId 	= "9000"; 	// 할당받은 SERVICE ID (fixed)
+    	String gateId 		= "1";  	// 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
     	WebGate webgate = new WebGate(); 
     	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	{
