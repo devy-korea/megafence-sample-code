@@ -9,6 +9,11 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.21.1.10 (2021-08-08) 
+    '*   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
+    '*   rename cookie WG_VERSION --> WG_VER_BACKEND
+    '*   add WG_ReadCookie(), WG_WriteCookie()
+    '*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
     '* V.21.1.5 (2021-07-31) 
     '*   [minor fix] change api url protocol, http --> https
     '* ----------------------------------------------------------------------------------------------
@@ -30,7 +35,7 @@
         Dim WG_IS_LOADTEST, WG_IS_LOADTEST_PARAM     
 
 
-        WG_VERSION              = "V.21.1.5"
+        WG_VERSION              = "V.21.1.10"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 10                           '[fixed] was dns record count
@@ -64,7 +69,7 @@
         '*******************************************************************************
         'Try 시작
         On Error Resume Next   
-            WG_TRACE = WG_TRACE & "STEP1, "
+            WG_TRACE = WG_TRACE & "STEP1: "
             'WG_TOKEN paramter를 ','로 분리 및 분리된 개수 체크
             Dim TokenParam
             TokenParam = Request.QueryString("WG_TOKEN")
@@ -90,12 +95,19 @@
                     ResponseText = WG_GetTextFromUrl(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                         WG_IS_CHECKOUT_OK = True
+                        WG_TRACE = WG_TRACE & "OK, "
+                    Else
+                        WG_TRACE = WG_TRACE & "FAIL, "
                     End if
+                Else
+                    WG_TRACE = WG_TRACE & "SKIP1, "
                 End If
+            Else
+                WG_TRACE = WG_TRACE & "SKIP2, "
             End If
         'Catch
         If Err <> 0 Then   
-            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ", "
             'ignore & goto next
         End If
         'Error Clear
@@ -107,16 +119,18 @@
         '*******************************************************************************
         'Try 시작
         On Error Resume Next   
+            WG_TRACE = WG_TRACE & "STEP2: "
+
             If Not WG_IS_CHECKOUT_OK Then
-                WG_TRACE = WG_TRACE & "STEP2, "
-            
                 WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
                 WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
                 WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
-            
-                If Not IsNull(WG_TOKEN_NO) And Not IsEmpty(WG_TOKEN_NO) And _
-                   Not IsNull(WG_TOKEN_KEY) And Not IsEmpty(WG_TOKEN_KEY) And _
-                   Not IsNull(WG_WAS_IP) And Not IsEmpty(WG_WAS_IP) Then
+        
+                Dim cookieGateId
+                cookieGateId = Request.Cookies("WG_GATE_ID") 
+                
+    
+                If Len(WG_TOKEN_NO) > 0 And Len(WG_TOKEN_KEY) > 0 And Len(WG_WAS_IP) > 0 And StrCmp(WG_GATE_ID,cookieGateId) = 0 Then
 
                     '대기표 Validation(checkout api call)
                     ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
@@ -125,12 +139,19 @@
                     ResponseText = WG_GetTextFromUrl(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                         WG_IS_CHECKOUT_OK = True
+                        WG_TRACE = WG_TRACE & "OK, "
+                    Else
+                        WG_TRACE = WG_TRACE & "FAIL, "
                     End if
+                Else
+                    WG_TRACE = WG_TRACE & "SKIP1, "                    
                 End If
+            Else
+                WG_TRACE = WG_TRACE & "SKIP2, "
             End If
         'Catch
         If Err <> 0 Then   
-            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ", "
             'ignore & goto next
         End If
         'Error Clear
@@ -141,6 +162,7 @@
         'STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
         '         WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
         '*******************************************************************************/
+        WG_TRACE = WG_TRACE & "STEP3: "
         Dim WG_IS_NEED_TO_WAIT 
         WG_IS_NEED_TO_WAIT = False
 
@@ -157,41 +179,44 @@
                     ' Call API
                     ResponseText = WG_GetTextFromUrl(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
-                    
                         If InStr(ResponseText, "WAIT") Then
-                            WG_TRACE =  WG_TRACE & ApiUrl & "--> WAIT, "
+                            WG_TRACE =  WG_TRACE & "WAIT, "
                             WG_IS_NEED_TO_WAIT = True
                             Exit For
                         Else  ' PASS
-                            WG_TRACE =  WG_TRACE & ApiUrl & "--> PASS, "
+                            WG_TRACE =  WG_TRACE & "PASS, "
                             WG_IS_NEED_TO_WAIT = False
                             Exit For
                         End If
+                    Else
+                        WG_TRACE = WG_TRACE & "FAIL, "                    
                     End if
                 'Catch
                 If Err <> 0 Then   
-                    WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
+                    WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ", "
                     'ignore & goto next
                 End If
                 'Error Clear
                 On Error GoTo 0 
             Next
+        Else
+            WG_TRACE = WG_TRACE & "SKIP, "                    
         End If
 
         If WG_IS_CHECKOUT_OK Or Not WG_IS_NEED_TO_WAIT Then
-            WG_TRACE = WG_TRACE & "return:false, "
+            WG_TRACE = WG_TRACE & "returns False/PASS, "
             WG_IsNeedToWaiting = False
         Else
-            WG_TRACE = WG_TRACE & "return:true, "
+            WG_TRACE = WG_TRACE & "returns True/WAIT, "
             WG_IsNeedToWaiting = True
         End If
 
         'Cookie Write for trace
         Dim YmdHms : YmdHms = FormatDateTime(Date(), 2) & " " & FormatDateTime(Date(), 4) 
-        Dim Expire : Expire = FormatDateTime(Date()+7, 2) & " " & FormatDateTime(Date()+7, 4) 
-        Response.AddHeader "Set-Cookie", "WG_VERSION=" & WG_VERSION & ";Path=/;Expires=" & Expire
-        Response.AddHeader "Set-Cookie", "WG_TIME=" & YmdHms & ";Path=/;Expires=" & Expire
-        Response.AddHeader "Set-Cookie", "WG_TRACE=" & WG_TRACE & ";Path=/;Expires=" & Expire
+        
+        WG_WriteCookie "WG_VER_BACKEND", WG_VERSION
+        WG_WriteCookie "WG_TIME", YmdHms
+        WG_WriteCookie "WG_TRACE", WG_TRACE
     END FUNCTION
     
     
@@ -237,6 +262,10 @@
         End If
     End Function
 
+    Function WG_WriteCookie(Key,Value)
+        Dim Expire : Expire = FormatDateTime(Date()+7, 2) & " " & FormatDateTime(Date()+7, 4) 
+        Response.AddHeader "Set-Cookie", Key & "=" & Value & ";Path=/;Expires=" & Expire
+    End Function
 
 
     %>

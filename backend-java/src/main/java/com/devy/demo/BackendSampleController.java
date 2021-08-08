@@ -12,7 +12,7 @@ import com.devy.megafence.WebGate;
 
 /*
 * ==============================================================================================
-* 메가펜스 유량제어서비스 SAMPLE(JSP) V.21.1.0
+* 메가펜스 유량제어서비스 SAMPLE(JSP) V.21.1.4
 * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
 * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -48,13 +48,13 @@ public class BackendSampleController {
     	
     	/* BEGIN OF 유량제어 코드삽입
     	▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */ 
-    	String serviceId 	= "9000"; 	// 할당받은 SERVICE ID (fixed)
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
-    	WebGate webgate = new WebGate(serviceId, gateId, request, response ); 
-    	if(webgate.WG_IsNeedToWaiting())
+    	int serviceId 	= 9000; 	// 할당받은 SERVICE ID (fixed)
+    	int gateId 		= 1;  	// 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
+    	WebGate webgate = new WebGate(); 
+    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	{
     		// 대기가 필요하면 대기UI로 응답 대체 후 종료
-    		String uiHtml = webgate.WG_GetWaitingUi();
+    		String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
     		try {
     			response.setContentType("text/html");
         		PrintWriter out = response.getWriter();
