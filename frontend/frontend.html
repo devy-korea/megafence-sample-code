@@ -125,40 +125,36 @@
         /* -------------------------------------------------------------------------------
          * BEGIN OF 유량제어 호출
          * -------------------------------------------------------------------------------
-            1. 버튼의 click 이벤트에서 WG_StartWebGate() 호출하고, 기존 업무로직은 bind 처리
-                BEFORE: function() { doYourProcess(p1, p2, ...); }
-                AFTER : function() { WG_StartWebGate(GATE-ID, doYourProcess.bind(null, p1, p2, ..., "FRONTEND"); }
-            2. 이 샘플에서 대기UI가 표시되면 테스트 성공 
+            1. 버튼의 click 이벤트에서 WG_StartWebGate() 호출하고, 기존 업무로직은 bind로 호출
+                BEFORE: function() { yourOriginalProcess(p1, p2, ...); }
+                AFTER : function() { WG_StartWebGate(GATE-ID, yourOriginalProcess.bind(null, p1, p2, ..., "FRONTEND"); }
+            2. 이 샘플에서 대기UI가 표시되면 테스트 성공
                테스트 성공 시, script 바로위의 link 및 script 경로에서 SERVICE-ID를, 아래에서 GATE-ID를 할당받은 값으로 수정해서 사용)
-                
         */
 
         // 버튼 클릭 시 GATE-ID 1로 유량제어 호출합니다
         document.getElementById("order-button")
             .addEventListener("click", function () {
-                WG_StartWebGate(1/*GATE-ID*/, doYourProcess.bind(null), "FRONTEND"/*fixed*/);
+                WG_StartWebGate(1/*GATE-ID*/, yourOriginalProcess.bind(null), "FRONTEND"/*fixed*/);
             });
         /* END OF 유량제어 호출 */
-
-
-
-
-
-
-
-        $(function () {
-            $("#form1").validate();
-        })
 
         /* 고객사 Business logic 호출 부
          * Ajax 호출, post 처리 등 원래 처리되고 있던 Business logic을 여기에 구현합니다.
          * */
-        function doYourProcess(productId) {
+        function yourOriginalProcess(productId) {
             if (productId)
                 alert(productId + " 상품 주문이 접수되었습니다.");
             else
                 alert("예약이 접수되었습니다.");
         }
+    </script>
+    <!--end of sample code --------------------------------------------------------------->
+
+    <script>
+        $(function () {
+            $("#form1").validate();
+        })
     </script>
 </body>
 </html>
