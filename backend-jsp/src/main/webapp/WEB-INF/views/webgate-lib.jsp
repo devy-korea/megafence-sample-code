@@ -207,7 +207,8 @@ public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServlet
 
         
         // Fail-over를 위해 최대 3차까지 시도
-        for(int i = 0; i < $WG_MAX_TRY_COUNT; i++)
+        int $tryCount = 0;
+        for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
         {
             try{
                 // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
@@ -221,28 +222,30 @@ public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServlet
                 {
                     if(responseText.indexOf("WAIT") >= 0)
                     {
-                        $WG_TRACE +=  "WAIT→";
+                        $WG_TRACE +=  "WAIT,";
                         $WG_IS_NEED_TO_WAIT = true;
                         break;
                     } else { // PASS (대기가 없는 경우)
-                        $WG_TRACE +=  "PASS→";
+                        $WG_TRACE +=  "PASS,";
                         $WG_IS_NEED_TO_WAIT = false;
                         break;
                     }
                 }
             }catch (Exception $e){
     	    	// ignore & goto next
-            	$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
+            	$WG_TRACE += "ERROR:" + $e.getMessage() + ",";
             } 
         }
         // 코드가 여기까지 왔다는 것은
         // 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+        $WG_TRACE += "TryCount:" + $tryCount + ",";
     }
     else {
-    	$WG_TRACE += "SKIP→";
+    	$WG_TRACE += "SKIP,";
     }
     /* end of STEP-3 */ 
 	
+    $WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
     
     // write cookie for trace
     //WG_VERSION

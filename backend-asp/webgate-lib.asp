@@ -1,13 +1,15 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.3
+    '* 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.11
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.21.1.11 (2021-08-16) 
+    '*   Add Trace API TryCount in STEP-3
     '* V.21.1.10 (2021-08-08) 
     '*   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
     '*   rename cookie WG_VERSION --> WG_VER_BACKEND
@@ -34,7 +36,7 @@
         Dim WG_IS_LOADTEST, WG_IS_LOADTEST_PARAM     
 
 
-        WG_VERSION              = "V.21.1.10"
+        WG_VERSION              = "V.21.1.11"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 10                           '[fixed] was dns record count
@@ -94,19 +96,19 @@
                     ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                         WG_IS_CHECKOUT_OK = True
-                        WG_TRACE = WG_TRACE & "OK"
+                        WG_TRACE = WG_TRACE & "OK,"
                     Else
-                        WG_TRACE = WG_TRACE & "FAIL"
+                        WG_TRACE = WG_TRACE & "FAIL,"
                     End If
                 Else
-                    WG_TRACE = WG_TRACE & "SKIP1"
+                    WG_TRACE = WG_TRACE & "SKIP1,"
                 End If
             Else
-                WG_TRACE = WG_TRACE & "SKIP2"
+                WG_TRACE = WG_TRACE & "SKIP2,"
             End If
         'Catch
         If Err <> 0 Then   
-            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
             'ignore & goto next
         End If
         'Error Clear
@@ -137,22 +139,22 @@
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                         If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                             WG_IS_CHECKOUT_OK = True
-                            WG_TRACE = WG_TRACE & "OK"
+                            WG_TRACE = WG_TRACE & "OK,"
                         Else
-                            WG_TRACE = WG_TRACE & "FAIL"
+                            WG_TRACE = WG_TRACE & "FAIL,"
                         End If
                     Else
-                        WG_TRACE = WG_TRACE & "SKIP1"
+                        WG_TRACE = WG_TRACE & "SKIP1,"
                     End If
                 Else
-                    WG_TRACE = WG_TRACE & "SKIP2"
+                    WG_TRACE = WG_TRACE & "SKIP2,"
                 End If
             Else
-                WG_TRACE = WG_TRACE & "SKIP3"
+                WG_TRACE = WG_TRACE & "SKIP3,"
             End If
         'Catch
         If Err <> 0 Then   
-            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
             'ignore & goto next
         End If
         'Error Clear
@@ -170,48 +172,52 @@
         On Error Resume Next   
             If Not WG_IS_CHECKOUT_OK Then
                 Dim LineText, ReceiveText, DrawResult
+                Dim TryCount
+
                 Randomize
                 DrawResult = Int(WG_GATE_SERVER_MAX * Rnd + 0)
 
-                For i = 0 To WG_MAX_TRY_COUNT Step 1
+                TryCount = 0
+                For TryCount = 0 To WG_MAX_TRY_COUNT Step 1
                     'Try 시작
                     On Error Resume Next   
-                        WG_WAS_IP = WG_GATE_SERVERS((DrawResult+i) Mod WG_GATE_SERVER_MAX)
+                        WG_WAS_IP = WG_GATE_SERVERS(DrawResult Mod WG_GATE_SERVER_MAX)
+                        DrawResult = DrawResult + 1
                         ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                         ' Call API
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                         If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
                             If InStr(ResponseText, "WAIT") Then
-                                WG_TRACE =  WG_TRACE & "WAIT"
+                                WG_TRACE =  WG_TRACE & "WAIT,"
                                 WG_IS_NEED_TO_WAIT = True
                                 Exit For
                             Else  ' PASS
-                                WG_TRACE =  WG_TRACE & "PASS"
+                                WG_TRACE =  WG_TRACE & "PASS,"
                                 WG_IS_NEED_TO_WAIT = False
                                 Exit For
                             End If
                         Else
-                            WG_TRACE = WG_TRACE & "FAIL"                    
+                            WG_TRACE = WG_TRACE & "FAIL,"                    
                         End If
                     'Catch
                     If Err <> 0 Then   
-                        WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
+                        WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
                         'ignore & goto next
                     End If
                     'Error Clear
                     On Error GoTo 0 
                 Next
             Else
-                WG_TRACE = WG_TRACE & "SKIP"
+                WG_TRACE = WG_TRACE & "SKIP,"
             End If
+            WG_TRACE = WG_TRACE & "TryCount:" & Cstr(TryCount) & ","
 
             If WG_IS_CHECKOUT_OK Or Not WG_IS_NEED_TO_WAIT Then
-                WG_TRACE = WG_TRACE & ", returns False"
                 WG_IsNeedToWaiting = False
             Else
-                WG_TRACE = WG_TRACE & ", returns True"
                 WG_IsNeedToWaiting = True
             End If
+            WG_TRACE = WG_TRACE & "→Returns:" & Cstr(WG_IsNeedToWaiting)
 
         'Catch
         If Err <> 0 Then   

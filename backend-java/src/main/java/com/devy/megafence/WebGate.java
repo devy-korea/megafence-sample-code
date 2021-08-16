@@ -34,6 +34,12 @@ import javax.servlet.http.HttpServletResponse;
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
 * <이력>
+* V.21.1.11 (2021-08-16) 
+*   Add Trace API TryCount in STEP-3
+* V.21.1.10 (2021-08-08) 
+*   WG_TRACE 내용 축소(apiUrl 제거)
+*   rename cookie WG_VERSION --> WG_VER_BACKEND
+*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
 * V.21.1.4 (2021-08-08)
 * 	[minor update] check gateid(from cookie) in STEP1 & STEP2
 * 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
@@ -219,9 +225,9 @@ public class WebGate {
 	        int $serverCount = $WG_GATE_SERVERS.size();
 	        int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
 
-	        
+	        int $tryCount = 0;
 	        // Fail-over를 위해 최대 3차까지 시도
-	        for(int i = 0; i < $WG_MAX_TRY_COUNT; i++)
+	        for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
 	        {
 	            try{
 	                // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
@@ -235,28 +241,31 @@ public class WebGate {
 	                {
 	                    if(responseText.indexOf("WAIT") >= 0)
 	                    {
-	                        $WG_TRACE +=  "WAIT→";
+	                        $WG_TRACE +=  "WAIT,";
 	                        $WG_IS_NEED_TO_WAIT = true;
 	                        break;
 	                    } else { // PASS (대기가 없는 경우)
-	                        $WG_TRACE +=  "PASS→";
+	                        $WG_TRACE +=  "PASS,";
 	                        $WG_IS_NEED_TO_WAIT = false;
 	                        break;
 	                    }
 	                }
 	            }catch (Exception $e){
 	    	    	// ignore & goto next
-	            	$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
+	            	$WG_TRACE += "ERROR:" + $e.getMessage() + ",";
 	            } 
 	        }
 	        // 코드가 여기까지 왔다는 것은
 	        // 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+		    $WG_TRACE += "TryCount:" + $tryCount + ",";
 	    }
 	    else {
-	    	$WG_TRACE += "SKIP→";
+	    	$WG_TRACE += "SKIP,";
 	    }
 	    /* end of STEP-3 */ 
 		
+	    
+	    $WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
 	    
 	    // write cookie for trace
 	    //WG_VERSION

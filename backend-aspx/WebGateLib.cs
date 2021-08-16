@@ -15,6 +15,8 @@ using System.Web;
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V.21.1.11 (2021-08-16) 
+*   Add Trace API TryCount in STEP-3
 * V.21.1.10 (2021-08-08) 
 *   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
 *   rename cookie WG_VERSION --> WG_VER_BACKEND
@@ -48,7 +50,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.21.1.10";
+        const string WG_VERSION = "V.21.1.11";
         public int WG_SERVICE_ID = 0;
         public int WG_GATE_ID = 0;
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -129,7 +131,7 @@ namespace devy.WebGateLib
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
-                                WG_TRACE += $"OK";
+                                WG_TRACE += $"OK,";
                             }else
                             {
                                 WG_TRACE += $"{apiUrl}--> FAIL, ";
@@ -137,19 +139,19 @@ namespace devy.WebGateLib
                         }
                         else
                         {
-                            WG_TRACE += $"SKIP1";
+                            WG_TRACE += $"SKIP1,";
                         }
 
                     }
                 }
                 else
                 {
-                    WG_TRACE += $"SKIP2";
+                    WG_TRACE += $"SKIP2,";
                 }
             }
             catch (Exception ex)
             {
-                WG_TRACE += $"ERROR:{ex.Message}";
+                WG_TRACE += $"ERROR:{ex.Message},";
                 // ignore & goto next
             }
             /* end of STEP-1 */
@@ -191,24 +193,24 @@ namespace devy.WebGateLib
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
-                                WG_TRACE += $"OK";
+                                WG_TRACE += $"OK,";
                                 WG_IS_CHECKOUT_OK = true;
                             }
                             else
                             {
-                                WG_TRACE += $"FAIL";
+                                WG_TRACE += $"FAIL,";
                             }
                         }
                         else
                         {
-                            WG_TRACE += $"SKIP";
+                            WG_TRACE += $"SKIP,";
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                WG_TRACE += $"ERROR:{ex.Message}";
+                WG_TRACE += $"ERROR:{ex.Message},";
                 // ignore & goto next
             }
             /* end of STEP-2 */
@@ -224,8 +226,10 @@ namespace devy.WebGateLib
             {
                 var drawResult = new Random().Next(WG_GATE_SERVERS.Count);
 
+                var tryCount = 0;
+
                 // Fail-over를 위해 최대 3차까지 시도
-                for (int i = 0; i < WG_MAX_TRY_COUNT; i++)
+                for (tryCount = 0; tryCount < WG_MAX_TRY_COUNT; tryCount++)
                 {
 
                     try
@@ -233,7 +237,7 @@ namespace devy.WebGateLib
                         // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
 
                         // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-                        var serverIndex = (drawResult + i) % (WG_GATE_SERVERS.Count);
+                        var serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
                         WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
                         String apiUrl = $"https://{WG_WAS_IP}/?ServiceId={WG_SERVICE_ID}&GateId={WG_GATE_ID}&Action=CHECK";
 
@@ -251,13 +255,13 @@ namespace devy.WebGateLib
                             if (responseText.IndexOf("WAIT") >= 0)
                             {
                                 isNeedToWait = true;
-                                WG_TRACE += $"WAIT";
+                                WG_TRACE += $"WAIT,";
                                 break;
                             }
                             else if (responseText.IndexOf("PASS") >= 0)
                             {
                                 isNeedToWait = false;
-                                WG_TRACE += $"PASS";
+                                WG_TRACE += $"PASS,";
                                 break;
                             }
                         }
@@ -265,15 +269,18 @@ namespace devy.WebGateLib
                     catch (Exception ex)
                     {
                         // 오류 시 오류 무시하고 재시도
-                        WG_TRACE += $"ERROR:{ex.Message}";
+                        WG_TRACE += $"ERROR:{ex.Message},";
                     }
                 }
+                WG_TRACE += $"tryCount:{tryCount},";
 
                 // 코드가 여기까지 왔다는 것은
                 // 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
             }
             /* end of STEP-3 */
 
+
+            WG_TRACE += $"→return:{isNeedToWait},";
 
             // write cookie for trace
             try
