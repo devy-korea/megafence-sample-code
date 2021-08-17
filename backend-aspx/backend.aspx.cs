@@ -43,9 +43,9 @@ namespace Demo
 
             /* BEGIN OF 유량제어 코드삽입
             ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */
-            var serviceId   = "9000";  // 할당받은 SERVICE ID (fixed)
-            var gateId      = "1";     // 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
-            var webgate     = new WebGate(serviceId, gateId);
+            string  serviceId   = "9000";  // 할당받은 SERVICE ID (fixed)
+            string  gateId      = "1";     // 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
+            WebGate webgate     = new WebGate(serviceId, gateId);
             if (webgate.WG_IsNeedToWaiting())
             {
                 try

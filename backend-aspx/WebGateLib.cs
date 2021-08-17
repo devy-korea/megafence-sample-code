@@ -82,7 +82,7 @@ namespace devy.WebGateLib
 
             /* init gate server list */
             WG_GATE_SERVERS = new List<string>();
-            for (var i = 0; i < WG_GATE_SERVER_MAX; i++)
+            for (int i = 0; i < WG_GATE_SERVER_MAX; i++)
                 WG_GATE_SERVERS.Add(serviceId + "-" + i + ".devy.kr");
         }
 
@@ -174,7 +174,7 @@ namespace devy.WebGateLib
                     WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO") ?? "";
                     WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
-                    var cookieGateId = ReadCookie("WG_GATE_ID");
+                    string cookieGateId = ReadCookie("WG_GATE_ID");
 
                     if (string.IsNullOrEmpty(WG_TOKEN_KEY))
                     {
@@ -224,12 +224,11 @@ namespace devy.WebGateLib
                      WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
             *******************************************************************************/
             WG_TRACE += "→STEP3:";
-            var IS_NEED_TO_WAIT = false;
+            bool IS_NEED_TO_WAIT = false;
             if (WG_IS_CHECKOUT_OK == false)
             {
-                var drawResult = new Random().Next(WG_GATE_SERVERS.Count);
-
-                var tryCount = 0;
+                int drawResult = new Random().Next(WG_GATE_SERVERS.Count);
+                int tryCount = 0;
 
                 // Fail-over를 위해 최대 3차까지 시도
                 for (tryCount = 0; tryCount < WG_MAX_TRY_COUNT; tryCount++)
@@ -240,7 +239,7 @@ namespace devy.WebGateLib
                         // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
 
                         // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-                        var serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
+                        int serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
                         WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
                         String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK";
 
@@ -282,18 +281,18 @@ namespace devy.WebGateLib
             }
             /* end of STEP-3 */
 
-            var result = false;
+            bool isNeedToWait = false;
             if (WG_IS_CHECKOUT_OK || !IS_NEED_TO_WAIT)
             {
-                result = false;
+                isNeedToWait = false;
             }
             else
             {
-                result = true;
+                isNeedToWait = true;
             }
 
 
-            WG_TRACE += "→return:" + result.ToString() + ",";
+            WG_TRACE += "→return:" + isNeedToWait.ToString() + ",";
 
             // write cookie for trace
             try
@@ -308,7 +307,7 @@ namespace devy.WebGateLib
             }
 
 
-            return result;
+            return isNeedToWait;
 
         }
 
@@ -319,12 +318,12 @@ namespace devy.WebGateLib
         /// <returns></returns>
         private string WG_GetRandomString(int length)
         {
-            var characters = "0123456789ABCDEF";
-            var randomText = "";
+            string characters = "0123456789ABCDEF";
+            string randomText = "";
 
-            var rand = new Random();
+            Random rand = new Random();
 
-            for (var i = 0; i < length; i++)
+            for (int i = 0; i < length; i++)
             {
                 randomText += characters[rand.Next(0, characters.Length) % characters.Length];
             }
@@ -335,13 +334,12 @@ namespace devy.WebGateLib
         private void WriteCookie(string key, string value /*, int expireDays*/)
         {
             int expireDays = 1;
-            RES.Cookies.Add(new HttpCookie(key)
-            {
-                Value = value,
-                Path = "/",
-                HttpOnly = false,
-                Expires = DateTime.Now.AddDays(expireDays)
-            });
+            HttpCookie cookie = new HttpCookie(key);
+            cookie.Value = value;
+            cookie.Path = "/";
+            cookie.HttpOnly = false;
+            cookie.Expires = DateTime.Now.AddDays(expireDays);
+            RES.Cookies.Add(cookie);
         }
 
         private string ReadCookie(string key)
@@ -358,7 +356,7 @@ namespace devy.WebGateLib
         /// </summary>
         public string WG_GetWaitingUi()
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html>");
             sb.AppendLine("<html>");
             sb.AppendLine("<head>");
@@ -397,17 +395,17 @@ namespace devy.WebGateLib
         {
             int timeout = 2000;
 
-            var request = WebRequest.Create(url);
+            WebRequest request = WebRequest.Create(url);
             request.Method = "GET";
             request.Timeout = timeout;
 
 
-            var response = request.GetResponse();
-            using (var stream = response.GetResponseStream())
+            WebResponse response = request.GetResponse();
+            using (Stream stream = response.GetResponseStream())
             {
-                using (var reader = new StreamReader(stream))
+                using (StreamReader sr = new StreamReader(stream))
                 {
-                    return reader.ReadToEnd();
+                    return sr.ReadToEnd();
                 }
             }
         }
