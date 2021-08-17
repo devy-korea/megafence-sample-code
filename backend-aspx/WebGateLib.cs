@@ -17,6 +17,8 @@ using System.Web;
 * V.21.1.11a (2021-08-17) 
 *   C# 3.0 하위호환성 확보 (ASP.NET 2.0)
 *   change type of serviceid, gateid : int  --> string
+*   remove var keyword
+*   remove initializing when object create
 * V.21.1.11 (2021-08-16) 
 *   Add Trace API TryCount in STEP-3
 * V.21.1.10 (2021-08-08) 

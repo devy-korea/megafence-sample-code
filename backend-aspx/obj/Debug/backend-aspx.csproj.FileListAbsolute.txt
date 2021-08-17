@@ -2,3 +2,4 @@ D:\Work\DEVY\megafence-sample-code\backend-aspx\bin\backend-aspx.dll
 D:\Work\DEVY\megafence-sample-code\backend-aspx\bin\backend-aspx.pdb
 D:\Work\DEVY\megafence-sample-code\backend-aspx\obj\Debug\backend-aspx.dll
 D:\Work\DEVY\megafence-sample-code\backend-aspx\obj\Debug\backend-aspx.pdb
+D:\Work\DEVY\megafence-sample-code\backend-aspx\obj\Debug\backend-aspx.csprojResolveAssemblyReference.cache
