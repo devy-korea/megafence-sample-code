@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Web;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.10
+* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.12
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V.21.1.11a (2021-08-17) 
+*   C# 3.0 하위호환성 확보 (ASP.NET 2.0)
+*   change type of serviceid, gateid : int  --> string
 * V.21.1.11 (2021-08-16) 
 *   Add Trace API TryCount in STEP-3
 * V.21.1.10 (2021-08-08) 
@@ -50,9 +52,9 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.21.1.11";
-        public int WG_SERVICE_ID = 0;
-        public int WG_GATE_ID = 0;
+        const string WG_VERSION = "V.21.1.11a";
+        public string WG_SERVICE_ID = "";
+        public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
         public bool WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         const int WG_GATE_SERVER_MAX = 10;    // [fixed] was dns record count
@@ -69,7 +71,7 @@ namespace devy.WebGateLib
 
 
         #region constructor
-        public WebGate(int serviceId, int gateId)
+        public WebGate(string serviceId, string gateId)
         {
             WG_SERVICE_ID = serviceId;
             WG_GATE_ID = gateId;
@@ -81,7 +83,7 @@ namespace devy.WebGateLib
             /* init gate server list */
             WG_GATE_SERVERS = new List<string>();
             for (var i = 0; i < WG_GATE_SERVER_MAX; i++)
-                WG_GATE_SERVERS.Add($"{serviceId}-{i}.devy.kr");
+                WG_GATE_SERVERS.Add(serviceId + "-" + i + ".devy.kr");
         }
 
         #endregion
@@ -126,32 +128,33 @@ namespace devy.WebGateLib
                             !string.IsNullOrEmpty(WG_WAS_IP))
                         {
                             // 대기표 Validation(checkout api call)
-                            string apiUrl = $"https://{WG_WAS_IP}/?ServiceId={WG_SERVICE_ID}&GateId={WG_GATE_ID}&Action=OUT&TokenNo={WG_TOKEN_NO}&TokenKey={WG_TOKEN_KEY}";
+                            string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
                             string responseText = GetHttpText(apiUrl);
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
-                                WG_TRACE += $"OK,";
-                            }else
+                                WG_TRACE += "OK,";
+                            }
+                            else
                             {
-                                WG_TRACE += $"{apiUrl}--> FAIL, ";
+                                WG_TRACE += apiUrl + "--> FAIL, ";
                             }
                         }
                         else
                         {
-                            WG_TRACE += $"SKIP1,";
+                            WG_TRACE += "SKIP1,";
                         }
 
                     }
                 }
                 else
                 {
-                    WG_TRACE += $"SKIP2,";
+                    WG_TRACE += "SKIP2,";
                 }
             }
             catch (Exception ex)
             {
-                WG_TRACE += $"ERROR:{ex.Message},";
+                WG_TRACE += "ERROR:" + ex.Message + ",";
                 // ignore & goto next
             }
             /* end of STEP-1 */
@@ -168,8 +171,8 @@ namespace devy.WebGateLib
                 {
 
                     // 쿠키값을 읽어서 대기완료한 쿠키인지 체크 
-                    WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO");
-                    WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID");
+                    WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO") ?? "";
+                    WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
                     var cookieGateId = ReadCookie("WG_GATE_ID");
 
@@ -179,38 +182,38 @@ namespace devy.WebGateLib
                         WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
                     }
 
-                    if (!string.IsNullOrEmpty(WG_TOKEN_NO) && 
-                        !string.IsNullOrEmpty(WG_TOKEN_KEY) && 
-                        !string.IsNullOrEmpty(WG_WAS_IP) && 
+                    if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
+                        !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
+                        !string.IsNullOrEmpty(WG_WAS_IP) &&
                         !string.IsNullOrEmpty(cookieGateId))
                     {
-                        
-                        if($"{WG_GATE_ID}".Equals($"{cookieGateId}"))
+
+                        if (WG_GATE_ID.Equals(cookieGateId))
                         {
                             // 대기표 Validation(checkout api call)
-                            string apiUrl = $"https://{WG_WAS_IP}/?ServiceId={WG_SERVICE_ID}&GateId={WG_GATE_ID}&Action=OUT&TokenNo={WG_TOKEN_NO}&TokenKey={WG_TOKEN_KEY}";
+                            string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
                             string responseText = GetHttpText(apiUrl);
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
-                                WG_TRACE += $"OK,";
+                                WG_TRACE += "OK,";
                                 WG_IS_CHECKOUT_OK = true;
                             }
                             else
                             {
-                                WG_TRACE += $"FAIL,";
+                                WG_TRACE += "FAIL,";
                             }
                         }
                         else
                         {
-                            WG_TRACE += $"SKIP,";
+                            WG_TRACE += "SKIP,";
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                WG_TRACE += $"ERROR:{ex.Message},";
+                WG_TRACE += "ERROR:" + ex.Message + ",";
                 // ignore & goto next
             }
             /* end of STEP-2 */
@@ -221,7 +224,7 @@ namespace devy.WebGateLib
                      WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
             *******************************************************************************/
             WG_TRACE += "→STEP3:";
-            var isNeedToWait = false;
+            var IS_NEED_TO_WAIT = false;
             if (WG_IS_CHECKOUT_OK == false)
             {
                 var drawResult = new Random().Next(WG_GATE_SERVERS.Count);
@@ -239,7 +242,7 @@ namespace devy.WebGateLib
                         // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
                         var serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
                         WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
-                        String apiUrl = $"https://{WG_WAS_IP}/?ServiceId={WG_SERVICE_ID}&GateId={WG_GATE_ID}&Action=CHECK";
+                        String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK";
 
                         // 부하테스트(LoadTest)용으로 호출된 경우 IsLoadTest=Y paramter를 URL에 추가하여 대기열 통계가 정확하게 계산되도록 합니다. (일반적인경우에는 상관없음)
                         if (REQ.QueryString["IsLoadTest"] != null && REQ.QueryString["IsLoadTest"].Equals("Y", StringComparison.OrdinalIgnoreCase))
@@ -254,14 +257,14 @@ namespace devy.WebGateLib
                             // 대기자가 있으면 WAIT(대기열 UI 표시) : 응답을 WG_WAITING_FILE로 교체
                             if (responseText.IndexOf("WAIT") >= 0)
                             {
-                                isNeedToWait = true;
-                                WG_TRACE += $"WAIT,";
+                                IS_NEED_TO_WAIT = true;
+                                WG_TRACE += "WAIT,";
                                 break;
                             }
                             else if (responseText.IndexOf("PASS") >= 0)
                             {
-                                isNeedToWait = false;
-                                WG_TRACE += $"PASS,";
+                                IS_NEED_TO_WAIT = false;
+                                WG_TRACE += "PASS,";
                                 break;
                             }
                         }
@@ -269,18 +272,28 @@ namespace devy.WebGateLib
                     catch (Exception ex)
                     {
                         // 오류 시 오류 무시하고 재시도
-                        WG_TRACE += $"ERROR:{ex.Message},";
+                        WG_TRACE += "ERROR:" + ex.Message + ",";
                     }
                 }
-                WG_TRACE += $"tryCount:{tryCount},";
+                WG_TRACE += "tryCount:" + tryCount + ",";
 
                 // 코드가 여기까지 왔다는 것은
                 // 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
             }
             /* end of STEP-3 */
 
+            var result = false;
+            if (WG_IS_CHECKOUT_OK || !IS_NEED_TO_WAIT)
+            {
+                result = false;
+            }
+            else
+            {
+                result = true;
+            }
 
-            WG_TRACE += $"→return:{isNeedToWait},";
+
+            WG_TRACE += "→return:" + result.ToString() + ",";
 
             // write cookie for trace
             try
@@ -295,7 +308,7 @@ namespace devy.WebGateLib
             }
 
 
-            return isNeedToWait;
+            return result;
 
         }
 
@@ -311,15 +324,17 @@ namespace devy.WebGateLib
 
             var rand = new Random();
 
-            for (var i = 0; i < length; i++) {
+            for (var i = 0; i < length; i++)
+            {
                 randomText += characters[rand.Next(0, characters.Length) % characters.Length];
             }
 
             return randomText;
         }
 
-        private void WriteCookie(string key, string value, int expireDays = 1)
+        private void WriteCookie(string key, string value /*, int expireDays*/)
         {
+            int expireDays = 1;
             RES.Cookies.Add(new HttpCookie(key)
             {
                 Value = value,
@@ -364,9 +379,9 @@ namespace devy.WebGateLib
             sb.AppendLine("</body>");
             sb.AppendLine("</html>");
 
-            sb.Replace("WG_SERVICE_ID", $"{WG_SERVICE_ID}");
-            sb.Replace("WG_GATE_ID", $"{WG_GATE_ID}");
- 
+            sb.Replace("WG_SERVICE_ID", WG_SERVICE_ID.ToString());
+            sb.Replace("WG_GATE_ID", WG_GATE_ID.ToString());
+
             return sb.ToString();
         }
 
@@ -378,8 +393,10 @@ namespace devy.WebGateLib
         /// <param name="url"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static string GetHttpText(string url, int timeout = 2000)
+        public static string GetHttpText(string url/*, int timeout*/)
         {
+            int timeout = 2000;
+
             var request = WebRequest.Create(url);
             request.Method = "GET";
             request.Timeout = timeout;

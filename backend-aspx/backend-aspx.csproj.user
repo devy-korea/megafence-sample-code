@@ -1,15 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <UseIISExpress>true</UseIISExpress>
-    <Use64BitIISExpress />
-    <IISExpressSSLPort>44367</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
-    <UseGlobalApplicationHostFile />
-    <LastActiveSolutionConfig>Debug|Any CPU</LastActiveSolutionConfig>
-  </PropertyGroup>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
@@ -29,8 +19,8 @@
           </StartCmdLineArguments>
           <StartWorkingDirectory>
           </StartWorkingDirectory>
-          <EnableENC>True</EnableENC>
-          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>True</AlwaysStartWebServerOnDebug>
         </WebProjectProperties>
       </FlavorProperties>
     </VisualStudio>
