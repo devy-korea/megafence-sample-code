@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.21.1.4
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.21.1.20
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -34,6 +34,8 @@ import javax.servlet.http.HttpServletResponse;
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
 * <이력>
+* V.21.1.20 (2021-09-14) 
+*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
 * V.21.1.11 (2021-08-16) 
 *   Add Trace API TryCount in STEP-3
 * V.21.1.10 (2021-08-08) 
@@ -67,7 +69,7 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.21.1.4";           
+		String  $WG_VERSION            	= "V.21.1.20";           
 		String  $WG_SERVICE_ID        	= "0";          				// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
@@ -79,6 +81,7 @@ public class WebGate {
 		String  $WG_WAS_IP             	= "";                   	// 대기표 발급서버
 		String  $WG_TRACE              	= "";                   	// TRACE 정보 (쿠키응답)
 		String  $WG_IS_LOADTEST		   	= "N";						// jmeter 등으로 발생시킨 요청인지 여부
+		String  $WG_CLIENT_IP			= "";						// 단말 IP (운영자 IP 판단용)
 
 		HttpServletRequest  $REQ ;
 	    HttpServletResponse $RES;
@@ -90,12 +93,22 @@ public class WebGate {
 		$REQ			= req;
 		$RES			= res;
 		
+		/* get client ip */
+		$WG_CLIENT_IP = $REQ.getRemoteAddr();
+		if($WG_CLIENT_IP == null || $WG_CLIENT_IP.length() == 0)
+		{
+			$WG_CLIENT_IP = "N/A";
+		}
+		
+		
+		/* jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter 추가바랍니다) */
 	    if($REQ.getParameter("IsLoadTest") != null && $REQ.getParameter("IsLoadTest").equals("Y"))
 	    {
-	    	$WG_IS_LOADTEST = "Y"; //jMeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter 추가바랍니다)
+	    	$WG_IS_LOADTEST = "Y"; 
 	    }
 	    
-        for(int i=0; i < $WG_GATE_SERVER_MAX; i++) // init gate server list
+	    /* init gate server list */
+        for(int i=0; i < $WG_GATE_SERVER_MAX; i++) 
         {
             $WG_GATE_SERVERS.add($WG_SERVICE_ID + "-"  + i + ".devy.kr");
         }
@@ -233,7 +246,7 @@ public class WebGate {
 	                // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
 	                // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
 	                String serverIp = $WG_GATE_SERVERS.get(($drawResult++)%($serverCount));
-	            	String apiUrlText = "https://" + serverIp + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+	            	String apiUrlText = "https://" + serverIp + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 	            	String responseText = WG_CallApi(apiUrlText);
 	            		
 	                // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -277,6 +290,8 @@ public class WebGate {
     	WG_WriteCookie($RES, "WG_TIME", nowText);
 	    //WG_TRACE
     	WG_WriteCookie($RES, "WG_TRACE", $WG_TRACE);
+    	//WG_CLIENT_IP
+    	WG_WriteCookie($RES, "WG_CLIENT_IP", $WG_CLIENT_IP);
 	    
 		return $WG_IS_NEED_TO_WAIT;
 	}

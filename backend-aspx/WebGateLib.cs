@@ -7,13 +7,15 @@ using System.Web;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.12
+* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.20
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V.21.1.20 (2021-09-14) 
+*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
 * V.21.1.11a (2021-08-17) 
 *   C# 3.0 하위호환성 확보 (ASP.NET 2.0)
 *   change type of serviceid, gateid : int  --> string
@@ -54,7 +56,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.21.1.11a";
+        const string WG_VERSION = "V.21.1.20";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -66,6 +68,8 @@ namespace devy.WebGateLib
         public string WG_WAS_IP = "";    // 대기표 발급서버
         public string WG_TRACE = "";    // TRACE 정보 (쿠키응답)
         public string WG_IS_LOADTEST = "N";   // jmeter 등으로 발생시킨 요청인지 여부
+        public string WG_CLIENT_IP = "";   // jmeter 등으로 발생시킨 요청인지 여부
+
 
         HttpRequest REQ;
         HttpResponse RES;
@@ -103,7 +107,12 @@ namespace devy.WebGateLib
             WG_TOKEN_KEY = "";          // 대기표 key
             WG_WAS_IP = "";             // 대기표 발급서버
 
-
+            // get client ip
+            WG_CLIENT_IP = REQ.ServerVariables["REMOTE_ADDR"];
+            if (WG_CLIENT_IP == null || WG_CLIENT_IP.Trim().Length == 0)
+            {
+                WG_CLIENT_IP = "N/A";
+            }
 
             /******************************************************************************
             STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
@@ -243,7 +252,7 @@ namespace devy.WebGateLib
                         // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
                         int serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
                         WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
-                        String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK";
+                        String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + WG_CLIENT_IP + "&TokenKey=" + WG_TOKEN_KEY;
 
                         // 부하테스트(LoadTest)용으로 호출된 경우 IsLoadTest=Y paramter를 URL에 추가하여 대기열 통계가 정확하게 계산되도록 합니다. (일반적인경우에는 상관없음)
                         if (REQ.QueryString["IsLoadTest"] != null && REQ.QueryString["IsLoadTest"].Equals("Y", StringComparison.OrdinalIgnoreCase))
@@ -302,6 +311,7 @@ namespace devy.WebGateLib
                 WriteCookie("WG_VER_BACKEND", WG_VERSION);
                 WriteCookie("WG_TIME", DateTime.Now.ToString("o"));
                 WriteCookie("WG_TRACE", WG_TRACE);
+                WriteCookie("WG_CLIENT_IP", WG_CLIENT_IP);
             }
             catch
             {

@@ -1,15 +1,17 @@
 ﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.11
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.20
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
+    * V.21.1.20 (2021-09-14) 
+    *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
     * V.21.1.11 (2021-08-16) 
-    *   Add Trace API TryCount in STEP-3
+    *   add Trace API TryCount in STEP-3
     * V.21.1.10 (2021-08-08) 
     *   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
     *   rename cookie WG_VERSION --> WG_VER_BACKEND
@@ -39,7 +41,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.11";
+        $WG_VERSION         = "V.21.1.20";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -51,7 +53,15 @@
         $WG_WAS_IP          = "";           // 대기표 발급서버
         $WG_TRACE           = "";           // TRACE 정보 (쿠키응답)
         $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
+        $WG_CLIENT_IP       = "";           // 단말 IP (운영자 IP 판단용)
 
+		
+        /* get clipent ip */
+        $WG_CLIENT_IP = $_SERVER["REMOTE_ADDR"];
+        if(empty($WG_CLIENT_IP))
+        {
+            $WG_CLIENT_IP = "N/A";
+        }
 
 
         /* init gate server list */
@@ -199,7 +209,8 @@
                 try
                 {
                     $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
-                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    
                     //$WG_TRACE .=  $apiUrl.",";
                     $responseText = file_get_contents($apiUrl);
                     if($responseText == null || $responseText == "") { continue; }  
@@ -249,6 +260,7 @@
         WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
+		WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
         
         return $result;
 

@@ -1,13 +1,15 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.11
+    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.21.1.20
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.21.1.20 (2021-09-14) 
+    '*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
     '* V.21.1.11 (2021-08-16) 
     '*   Add Trace API TryCount in STEP-3
     '* V.21.1.10 (2021-08-08) 
@@ -34,9 +36,10 @@
         Dim WG_WAS_IP          
         Dim WG_TRACE           
         Dim WG_IS_LOADTEST, WG_IS_LOADTEST_PARAM     
+        Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.21.1.11"
+        WG_VERSION              = "V.21.1.20"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 10                           '[fixed] was dns record count
@@ -45,7 +48,15 @@
         WG_WAS_IP               = ""                           '대기표 발급서버
         WG_TRACE                = ""                           'TRACE 정보 (쿠키응답)
         WG_IS_LOADTEST          = "N"                          'jmeter 등으로 발생시킨 요청인지 여부
-       
+        
+        'get client ip
+        WG_CLIENT_IP = Request.ServerVariables("REMOTE_ADDR")
+        If IsNull(WG_CLIENT_IP) Or Len(Trim(WG_CLIENT_IP)) = 0 Then
+            WG_CLIENT_IP = "N/A"
+        End If
+           
+
+
         'init gate server list 
         ReDim WG_GATE_SERVERS(WG_GATE_SERVER_MAX)
         Dim i
@@ -183,7 +194,7 @@
                     On Error Resume Next   
                         WG_WAS_IP = WG_GATE_SERVERS(DrawResult Mod WG_GATE_SERVER_MAX)
                         DrawResult = DrawResult + 1
-                        ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                        ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK" & "&ClientIp=" & WG_CLIENT_IP  & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                         ' Call API
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                         If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
@@ -234,6 +245,7 @@
             WG_WriteCookie "WG_VER_BACKEND", WG_VERSION
             Dim YmdHms : YmdHms = WG_UtcTimeFromat(Now()) 
             WG_WriteCookie "WG_TIME", YmdHms
+            WG_WriteCookie "WG_CLIENT_IP", WG_CLIENT_IP
         'Catch
         If Err <> 0 Then   
             WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
