@@ -1,13 +1,15 @@
 ﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.20
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.20a
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
+    * V.21.1.20a (2021-09-24) 
+    *   WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
     * V.21.1.20 (2021-09-14) 
     *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
     * V.21.1.11 (2021-08-16) 
@@ -41,7 +43,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.20";
+        $WG_VERSION         = "V.21.1.20a";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -150,7 +152,16 @@
             {
                 $cookieGateId = WG_ReadCookie("WG_GATE_ID");
                 $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO"); 
-                $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
+                
+                if(isset($_GET["WG_CLIENT_ID"]) && strlen($_GET["WG_CLIENT_ID"]))
+                {
+                    $WG_TOKEN_KEY = $_GET["WG_CLIENT_ID"];  // cdn에서 post로 이동하는 경우 대응 (rankingdak.com)
+                }
+                else {
+                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
+                }
+
+
                 if ($WG_TOKEN_KEY == ""){
                     $WG_TOKEN_KEY = WG_GetRandomString(10);
                     WG_WriteCookie("WG_CLIENT_ID", $WG_TOKEN_KEY);
