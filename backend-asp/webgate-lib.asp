@@ -8,6 +8,9 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.21.1.21 (2021-10-04) 
+    '*   resize default server qty 10 --> 3
+    '*   add cookie WG_GATE_ID, WG_WAS_IP
     '* V.21.1.20 (2021-09-14) 
     '*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
     '* V.21.1.11 (2021-08-16) 
@@ -39,10 +42,10 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.21.1.20"
+        WG_VERSION              = "V.21.1.21"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        WG_GATE_SERVER_MAX      = 10                           '[fixed] was dns record count
+        WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
         WG_TOKEN_NO             = ""                           '대기표 ID
         WG_TOKEN_KEY            = ""                           '대기표 key
         WG_WAS_IP               = ""                           '대기표 발급서버
@@ -246,6 +249,9 @@
             Dim YmdHms : YmdHms = WG_UtcTimeFromat(Now()) 
             WG_WriteCookie "WG_TIME", YmdHms
             WG_WriteCookie "WG_CLIENT_IP", WG_CLIENT_IP
+            WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
+            WG_WriteCookie "WG_GATE_ID", WG_GATE_ID
+
         'Catch
         If Err <> 0 Then   
             WG_TRACE = WG_TRACE & "ERROR:" & Err.Description

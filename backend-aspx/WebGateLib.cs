@@ -7,13 +7,16 @@ using System.Web;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.20
+* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.21.1.21
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V.21.1.21 (2021-10-04) 
+*   resize default server qty 10 --> 3
+*   add cookie WG_GATE_ID, WG_WAS_IP
 * V.21.1.20 (2021-09-14) 
 *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
 * V.21.1.11a (2021-08-17) 
@@ -56,12 +59,12 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.21.1.20";
+        const string WG_VERSION = "V.21.1.21";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
         public bool WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        const int WG_GATE_SERVER_MAX = 10;    // [fixed] was dns record count
+        const int WG_GATE_SERVER_MAX = 3;    // [fixed] was dns record count
         public List<string> WG_GATE_SERVERS;            // [fixed] 대기표 발급서버 Address List
         public string WG_TOKEN_NO = "";    // 대기표 ID
         public string WG_TOKEN_KEY = "";    // 대기표 key
@@ -312,6 +315,8 @@ namespace devy.WebGateLib
                 WriteCookie("WG_TIME", DateTime.Now.ToString("o"));
                 WriteCookie("WG_TRACE", WG_TRACE);
                 WriteCookie("WG_CLIENT_IP", WG_CLIENT_IP);
+                WriteCookie("WG_GATE_ID", WG_GATE_ID);
+                WriteCookie("WG_WAS_IP", WG_WAS_IP);
             }
             catch
             {

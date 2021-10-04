@@ -1,10 +1,9 @@
-﻿<?php
+<?php
+
     /* debug 필요 시
     error_reporting(E_ALL);
     ini_set("display_errors", 1);
     */
-    error_reporting(E_ALL);
-    ini_set("display_errors", 1);
 
     /* 
     * ==============================================================================================
@@ -29,8 +28,8 @@
     // import library
     require_once("webgate-lib.php");
     // setting 
-    $WG_GATE_ID      = 1;    // 할당받은 GATE ID 중에서 사용
-    $WG_SERVICE_ID   = 9000; // 고정값(fixed)
+    $WG_GATE_ID      = "1";    // 할당받은 GATE ID 중에서 사용
+    $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
     // 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
     if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
@@ -43,6 +42,8 @@
 
     // 축하합니다!!!
     // 여기까지 진입했다면 대기열 체크가 완료되었으므로 원래의 업무페이지 컨텐츠를 표시합니다.
+
+
 ?>
 
 <!DOCTYPE html>

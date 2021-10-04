@@ -1,4 +1,4 @@
-﻿<?php
+<?php
     /* 
     * ==============================================================================================
     * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.20a
@@ -8,6 +8,9 @@
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
+    * V.21.1.21 (2021-10-04) 
+    *   resize default server qty 10 --> 3
+    *   add cookie WG_GATE_ID, WG_WAS_IP
     * V.21.1.20a (2021-09-24) 
     *   WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
     * V.21.1.20 (2021-09-14) 
@@ -43,12 +46,12 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.20a";
+        $WG_VERSION         = "V.21.1.21";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
         $WG_IS_CHECKOUT_OK  = false;        // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        $WG_GATE_SERVER_MAX = 10;           // [fixed] was dns record count
+        $WG_GATE_SERVER_MAX = 3;           // [fixed] was dns record count
         $WG_GATE_SERVERS    = array ();     // [fixed] 대기표 발급서버 Address List
         $WG_TOKEN_NO        = "";           // 대기표 ID
         $WG_TOKEN_KEY       = "";           // 대기표 key
@@ -272,6 +275,10 @@
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
 		WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
+		WG_WriteCookie ("WG_GATE_ID", $WG_GATE_ID);
+		WG_WriteCookie ("WG_WAS_IP", $WG_WAS_IP);
+
+		
         
         return $result;
 
