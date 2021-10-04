@@ -34,6 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
 * <이력>
+* V.21.1.21 (2021-10-04) 
+*   resize default server qty 10 --> 3
+*   add cookie WG_GATE_ID, WG_WAS_IP
 * V.21.1.20 (2021-09-14) 
 *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
 * V.21.1.11 (2021-08-16) 
@@ -69,12 +72,12 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.21.1.20";           
+		String  $WG_VERSION            	= "V.21.1.21";           
 		String  $WG_SERVICE_ID        	= "0";          				// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
 		boolean $WG_IS_CHECKOUT_OK     	= false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-		int		$WG_GATE_SERVER_MAX	   	= 10;						// [fixed] was dns record count
+		int		$WG_GATE_SERVER_MAX	   	= 3;						// [fixed] was dns record count
 		List<String>  $WG_GATE_SERVERS 	= new ArrayList<String>();	// [fixed] 대기표 발급서버 LIST
 		String  $WG_TOKEN_NO           	= "";                   	// 대기표 ID
 		String  $WG_TOKEN_KEY          	= "";                   	// 대기표 key
@@ -281,17 +284,15 @@ public class WebGate {
 	    $WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
 	    
 	    // write cookie for trace
-	    //WG_VERSION
     	WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
-    	//WG_TIME
     	Date now = new Date();
     	SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); //UTC
     	String nowText = sf.format(now);
     	WG_WriteCookie($RES, "WG_TIME", nowText);
-	    //WG_TRACE
     	WG_WriteCookie($RES, "WG_TRACE", $WG_TRACE);
-    	//WG_CLIENT_IP
     	WG_WriteCookie($RES, "WG_CLIENT_IP", $WG_CLIENT_IP);
+    	WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
+    	WG_WriteCookie($RES, "WG_GATE_ID", $WG_GATE_ID);
 	    
 		return $WG_IS_NEED_TO_WAIT;
 	}
