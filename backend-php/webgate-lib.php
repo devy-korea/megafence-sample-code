@@ -1,24 +1,15 @@
-<?php
+﻿<?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.22
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.21.1.5
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
-    * V.21.1.22 (2021-10-10)
-    *   [minor fix] IsLoadTest parameter check set "Y" when paramter not null
-    * V.21.1.21 (2021-10-04) 
-    *   resize default server qty 10 --> 3
-    *   add cookie WG_GATE_ID, WG_WAS_IP
-    * V.21.1.20a (2021-09-24) 
-    *   WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
-    * V.21.1.20 (2021-09-14) 
-    *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-    * V.21.1.11 (2021-08-16) 
-    *   add Trace API TryCount in STEP-3
+    * V.21.1.30 (2021-10-29) 
+    *   resize default WG_GATE_SERVER_MAX 10 --> 3
     * V.21.1.10 (2021-08-08) 
     *   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
     *   rename cookie WG_VERSION --> WG_VER_BACKEND
@@ -37,6 +28,7 @@
     *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
     *   [fix] WG_GetRandomString() index overflow
     * ----------------------------------------------------------------------------------------------
+    * 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
     * 2021-04-03 : UI응답부 template fileload 대체
     *              server list update
     * 2021-03-24 : response.setContentType() 처리 추가
@@ -48,7 +40,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.22";
+        $WG_VERSION         = "V.21.1.30";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -60,15 +52,7 @@
         $WG_WAS_IP          = "";           // 대기표 발급서버
         $WG_TRACE           = "";           // TRACE 정보 (쿠키응답)
         $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
-        $WG_CLIENT_IP       = "";           // 단말 IP (운영자 IP 판단용)
 
-		
-        /* get clipent ip */
-        $WG_CLIENT_IP = $_SERVER["REMOTE_ADDR"];
-        if(empty($WG_CLIENT_IP))
-        {
-            $WG_CLIENT_IP = "N/A";
-        }
 
 
         /* init gate server list */
@@ -84,7 +68,7 @@
         {
             $WG_IS_LOADTEST = $_GET["IsLoadTest"];
         }
-        if($WG_IS_LOADTEST != null && $WG_IS_LOADTEST == "Y" )
+        if($WG_IS_LOADTEST != null || $WG_IS_LOADTEST == "Y" )
         {
             $WG_IS_LOADTEST = "Y";
         }
@@ -128,22 +112,22 @@
                             $WG_TRACE .= "OK";
                         }
                         else {
-                            $WG_TRACE .= "FAIL,";
+                            $WG_TRACE .= $apiUrl.":FAIL";
                         }
                     }
                     else {
-                        $WG_TRACE .= "SKIP1,";
+                        $WG_TRACE .= "SKIP1";
                     }
                 } else {
-                    $WG_TRACE .= "SKIP2,";
+                    $WG_TRACE .= "SKIP2";
                 }
             } else {
-                $WG_TRACE .= "SKIP3,";
+                $WG_TRACE .= "SKIP3";
             } 
         }
         catch(Exception $e) 
         {
-            $WG_TRACE .= "ERROR:".$e->getMessage().",";
+            $WG_TRACE .= "ERROR:".$e->getMessage();
             // ignore & goto next
         }
 
@@ -157,16 +141,7 @@
             {
                 $cookieGateId = WG_ReadCookie("WG_GATE_ID");
                 $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO"); 
-                
-                if(isset($_GET["WG_CLIENT_ID"]) && strlen($_GET["WG_CLIENT_ID"]))
-                {
-                    $WG_TOKEN_KEY = $_GET["WG_CLIENT_ID"];  // cdn에서 post로 이동하는 경우 대응 (rankingdak.com)
-                }
-                else {
-                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
-                }
-
-
+                $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
                 if ($WG_TOKEN_KEY == ""){
                     $WG_TOKEN_KEY = WG_GetRandomString(10);
                     WG_WriteCookie("WG_CLIENT_ID", $WG_TOKEN_KEY);
@@ -180,18 +155,18 @@
                 {
                     // 대기표 Validation(checkout api call)
                     $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
-                    //$WG_TRACE .=  $apiUrl.",";
+                    
                     $responseText = file_get_contents($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                     {
                         $WG_IS_CHECKOUT_OK = true;
-                        $WG_TRACE .= "OK,";
+                        $WG_TRACE .= "OK";
                     } else {
-                        $WG_TRACE .= "FAIL,";
+                        $WG_TRACE .= $apiUrl."FAIL";
                     }
                 }
                 else {
-                    $WG_TRACE .= "SKIP1,";
+                    $WG_TRACE .= "SKIP1";
                 }
             }
             else {
@@ -200,7 +175,7 @@
         }
         catch(Exception $e) 
         {
-            $WG_TRACE .= "ERROR:".$e->getMessage().",";
+            $WG_TRACE .= "ERROR:".$e->getMessage();
             // ignore & goto next
         }
 
@@ -211,7 +186,6 @@
         $WG_TRACE .= "→STEP3:";
 
         $WG_IS_NEED_TO_WAIT = false;
-        $tryCount = 0;
         if($WG_IS_CHECKOUT_OK == false) 
         {
             $lineText="";
@@ -220,14 +194,12 @@
             $drawResult  = rand(0, $serverCount-1); // 1차대기열서버 : 임의의 대기열 서버
             
             // Fail-over를 위해 최대 3차까지 시도
-            for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
+            for($i = 0; $i < $WG_MAX_TRY_COUNT; $i++)
             {
                 try
                 {
                     $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
-                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
-                    
-                    //$WG_TRACE .=  $apiUrl.",";
+                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     $responseText = file_get_contents($apiUrl);
                     if($responseText == null || $responseText == "") { continue; }  
 
@@ -235,19 +207,19 @@
                     // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
                     if(strpos($responseText, "WAIT") !== false) 
                     {
-                        $WG_TRACE .=  "WAIT,";
+                        $WG_TRACE .=  "WAIT";
                         $WG_IS_NEED_TO_WAIT = true;
                         break; 
                     } 
                     else if(strpos($responseText, "PASS") !== false)  
                     {  
-                        $WG_TRACE .=  "PASS,";
+                        $WG_TRACE .=  "PASS";
                         $WG_IS_NEED_TO_WAIT = false;
                         break; 
                     }
                 }
                 catch(Exception $e)  { 
-                    $WG_TRACE .= "ERROR:".$e->getMessage().",";
+                    $WG_TRACE .= "ERROR:".$e->getMessage();
                     // try next
                 }
             }
@@ -255,7 +227,6 @@
         else {
             $WG_TRACE .= "SKIP";
         }
-        $WG_TRACE .= "TryCount:".$tryCount.",";
 
         // Timeout 설정 복구
         ini_set("default_socket_timeout", $WG_SOCKET_TIMEOUT);
@@ -264,23 +235,19 @@
         if($WG_IS_CHECKOUT_OK || !$WG_IS_NEED_TO_WAIT)
         {
             $result = false;
+            $WG_TRACE .= ", returns false";
         }
         else 
         {
             $result = true;
+            $WG_TRACE .= ", returns true";
         }
-        $WG_TRACE .= "→returns:".$result;
 
         
         // write cookie for trace
         WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
-		WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
-		WG_WriteCookie ("WG_GATE_ID", $WG_GATE_ID);
-		WG_WriteCookie ("WG_WAS_IP", $WG_WAS_IP);
-
-		
         
         return $result;
 

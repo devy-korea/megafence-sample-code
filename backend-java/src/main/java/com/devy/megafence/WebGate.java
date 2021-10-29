@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
 * <이력>
-* V.21.1.21 (2021-10-04) 
+* V.21.1.30 (2021-10-29) 
 *   resize default server qty 10 --> 3
 *   add cookie WG_GATE_ID, WG_WAS_IP
 * V.21.1.20 (2021-09-14) 
@@ -72,7 +72,7 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.21.1.21";           
+		String  $WG_VERSION            	= "V.21.1.30";           
 		String  $WG_SERVICE_ID        	= "0";          				// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
