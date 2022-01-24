@@ -8,6 +8,8 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.22.1.24
+    '*   add cookie WG_CLIENT_ID
     '* V.21.1.30 (2021-10-04) 
     '*   resize default server qty 10 --> 3
     '*   add cookie WG_GATE_ID, WG_WAS_IP
@@ -141,8 +143,16 @@
                 WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
                 WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
         
+
+                If Len(WG_TOKEN_KEY) = 0 Then
+                    WG_TOKEN_KEY = RandomString(10)
+                End If
+
                 Dim cookieGateId
                 cookieGateId = Request.Cookies("WG_GATE_ID") 
+                
+                
+
                 
                 If Len(WG_TOKEN_NO) > 0 And Len(WG_TOKEN_KEY) > 0 And Len(WG_WAS_IP) > 0 And Len(WG_GATE_ID) > 0 And Len(cookieGateId) > 0 Then
                     If StrComp(WG_GATE_ID, cookieGateId) = 0 Then
@@ -251,6 +261,7 @@
             WG_WriteCookie "WG_CLIENT_IP", WG_CLIENT_IP
             WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
             WG_WriteCookie "WG_GATE_ID", WG_GATE_ID
+            WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
 
         'Catch
         If Err <> 0 Then   
@@ -315,5 +326,14 @@
         WG_UtcTimeFromat = Year(dt) & "-" & Month(dt) & "-" & Day(dt) & "T" & Hour(dt) & ":" & Minute(dt) & ":" & second(dt) & "+09:00" '서울(KST)로 가정    
     End Function
 
+
+    Function RandomString( ByVal strLen )
+        Dim str
+        Const LETTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+        For i = 1 to strLen
+            str = str & Mid( LETTERS, RandomNumber( 1, Len( LETTERS ) ), 1 )
+        Next
+        RandomString = str
+    End Function
 
 %>
