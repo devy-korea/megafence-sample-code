@@ -44,7 +44,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.21.1.30"
+        WG_VERSION              = "V.22.1.24"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
@@ -130,6 +130,9 @@
         'Error Clear
         On Error GoTo 0 
 
+        
+    
+
 
         '******************************************************************************
         'STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
@@ -138,15 +141,16 @@
         On Error Resume Next   
             WG_TRACE = WG_TRACE & "→STEP2:"
 
-            If Not WG_IS_CHECKOUT_OK Then
-                WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
-                WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
-                WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
+            WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
+            WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
+            WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
         
 
-                If Len(WG_TOKEN_KEY) = 0 Then
-                    WG_TOKEN_KEY = RandomString(10)
-                End If
+            If IsEmpty(WG_TOKEN_KEY) OR Len(WG_TOKEN_KEY) = 0 Then
+                WG_TOKEN_KEY = RandomString(10)
+            End If
+
+            If Not WG_IS_CHECKOUT_OK Then
 
                 Dim cookieGateId
                 cookieGateId = Request.Cookies("WG_GATE_ID") 
@@ -327,13 +331,15 @@
     End Function
 
 
-    Function RandomString( ByVal strLen )
-        Dim str
-        Const LETTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
-        For i = 1 to strLen
-            str = str & Mid( LETTERS, RandomNumber( 1, Len( LETTERS ) ), 1 )
+    Function RandomString(StrLen)
+        Dim myStr, i
+        Const MainStr= "0123456789ABCDEF"
+        Randomize
+        For i = 1 to StrLen
+            myStr=myStr & Mid(MainStr,Int((Len(MainStr)*Rnd)+1),1)
         Next
-        RandomString = str
+        RandomString = myStr
     End Function
+
 
 %>
