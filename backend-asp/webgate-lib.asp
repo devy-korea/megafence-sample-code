@@ -8,8 +8,8 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
-    '* V.22.04.08
-    '*   improve : reuse was ip when first "check api" call
+    '* V1.22.04.08
+    '*   improve : reuse was ip when first api call for check action
     '* V.22.1.24
     '*   add cookie WG_CLIENT_ID
     '* V.21.1.30 (2021-10-04) 
@@ -46,7 +46,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.22.1.24"
+        WG_VERSION              = "V1.22.04.08"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
@@ -158,8 +158,6 @@
                 cookieGateId = Request.Cookies("WG_GATE_ID") 
                 
                 
-
-                
                 If Len(WG_TOKEN_NO) > 0 And Len(WG_TOKEN_KEY) > 0 And Len(WG_WAS_IP) > 0 And Len(WG_GATE_ID) > 0 And Len(cookieGateId) > 0 Then
                     If StrComp(WG_GATE_ID, cookieGateId) = 0 Then
                         '대기표 Validation(checkout api call)
@@ -228,10 +226,12 @@
                                 WG_TRACE =  WG_TRACE & "WAIT,"
                                 WG_IS_NEED_TO_WAIT = True
                                 Exit For
-                            Else  ' PASS
+                            ElseIf InStr(ResponseText, "PASS") Then ' PASS
                                 WG_TRACE =  WG_TRACE & "PASS,"
                                 WG_IS_NEED_TO_WAIT = False
                                 Exit For
+                            Else 
+                                WG_TRACE =  WG_TRACE & "Fail:" & ResponseText & ","
                             End If
                         Else
                             WG_TRACE = WG_TRACE & "FAIL,"                    

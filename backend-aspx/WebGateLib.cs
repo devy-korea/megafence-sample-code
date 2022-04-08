@@ -14,6 +14,8 @@ using System.Web;
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V1.22.04.08
+*   improve : reuse was ip when first api call for check action
 * V.21.1.30 (2021-10-04) 
 *   resize default server qty 10 --> 3
 *   add cookie WG_GATE_ID, WG_WAS_IP
@@ -46,11 +48,13 @@ using System.Web;
 *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
 *   [fix] WG_GetRandomString() index overflow
 * ----------------------------------------------------------------------------------------------
+* 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
 * 2021-04-03 : UI응답부 template fileload 대체
 *              server list update
 * 2021-03-24 : response.setContentType() 처리 추가
 * 2021-01-20 : 부하발생용 parameter 처리
 * 	            api call timeout 1초 --> 2초
+ 	            
 * ==============================================================================================
 */
 
@@ -59,7 +63,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.21.1.30";
+        const string WG_VERSION = "V1.22.04.08";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -250,11 +254,21 @@ namespace devy.WebGateLib
 
                     try
                     {
-                        // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
 
-                        // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-                        int serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
-                        WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
+                        if (tryCount == 0 && !string.IsNullOrEmpty(WG_WAS_IP))
+                        {
+                            // 최초 1회는 cookie의 wasip 사용
+                        }
+                        else
+                        {
+                            // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
+                            int serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
+                            WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
+                        }
+
+
+
+
                         String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + WG_CLIENT_IP + "&TokenKey=" + WG_TOKEN_KEY;
 
                         // 부하테스트(LoadTest)용으로 호출된 경우 IsLoadTest=Y paramter를 URL에 추가하여 대기열 통계가 정확하게 계산되도록 합니다. (일반적인경우에는 상관없음)
@@ -279,6 +293,10 @@ namespace devy.WebGateLib
                                 IS_NEED_TO_WAIT = false;
                                 WG_TRACE += "PASS,";
                                 break;
+                            }
+                            else
+                            {
+                                WG_TRACE += "FAIL:" + responseText + ",";
                             }
                         }
                     }

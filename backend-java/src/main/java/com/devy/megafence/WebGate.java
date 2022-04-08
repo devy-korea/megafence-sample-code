@@ -33,7 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
-* <이력>
+* V1.22.04.08
+*   improve : reuse was ip when first api call for check action
 * V.21.1.30 (2021-10-29) 
 *   resize default server qty 10 --> 3
 *   add cookie WG_GATE_ID, WG_WAS_IP
@@ -72,8 +73,8 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.21.1.30";           
-		String  $WG_SERVICE_ID        	= "0";          				// 할당받은 Service ID
+		String  $WG_VERSION            	= "V1.22.04.08";           
+		String  $WG_SERVICE_ID        	= "0";          			// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
 		boolean $WG_IS_CHECKOUT_OK     	= false;                	// [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
@@ -247,9 +248,16 @@ public class WebGate {
 	        {
 	            try{
 	                // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
-	                // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-	                String serverIp = $WG_GATE_SERVERS.get(($drawResult++)%($serverCount));
-	            	String apiUrlText = "https://" + serverIp + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+	                if($tryCount == 0 && $WG_WAS_IP != null && !$WG_WAS_IP.isEmpty())
+	                {
+	                	// 최초1회는 cookie의 wasip 사용
+	                }
+	                else {
+		                // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
+		                $WG_WAS_IP = $WG_GATE_SERVERS.get(($drawResult++)%($serverCount));
+	                }
+	            	
+	                String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 	            	String responseText = WG_CallApi(apiUrlText);
 	            		
 	                // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨

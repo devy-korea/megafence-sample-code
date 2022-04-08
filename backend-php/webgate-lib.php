@@ -8,6 +8,8 @@
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
+    * V1.22.04.08
+    *   improve : reuse was ip when first api call for check action
     * V.21.1.31 (2021-10-10)
     *   [minor fix] IsLoadTest parameter check set "Y" when paramter not null
     * V.21.1.30 (2021-10-04) 
@@ -37,6 +39,7 @@
     *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
     *   [fix] WG_GetRandomString() index overflow
     * ----------------------------------------------------------------------------------------------
+    * 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
     * 2021-04-03 : UI응답부 template fileload 대체
     *              server list update
     * 2021-03-24 : response.setContentType() 처리 추가
@@ -48,7 +51,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.21.1.31";
+        $WG_VERSION         = "V1.22.04.08";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -224,7 +227,14 @@
             {
                 try
                 {
-                    $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
+                    if($tryCount == 0 && strlen($WG_WAS_IP) > 0)
+                    {
+						$serverIp = $WG_WAS_IP;
+                    } else {
+                        $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
+                    }
+
+                    
                     $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     
                     //$WG_TRACE .=  $apiUrl.",";
@@ -244,6 +254,9 @@
                         $WG_TRACE .=  "PASS,";
                         $WG_IS_NEED_TO_WAIT = false;
                         break; 
+                    }
+                    else {
+						$WG_TRACE .=  "FAIL:" . $responseText . ",";
                     }
                 }
                 catch(Exception $e)  { 
