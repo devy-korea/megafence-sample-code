@@ -8,6 +8,8 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V.22.04.08
+    '*   improve : reuse was ip when first "check api" call
     '* V.22.1.24
     '*   add cookie WG_CLIENT_ID
     '* V.21.1.30 (2021-10-04) 
@@ -209,8 +211,15 @@
                 For TryCount = 0 To WG_MAX_TRY_COUNT Step 1
                     'Try 시작
                     On Error Resume Next   
-                        WG_WAS_IP = WG_GATE_SERVERS(DrawResult Mod WG_GATE_SERVER_MAX)
                         DrawResult = DrawResult + 1
+                        
+                        If TryCount = 0 And Len(WG_WAS_IP) > 0 Then
+                            'use last was ip from cookie when first time
+                        Else
+                            WG_WAS_IP = WG_GATE_SERVERS(DrawResult Mod WG_GATE_SERVER_MAX)
+                        End If
+                        
+
                         ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK" & "&ClientIp=" & WG_CLIENT_IP  & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                         ' Call API
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)

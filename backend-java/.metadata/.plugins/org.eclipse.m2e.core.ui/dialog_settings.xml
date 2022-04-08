@@ -3,6 +3,7 @@
 	<section name="MavenProjectImportWizardPage">
 		<list key="rootDirectory">
 			<item value="D:\Work\DEVY\megafence-sample-code\backend-java"/>
+			<item value="D:\Work\DEVY\megafence-sample-code"/>
 		</list>
 		<list key="projectNameTemplate">
 			<item value="[artifactId]"/>

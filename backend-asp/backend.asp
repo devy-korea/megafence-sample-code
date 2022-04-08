@@ -20,13 +20,13 @@
 
     ' SETTING
     Dim WG_GATE_ID, WG_SERVICE_ID
-    WG_GATE_ID      = 1     '할당받은 GATE ID 중에서 사용
-    WG_SERVICE_ID   = 9000  '고정값(fixed)
+    WG_GATE_ID      = "1"     '할당받은 GATE ID 중에서 사용
+    WG_SERVICE_ID   = "9000"  '고정값(fixed)
 
     ' 유량제어 체크
     IF WG_IsNeedToWaiting(WG_SERVICE_ID, WG_GATE_ID) THEN
         '대기해야 되는 상황이면 대기UI로 응답을 교체하고 종료
-        Response.ContentType="text/html"
+        Response.ContentType="text/HTML"
         Response.Write (WG_GetWaitingUi(WG_SERVICE_ID, WG_GATE_ID))
         Response.End '응답 끝
     END IF
