@@ -15,6 +15,12 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.devy.demo.BackendSampleController;
+
+
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
@@ -33,6 +39,8 @@ import javax.servlet.http.HttpServletResponse;
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ---------------------------------------------------------------------------------------------
+* V1.22.05.10
+*   fix : add ResultCode check of responseText
 * V1.22.04.08
 *   improve : reuse was ip when first api call for check action
 * V.21.1.30 (2021-10-29) 
@@ -64,7 +72,8 @@ import javax.servlet.http.HttpServletResponse;
 */
 
 public class WebGate {
-	//private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger log = LoggerFactory.getLogger(WebGate.class);
+		
 
 	public WebGate()
 	{
@@ -119,6 +128,8 @@ public class WebGate {
 		
     	String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
 	    // end of init variable
+    	
+    	//log.info("ServiceId:" + $WG_SERVICE_ID);
     	
     	/******************************************************************************
 	    STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
@@ -204,12 +215,13 @@ public class WebGate {
 	            {
 
 	            	String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
-	                //logger.info($urlText);
+	                //log.info("apiUrlText:" + apiUrlText);
 
 	                // 대기표 Validation(checkout api call)
 	            	String responseText = "";
 	            	responseText = WG_CallApi(apiUrlText);
-	                
+	            	//log.info("responseText:" + responseText);
+	            	
 	                if(responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0)
 	                {
 	                    $WG_IS_CHECKOUT_OK = true;
@@ -258,10 +270,13 @@ public class WebGate {
 	                }
 	            	
 	                String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
-	            	String responseText = WG_CallApi(apiUrlText);
+	                //log.info("apiUrlText:" + apiUrlText);
+	                
+	                String responseText = WG_CallApi(apiUrlText);
+	                //log.info("responseText:" + responseText);
 	            		
 	                // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
-	                if(responseText != null && responseText.length() > 0)
+	                if(responseText != null && responseText.length() > 0 && responseText.indexOf("\"ResultCode\":0") >= 0)
 	                {
 	                    if(responseText.indexOf("WAIT") >= 0)
 	                    {

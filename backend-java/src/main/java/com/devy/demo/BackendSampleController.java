@@ -50,7 +50,7 @@ public class BackendSampleController {
     		예) 로그인 체크 : 쿠키나 세션을 체크해서 Login 페이지로 redirect 등의 간단한 업무로직은 유량제어 코드 이전에 실행해도 됩니다.
     	*/
     	
-    	log.info("[STEP-0] 유량제어 체크 시작");
+    	//log.info("[STEP-0] 유량제어 체크 시작");
     	/* BEGIN OF 유량제어 코드삽입
     	▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */ 
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
@@ -58,7 +58,7 @@ public class BackendSampleController {
     	WebGate webgate = new WebGate(); 
     	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	{
-    		log.info("[STEP-1] 유량제어 필요 : 대기UI 응답");
+    		//log.info("[STEP-1] 유량제어 필요 : 대기UI 응답");
     		// 대기가 필요하면 대기UI로 응답 대체 후 종료
     		String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
     		try {
@@ -66,24 +66,24 @@ public class BackendSampleController {
         		PrintWriter out = response.getWriter();
     			out.write(uiHtml);
     			out.close();
-    			log.info("[STEP-2] 대기 UI 응답 : 업무로직이 실행되지 않고 대기UI만 표시되어야 정상! (STEP-4으로 진입하지 않고 대기UI 동작 후 page reload 됨)");
+    			//log.info("[STEP-2] 대기 UI 응답 : 업무로직이 실행되지 않고 대기UI만 표시되어야 정상! (STEP-4으로 진입하지 않고 대기UI 동작 후 page reload 됨)");
     			return returnPath;
 	    	} catch (Exception e) {}
 	        finally {}
     	} else {
-			log.info("[STEP-3] 유량제어 체크 완료 : 대기상황이 아닐때 페이지 첫 진입 OR 대기를 완료 후 페이지 reload된 경우임");
+			//log.info("[STEP-3] 유량제어 체크 완료 : 대기상황이 아닐때 페이지 첫 진입 OR 대기를 완료 후 페이지 reload된 경우임");
     	}
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
     	END OF 유량제어 코드삽입 */    	
-    	log.info("[STEP-4] 유량제어 완료(SKIP OR PASS) : 대기가 없는 상황(SKIP)이거나, 대기를 완료(PASS)된 후 reload 시 여기로 진입하면 OK");
-    	log.info("[STEP-5] 업무로직 시작");
+    	//log.info("[STEP-4] 유량제어 완료(SKIP OR PASS) : 대기가 없는 상황(SKIP)이거나, 대기를 완료(PASS)된 후 reload 시 여기로 진입하면 OK");
+    	//log.info("[STEP-5] 업무로직 시작");
     	/*	========================================================================
     		Heavy business logic ....
     		========================================================================
     		예) 고객등급 GET : 고객 DB에서 고객등급(Bronze/Silver/Gold) 조회 
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
-    	log.info("[STEP-6] 업무로직 끝");
+    	//log.info("[STEP-6] 업무로직 끝");
     		
     	return returnPath;
     }
