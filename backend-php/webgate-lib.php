@@ -8,44 +8,6 @@
     * 작성자 : ysd@devy.co.kr
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
-    * V1.22.04.08
-    *   improve : reuse was ip when first api call for check action
-    * V.21.1.31 (2021-10-10)
-    *   [minor fix] IsLoadTest parameter check set "Y" when paramter not null
-    * V.21.1.30 (2021-10-04) 
-    *   resize default server qty 10 --> 3
-    *   add cookie WG_GATE_ID, WG_WAS_IP
-    * V.21.1.20a (2021-09-24) 
-    *   WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
-    * V.21.1.20 (2021-09-14) 
-    *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-    * V.21.1.11 (2021-08-16) 
-    *   add Trace API TryCount in STEP-3
-    * V.21.1.10 (2021-08-08) 
-    *   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
-    *   rename cookie WG_VERSION --> WG_VER_BACKEND
-    *   add WG_ReadCookie(), WG_WriteCookie()
-    *   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
-    * V.21.1.5 (2021-07-31) 
-    *   [minor fix] change api url protocol, http --> https
-    * ----------------------------------------------------------------------------------------------
-    * V.21.1.4 (2021-07-29) 
-    *   [minor fix] missing getparm of IsLoadTest
-    * V.21.1.3 (2021-07-23) 
-    *   [minor update] auto make $WG_GATE_SERVERS list
-    * ----------------------------------------------------------------------------------------------
-    * V.21.1.1 (2021-06-28) 
-    *   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
-    *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
-    *   [fix] WG_GetRandomString() index overflow
-    * ----------------------------------------------------------------------------------------------
-    * 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
-    * 2021-04-03 : UI응답부 template fileload 대체
-    *              server list update
-    * 2021-03-24 : response.setContentType() 처리 추가
-    * 2021-01-20 : 부하발생용 parameter 처리
-    * 	            api call timeout 1초 --> 2초
-    * ==============================================================================================
     */
 
     function WG_IsNeedToWaiting($service_id, $gate_id)
@@ -64,6 +26,7 @@
         $WG_TRACE           = "";           // TRACE 정보 (쿠키응답)
         $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
         $WG_CLIENT_IP       = "";           // 단말 IP (운영자 IP 판단용)
+		$WG_COOKIE_DOMAIN   = "";
 
 		
         /* get clipent ip */
@@ -312,7 +275,7 @@
                 . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
                 . "</head>\r\n"
                 . "<body>\r\n"
-                . "    <div id='wg-body-wrapper'></div>\r\n"
+                //. "    <div id='wg-body-wrapper'></div>\r\n"
                 . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>\r\n"
                 . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>\r\n"
                 . "    <script>\r\n"
@@ -353,7 +316,49 @@
 
     function WG_WriteCookie($key, $value)
     {
-        setcookie ($key, $value, time() + (86400 * 1), "/"); 
+        setcookie ($key, $value, time() + (86400 * 1), "/", $WG_COOKIE_DOMAIN); 
     }
 
+	/*
+`   * V1.22.05.25
+    *   remove ui element "<div id='wg-body-wrapper'></div>"
+    * V1.22.04.08
+    *   improve : reuse was ip when first api call for check action
+    * V.21.1.31 (2021-10-10)
+    *   [minor fix] IsLoadTest parameter check set "Y" when paramter not null
+    * V.21.1.30 (2021-10-04) 
+    *   resize default server qty 10 --> 3
+    *   add cookie WG_GATE_ID, WG_WAS_IP
+    * V.21.1.20a (2021-09-24) 
+    *   WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
+    * V.21.1.20 (2021-09-14) 
+    *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
+    * V.21.1.11 (2021-08-16) 
+    *   add Trace API TryCount in STEP-3
+    * V.21.1.10 (2021-08-08) 
+    *   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
+    *   rename cookie WG_VERSION --> WG_VER_BACKEND
+    *   add WG_ReadCookie(), WG_WriteCookie()
+    *   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
+    * V.21.1.5 (2021-07-31) 
+    *   [minor fix] change api url protocol, http --> https
+    * ----------------------------------------------------------------------------------------------
+    * V.21.1.4 (2021-07-29) 
+    *   [minor fix] missing getparm of IsLoadTest
+    * V.21.1.3 (2021-07-23) 
+    *   [minor update] auto make $WG_GATE_SERVERS list
+    * ----------------------------------------------------------------------------------------------
+    * V.21.1.1 (2021-06-28) 
+    *   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
+    *   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
+    *   [fix] WG_GetRandomString() index overflow
+    * ----------------------------------------------------------------------------------------------
+    * 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
+    * 2021-04-03 : UI응답부 template fileload 대체
+    *              server list update
+    * 2021-03-24 : response.setContentType() 처리 추가
+    * 2021-01-20 : 부하발생용 parameter 처리
+    * 	            api call timeout 1초 --> 2초
+    */
 ?>
+

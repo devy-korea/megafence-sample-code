@@ -14,6 +14,8 @@ using System.Web;
 * 작성자 : ysd@devy.co.kr
 * All rights reserved to DEVY / https://devy.kr
 * ==============================================================================================
+* V1.22.05.25
+*   remove ui element "<div id='wg-body-wrapper'></div>"
 * V1.22.04.08
 *   improve : reuse was ip when first api call for check action
 * V.21.1.30 (2021-10-04) 
@@ -402,7 +404,6 @@ namespace devy.WebGateLib
             sb.AppendLine("    <link href='//cdn2.devy.kr/WG_SERVICE_ID/css/default.css' rel='stylesheet'>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
-            sb.AppendLine("    <div id='wg-body-wrapper'></div>");
             sb.AppendLine("    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=21.1.0'></script>");
             sb.AppendLine("    <script>");
             sb.AppendLine("        window.addEventListener('load', function () {");

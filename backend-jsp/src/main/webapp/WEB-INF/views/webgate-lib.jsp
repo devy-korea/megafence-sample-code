@@ -14,29 +14,6 @@
 * 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
-* ---------------------------------------------------------------------------------------------
-* V1.22.05.10
-*   fix : add ResultCode check of responseText
-* V1.22.04.08
-*   improve : reuse was ip when first api call for check action
-* V.21.1.30 (2021-10-29) 
-*   resize default WG_GATE_SERVER_MAX 10 --> 3
-* V.21.1.20 (2021-09-14) 
-*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-* V.21.1.4 (2021-08-08)
-* 	[minor update] check gateid(from cookie) in STEP1 & STEP2
-* 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
-* 	improve trace, WG_TRACE
-* V.21.1.3 (2021-07-23) 
-*   [minor update] auto make $WG_GATE_SERVERS list
-*   [minor update] change api protocol http --> https   
-* V.21.1.1 (2021-06-29) 
-* 	minor fix & 안정화
-* 2021-04-03 : UI응답부 template fileload 대체
-*              server list update
-* 2021-03-24 : response.setContentType() 처리 추가
-* 2021-01-20 : 부하발생용 parameter 처리
-* 	            api call timeout 1초 --> 2초
 * ==============================================================================================
 */
 %>
@@ -297,7 +274,7 @@ public String WG_GetWaitingUi(String serviceId, String gateId) {
 				+ "    <link href='//cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css' rel='stylesheet'>\r\n"				
 				+ "</head>\r\n"
 				+ "<body>\r\n"
-				+ "    <div id='wg-body-wrapper'></div>\r\n"
+				//+ "    <div id='wg-body-wrapper'></div>\r\n"
 				+ "    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=21.1.0'></script>\r\n"
 				+ "    <script>\r\n"
 				+ "        window.addEventListener('load', function () {\r\n"
@@ -384,5 +361,44 @@ String WG_CallApi(String urlText)
 	}
 	
 }
+
+
+/*
+* ---------------------------------------------------------------------------------------------
+* HISTORY
+* --------------------------------------------------------------------------------------------- 
+* V1.22.05.25
+*   remove ui element "<div id='wg-body-wrapper'></div>"
+* V1.22.05.10
+*   fix : add ResultCode check of responseText
+* V1.22.04.08
+*   improve : reuse was ip when first api call for check action
+* V.21.1.30 (2021-10-29) 
+*   resize default server qty 10 --> 3
+*   add cookie WG_GATE_ID, WG_WAS_IP
+* V.21.1.20 (2021-09-14) 
+*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
+* V.21.1.11 (2021-08-16) 
+*   Add Trace API TryCount in STEP-3
+* V.21.1.10 (2021-08-08) 
+*   WG_TRACE 내용 축소(apiUrl 제거)
+*   rename cookie WG_VERSION --> WG_VER_BACKEND
+*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
+* V.21.1.4 (2021-08-08)
+* 	[minor update] check gateid(from cookie) in STEP1 & STEP2
+* 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
+* 	improve trace, WG_TRACE
+* V.21.1.3 (2021-07-23) 
+*   [minor update] auto make $WG_GATE_SERVERS list
+*   [minor update] change api protocol http --> https   
+* V.21.1.1 (2021-06-29) 
+* 	minor fix & 안정화
+* 2021-04-03 : UI응답부 template fileload 대체
+*              server list update
+* 2021-03-24 : response.setContentType() 처리 추가
+* 2021-01-20 : 부하발생용 parameter 처리
+* 	            api call timeout 1초 --> 2초
+*/
+
 
 %>

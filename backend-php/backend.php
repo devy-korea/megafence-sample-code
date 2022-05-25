@@ -43,7 +43,6 @@
     // 축하합니다!!!
     // 여기까지 진입했다면 대기열 체크가 완료되었으므로 원래의 업무페이지 컨텐츠를 표시합니다.
 
-
 ?>
 
 <!DOCTYPE html>
@@ -55,7 +54,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- custom css -->
-    <link href="//cdn.devy.kr/dist/bulma-0.7.1/bulma.css" rel="stylesheet" />
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
 
     <style>
         html, body {
@@ -95,7 +94,7 @@
                 <h2 class="has-text-light">Backend 방식은 대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
                 <hr/>
                 <a class="button is-warning" href="frontend.html">Frontend 방식 DEMO</a> 
-                <a class="button is-warning" href="https://cdn2.devy.kr/9000/landing.html">Landing 방식 DEMO</a>
+                <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using devy.WebGateLib;
+﻿using devy.WebGateLib;
+using System;
 
 namespace Demo
 {
@@ -43,9 +39,9 @@ namespace Demo
 
             /* BEGIN OF 유량제어 코드삽입
             ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */
-            string  serviceId   = "9000";  // 할당받은 SERVICE ID (fixed)
-            string  gateId      = "1";     // 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
-            WebGate webgate     = new WebGate(serviceId, gateId);
+            string serviceId = "9000";  // 할당받은 SERVICE ID (fixed)
+            string gateId = "1";     // 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
+            WebGate webgate = new WebGate(serviceId, gateId);
             if (webgate.WG_IsNeedToWaiting())
             {
                 try
@@ -54,7 +50,7 @@ namespace Demo
                     Response.Clear();
                     Response.Write(webgate.WG_GetWaitingUi());
                     Response.Flush();
-                    Response.End(); 
+                    Response.End();
                 }
                 catch { }
                 finally { }

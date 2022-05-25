@@ -17,15 +17,7 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
     <div id="app" class="container">
         <form id="form1">
             <div class="notification is-info">
-                <h1 class="title">Index Page!!!</h1>
-                <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
-                <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
-            </div>
-
-            <hr/>
-            <div class="notification is-white has-text-centered">
-                <a class="button is-dark" href="frontend-sample.html">Frontend 방식 DEMO</a> <a class="button is-dark" href="landing-sample.html">Landing 방식 DEMO</a>
-            </div>
+                <h1 class="title">Hello, World!!!</h1>
         </form>
     </div>
 </body>

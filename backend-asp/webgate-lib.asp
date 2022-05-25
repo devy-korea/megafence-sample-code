@@ -8,6 +8,8 @@
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
     '* ==============================================================================================
+    '* V1.22.05.25
+    '*   remove ui element "<div id='wg-body-wrapper'></div>"
     '* V1.22.04.08
     '*   improve : reuse was ip when first api call for check action
     '* V.22.1.24
@@ -300,7 +302,6 @@
                 "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "                & vbCrLf &_
                 "</head>"                                                                                                                               & vbCrLf &_
                 "<body>"                                                                                                                                & vbCrLf &_
-                "    <div id='wg-body-wrapper'></div>"                                                                                                  & vbCrLf &_
                 "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>"                                        & vbCrLf &_
                 "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>"                          & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
