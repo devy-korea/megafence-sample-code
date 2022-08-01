@@ -26,7 +26,7 @@ import com.devy.demo.BackendSampleController;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.01
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.01.1
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -52,7 +52,7 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.22.08.01";           
+		String  $WG_VERSION            	= "V.22.08.01.1";           
 		String  $WG_SERVICE_ID        	= "0";          			// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
@@ -129,6 +129,8 @@ public class WebGate {
 	                {
 	                    // 대기표 Validation(checkout api call)
 	                    String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+	                    $WG_TRACE += apiUrlText + "→";
+	                    
 	                    String responseText = WG_CallApi(apiUrlText);
 	                
 	                    if(responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0)
@@ -176,6 +178,19 @@ public class WebGate {
 	            $WG_WAS_IP    = WG_ReadCookie($REQ, "WG_WAS_IP");
 	            $WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID");
 
+	            if( $WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("")  == true)
+	            {
+	            	$WG_TRACE += "$WG_TOKEN_NO is null→";
+	            }
+	            if( $WG_WAS_IP == null || $WG_WAS_IP.equals("")  == true)
+	            {
+	            	$WG_TRACE += "$WG_WAS_IP is null→";
+	            }
+	            if( $WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")  == true)
+	            {
+	            	$WG_TRACE += "$WG_TOKEN_KEY is null→";
+	            }
+	            
 	            if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals(""))
 	            {
 	            	$WG_TOKEN_KEY = WG_GetRandomString(10);
@@ -190,6 +205,7 @@ public class WebGate {
 
 	            	String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 	                //log.info("apiUrlText:" + apiUrlText);
+	            	$WG_TRACE += apiUrlText + "→";
 
 	                // 대기표 Validation(checkout api call)
 	            	String responseText = "";
@@ -245,6 +261,7 @@ public class WebGate {
 	            	
 	                String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId=" + $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
 	                //log.info("apiUrlText:" + apiUrlText);
+	                $WG_TRACE += apiUrlText + "→";
 	                
 	                String responseText = WG_CallApi(apiUrlText);
 	                //log.info("responseText:" + responseText);

@@ -1,36 +1,12 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.21.1.30
+    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.08.01
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
     '* 작성자 : ysd@devy.co.kr
     '* All rights reserved to DEVY / https://devy.kr
-    '* ==============================================================================================
-    '* V1.22.05.25
-    '*   remove ui element "<div id='wg-body-wrapper'></div>"
-    '* V1.22.04.08
-    '*   improve : reuse was ip when first api call for check action
-    '* V.22.1.24
-    '*   add cookie WG_CLIENT_ID
-    '* V.21.1.30 (2021-10-04) 
-    '*   resize default server qty 10 --> 3
-    '*   add cookie WG_GATE_ID, WG_WAS_IP
-    '* V.21.1.20 (2021-09-14) 
-    '*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-    '* V.21.1.11 (2021-08-16) 
-    '*   Add Trace API TryCount in STEP-3
-    '* V.21.1.10 (2021-08-08) 
-    '*   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
-    '*   rename cookie WG_VERSION --> WG_VER_BACKEND
-    '*   add WG_ReadCookie(), WG_WriteCookie()
-    '*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
-    '* V.21.1.5 (2021-07-31) 
-    '*   [minor fix] change api url protocol, http --> https
-    '* ----------------------------------------------------------------------------------------------
-    '* V.21.1.3 (2021-07-30) 
-    '*   최초 작성
     '* ==============================================================================================
     '*/
     
@@ -48,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V1.22.04.08"
+        WG_VERSION              = "V.22.08.01"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
@@ -117,6 +93,13 @@
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                         WG_IS_CHECKOUT_OK = True
                         WG_TRACE = WG_TRACE & "OK,"
+
+                        ' set cookie from WG_TOKEN param
+	                    WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
+	                    WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
+	                    WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
+
+
                     Else
                         WG_TRACE = WG_TRACE & "FAIL,"
                     End If
