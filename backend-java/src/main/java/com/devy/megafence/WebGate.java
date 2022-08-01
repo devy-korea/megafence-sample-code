@@ -26,7 +26,7 @@ import com.devy.demo.BackendSampleController;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.05.25
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.01
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -52,7 +52,7 @@ public class WebGate {
 	
 	public boolean WG_IsNeedToWaiting (String serviceId, String gateId,  HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String  $WG_VERSION            	= "V.22.05.25";           
+		String  $WG_VERSION            	= "V.22.08.01";           
 		String  $WG_SERVICE_ID        	= "0";          			// 할당받은 Service ID
 		String  $WG_GATE_ID            	= "0";             			// 사용할 GATE ID
 		int     $WG_MAX_TRY_COUNT      	= 3;                    	// [fixed] failover api retry count
@@ -135,6 +135,10 @@ public class WebGate {
 	                    {
 	                        $WG_IS_CHECKOUT_OK = true;
 	                        $WG_TRACE += "OK→";
+	                        // cookie set
+	                        WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
+	                        WG_WriteCookie($RES, "WG_TOKEN_NO", $WG_TOKEN_NO);
 	                    }                    
 	                    else {
 	                    	$WG_TRACE += "FAIL→";
@@ -393,6 +397,8 @@ public class WebGate {
 * ---------------------------------------------------------------------------------------------
 * HISTORY
 * --------------------------------------------------------------------------------------------- 
+* V.22.08.01
+*   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
 * V.22.05.25
 *   remove ui element "<div id='wg-body-wrapper'></div>"
 * V.22.05.10
