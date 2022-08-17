@@ -1,7 +1,7 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.08.01
+    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.08.17
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.22.08.01"
+        WG_VERSION              = "V.22.08.17"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
@@ -289,7 +289,7 @@
                 "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>"                          & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
                 "        window.addEventListener('load', function () {"                                                                                 & vbCrLf &_
-                "            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload "                                                            & vbCrLf &_
+                "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload "                                                 & vbCrLf &_
                 "        });"                                                                                                                           & vbCrLf &_
                 "    </script>"                                                                                                                         & vbCrLf &_
                 "</body>"                                                                                                                               & vbCrLf &_
