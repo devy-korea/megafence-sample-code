@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html>
+<!--
+* ==============================================================================================
+* 메가펜스 유량제어서비스 Landing 방식 샘플 V.22.1.0
+* ----------------------------------------------------------------------------------------------
+* 이 샘플을 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
+* 허가된 대상 및 목적 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
+* ----------------------------------------------------------------------------------------------
+* 작성자 : ysd@devy.co.kr
+* ----------------------------------------------------------------------------------------------
+
+※ 하단부에 Frontend 방식의 유량제어 서비스 호출 샘플코드가 설명되어 있습니다
+-->
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- custom css -->
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
+    <link href="https://dist.devy.kr/element-ui-2.1.3/lib/theme-chalk/index.css" rel="stylesheet" />
+
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow-y: hidden;
+            background-color: black;
+        }
+
+        #myVideo {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translateX(-50%);
+            padding: 20px;
+            text-align: left;
+            max-width: 800px;
+            background-color: white;
+            border: 2px solid grey;
+            border-radius: 20px;
+            overflow-y: hidden;
+        }
+
+        label.error {
+            font-size: 0.9rem;
+            color: red;
+        }
+    </style>
+
+
+</head>
+<body>
+    <video autoplay muted loop id="myVideo">
+        <source src="//cdn.devy.kr/movie/to-the-moon.mp4" type="video/mp4">
+    </video>
+
+    <div id="app" class="container">
+        <form id="form1">
+            <h1 class="title">
+                [DEMO] TO THE MOON 여행 패키지 신청
+            </h1>
+            <h2 class="subtitle"></h2>
+            <div class="field">
+                <label class="label">Name</label>
+                <div class="control">
+                    <input class="input" type="text" placeholder="Text input" value="홍길동">
+                </div>
+            </div>
+
+            <div class="field">
+                <label class="label">Email</label>
+                <div class="control">
+                    <input class="input" type="email" placeholder="Email input" value="hello@devy.kr">
+                </div>
+            </div>
+
+            <div class="field ">
+                <label class="label">Course</label>
+                <div class="control">
+                    <div class="select">
+                        <select name="Course" required>
+                            <option value="S">달나라</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr />
+
+
+        <div class="field is-grouped">
+            <div class="control">
+                <button id="order-button" class="button is-oreder is-danger" type="button">주문하기</button>
+            </div>
+            <div class="control">
+                <button class="button is-text" onclick="window.location.href='/';">Cancel</button>
+            </div>
+        </div>
+        <p class="has-text-grey has-text-weight-bold">버튼 Click 시 Frontend 방식의 유량제어 서비스를 호출합니다.</p>
+        <div class="notification is-white has-text-centered" style="padding-bottom:0;">
+            <a class="button is-warning" href="backend.php">Backend 방식 DEMO</a>
+            <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
+        </div>
+    </div>
+
+    <!-- Custom lib -->
+    <script src="https://dist.devy.kr/jquery/jquery-3.3.1.min.js"></script>
+    <script src="https://dist.devy.kr/vue-2.6.10/vue.min.js"></script>
+    <script src="https://dist.devy.kr/element-ui-2.1.3/lib/index.js"></script>
+    <script src="https://dist.devy.kr/jquery-validation-1.17.0/jquery.validate.min.js"></script>
+    <script>
+        $(function () {
+            $("#form1").validate();
+        })
+    </script>
+
+
+
+    <!--
+    ===================================================================================
+    버튼 클릭 시 유량제어 서비스 호출
+    ===================================================================================
+    ▶테스트 시 
+        : 샘플 그대로 사용하여 동작 확인 (대기UI가 표시되면 OK)
+    ▶계약 후
+        : button click handler의 gateId, ui title 수정
+        : 대기완료 후 처리할 업무로직을 callback  function 구현부에서 시작
+    ------------------------------------------------------------------------------------->
+    <link  href="https://cdn2.devy.kr/9000/css/webgate.css?v=1" rel="stylesheet" />
+    <link  href="https://cdn2.devy.kr/9000/css/webgate-frontend.css?v=1" rel="stylesheet" />
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
+    <script>
+        // 버튼 클릭 시 GATE-ID로 유량제어 호출합니다
+        document.getElementById("order-button")
+            .addEventListener("click", function () {
+                WG_StartWebGate(
+                    1,                      // GATE-ID
+                    function () {           // 대기완료 후 시작할 기존 업무로직  
+                        console.log("original business logic start here!!!");
+                        setTimeout(function () { alert("[TEST] 결제 완료!"); });
+                    }, 
+                    "FRONTEND",             // fixed
+                    "결제 대기 중"          // UI Title
+                ); 
+            });
+    </script>
+    <!-- END -->
+
+</body>
+</html>

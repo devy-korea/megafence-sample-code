@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<!--
+* ==============================================================================================
+* 메가펜스 유량제어서비스 Landing 방식 샘플 V.22.1.0
+* ----------------------------------------------------------------------------------------------
+* 이 샘플을 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
+* 허가된 대상 및 목적 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
+* ----------------------------------------------------------------------------------------------
+* 작성자 : ysd@devy.co.kr
+* ----------------------------------------------------------------------------------------------
+
+※ 하단부에 Frontend 방식의 유량제어 서비스 호출 샘플코드가 설명되어 있습니다
+-->
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title></title>
+
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
+
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper container">
+        <div class="notification is-info has-text-centered" style="position:fixed; left:0; top:0; width:100%; z-index:99999999">
+            <p class="subtitle has-text-light">Landing 방식 데모입니다...</p>
+            <p class="has-text-dark">이 페이지를 CDN에 배포하면 웹사이트 유입 제어 효과가 극대화됩니다. </p>
+            <p class="has-text-dark">대기가 완료되면 업무페이지로 이동합니다. </p>
+        </div>
+    </div>
+
+
+    <!--
+    ===================================================================================
+    페이지 로드 시 유량제어 서비스 호출
+    ===================================================================================
+    ▶테스트 시
+        : 샘플 그대로 사용하여 동작 확인 (대기UI가 표시되면 OK)
+    ▶계약 후
+        : load handler의 gateId, nextUrl 수정해서 사용하세요
+    ---------------------------------------------------------------------------------->
+    <link href="https://cdn2.devy.kr/9000/css/webgate.css?v=1010" rel="stylesheet" />
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1010"></script>
+    <script>
+        WG_Init();
+        window.addEventListener("load", function () {
+            gateId = $WG.getParam("WG_GATE_ID") || "1";
+            nextUrl = $WG.getParam("WG_NEXT_URL") || "backend.php";
+            uiTitle = "접속 대기 중";
+            WG_StartLandingWebGate(gateId, nextUrl, uiTitle);
+        });
+    </script>
+    <!-- END -->
+
+</body>
+</html>
