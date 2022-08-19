@@ -1,7 +1,7 @@
 <?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.22.08.01
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.22.08.17.0
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -13,7 +13,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.22.08.01";
+        $WG_VERSION         = "V.22.08.17.0";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -42,6 +42,8 @@
         {
             array_push($WG_GATE_SERVERS, $service_id."-".$i.".devy.kr");
         }
+
+
 
 	    /*
         JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
@@ -285,7 +287,7 @@
                 . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>\r\n"
                 . "    <script>\r\n"
                 . "        window.addEventListener('load', function () {\r\n"
-                . "            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload \r\n"
+                . "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
                 . "        });\r\n"
                 . "    </script>\r\n"
                 . "</body>\r\n"
@@ -325,6 +327,9 @@
     }
 
 	/*
+    * V.22.08.17
+	* 	add proxy($WG_PROXY) setting 미적용(java쪽은 적용됨)
+	* 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
 	* V.22.08.01
     *   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
 `   * V.22.05.25

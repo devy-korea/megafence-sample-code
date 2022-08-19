@@ -369,7 +369,7 @@ namespace devy.WebGateLib
             sb.AppendLine("    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=21.1.0'></script>");
             sb.AppendLine("    <script>");
             sb.AppendLine("        window.addEventListener('load', function () {");
-            sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href); //reload ");
+            sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");
             sb.AppendLine("        });");
             sb.AppendLine("    </script>");
             sb.AppendLine("</body>");
@@ -413,6 +413,9 @@ namespace devy.WebGateLib
 
 
 /*
+* V.22.08.17
+* 	add proxy($WG_PROXY) setting 미적용(java쪽은 적용됨)
+* 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
 * V.22.08.01
 *   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
 * V.22.05.25
