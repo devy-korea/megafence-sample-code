@@ -1,29 +1,9 @@
-package com.devy.megafence;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.17.0
+* 메가펜스 유량제어서비스 Backend Library for JSP /  V.22.08.17.0
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -37,18 +17,20 @@ import org.slf4j.LoggerFactory;
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ==============================================================================================
 */
+%>
+<%@page import="java.io.*"%>
+<%@page import="java.io.*"%>
+<%@page import="java.io.*"%>
+<%@page import="java.net.*"%>
+<%@page import="java.net.URLEncoder"%>
+<%@page import="java.util.*"%>
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page import="javax.servlet.http.*"%>
 
-public class WebGate {
-	private Logger log = LoggerFactory.getLogger(WebGate.class);
-
-	public WebGate() {
-		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
-	}
-
-	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
+<%!public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "V.22.08.17.0";
+		String $WG_VERSION = "V.22.08.01";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
@@ -63,9 +45,9 @@ public class WebGate {
 		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
 		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
 		String[] $WG_PROXY = { // proxy 사용하는 경우에만 세팅
-				// "10.10.10.10:1000/devy/1",
-				// "10.10.10.10:1000/devy/2",
-				// "10.10.10.10:1000/devy/3"
+				//"10.10.10.10:1000/devy/1", 
+				//"10.10.10.10:1000/devy/2", 
+				//"10.10.10.10:1000/devy/3"
 		};
 
 		HttpServletRequest $REQ;
@@ -88,10 +70,7 @@ public class WebGate {
 			$WG_CLIENT_IP = "N/A";
 		}
 
-		/*
-		 * jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter
-		 * 추가바랍니다)
-		 */
+		/* jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter 추가바랍니다) */
 		if ($REQ.getParameter("IsLoadTest") != null && $REQ.getParameter("IsLoadTest").equals("Y")) {
 			$WG_IS_LOADTEST = "Y";
 		}
@@ -110,11 +89,11 @@ public class WebGate {
 		String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
 		// end of init variable
 
-		// log.info("ServiceId:" + $WG_SERVICE_ID);
+		//log.info("ServiceId:" + $WG_SERVICE_ID);
 
 		/******************************************************************************
-		 * STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
-		 *******************************************************************************/
+		STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
+		*******************************************************************************/
 		try {
 			$WG_TRACE += "STEP1:";
 
@@ -169,8 +148,8 @@ public class WebGate {
 		/* end of STEP-1 */
 
 		/******************************************************************************
-		 * STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
-		 *******************************************************************************/
+		STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
+		*******************************************************************************/
 		try {
 			$WG_TRACE += "STEP2:";
 
@@ -202,7 +181,7 @@ public class WebGate {
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
 							+ "&IsLoadTest=" + $WG_IS_LOADTEST;
-					// log.info("apiUrlText:" + apiUrlText);
+					//log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
 					}
@@ -210,7 +189,7 @@ public class WebGate {
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
 					responseText = WG_CallApi(apiUrlText);
-					// log.info("responseText:" + responseText);
+					//log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 						$WG_IS_CHECKOUT_OK = true;
@@ -229,9 +208,9 @@ public class WebGate {
 		/* end of STEP-2 */
 
 		/******************************************************************************
-		 * STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단 WG_GATE_SERVERS 서버 중
-		 * 임의의 서버에 API 호출
-		 *******************************************************************************/
+		STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
+		         WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
+		*******************************************************************************/
 		$WG_TRACE += "STEP3:";
 		Boolean $WG_IS_NEED_TO_WAIT = false;
 		if ($WG_IS_CHECKOUT_OK == false) {
@@ -253,13 +232,13 @@ public class WebGate {
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey="
 							+ $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
-					// log.info("apiUrlText:" + apiUrlText);
+					//log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
 					}
 
 					String responseText = WG_CallApi(apiUrlText);
-					// log.info("responseText:" + responseText);
+					//log.info("responseText:" + responseText);
 
 					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
 					if (responseText != null && responseText.length() > 0
@@ -292,7 +271,7 @@ public class WebGate {
 		// write cookie for trace
 		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
 		Date now = new Date();
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); // UTC
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); //UTC
 		String nowText = sf.format(now);
 		WG_WriteCookie($RES, "WG_TIME", nowText);
 		WG_WriteCookie($RES, "WG_TRACE", $WG_TRACE);
@@ -310,7 +289,7 @@ public class WebGate {
 				+ "    <title></title>\r\n"
 				+ "    <link href='//cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=220406' rel='stylesheet'>\r\n"
 				+ "</head>\r\n" + "<body>\r\n"
-				// + " <div id='wg-body-wrapper'></div>\r\n"
+				//+ "    <div id='wg-body-wrapper'></div>\r\n"
 				+ "    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=220406'></script>\r\n"
 				+ "    <script>\r\n" + "        window.addEventListener('load', function () {\r\n"
 				+ "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
@@ -349,7 +328,7 @@ public class WebGate {
 		try {
 			String cookieValue = value;
 			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			// Cookie cookie = new Cookie(key, value);
+			//Cookie cookie = new Cookie(key, value);
 			cookie.setMaxAge(86400 * 1);
 			cookie.setPath("/");
 			res.addCookie(cookie);
@@ -362,8 +341,8 @@ public class WebGate {
 		try {
 			URL url = new URL(urlText);
 			URLConnection con = url.openConnection();
-			con.setConnectTimeout(2000); // 대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
-			con.setReadTimeout(2000); // 대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setConnectTimeout(2000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setReadTimeout(2000); //대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
 
 			BufferedReader buffer = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
@@ -380,45 +359,47 @@ public class WebGate {
 		}
 
 	}
-	
-	/*---------------------------------------------------------------------------------------------
-	* HISTORY
-	* --------------------------------------------------------------------------------------------- 
-	* V.22.08.17
-	* 	add : proxy($WG_PROXY) setting
-	* 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
-	* V.22.08.01
-	*   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
-	* V.22.05.25
-	*   remove ui element "<div id='wg-body-wrapper'></div>"
-	* V.22.05.10
-	*   fix : add ResultCode check of responseText
-	* V.22.04.08
-	*   improve : reuse was ip when first api call for check action
-	* V.21.1.30 (2021-10-29) 
-	*   resize default server qty 10 --> 3
-	*   add cookie WG_GATE_ID, WG_WAS_IP
-	* V.21.1.20 (2021-09-14) 
-	*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-	* V.21.1.11 (2021-08-16) 
-	*   Add Trace API TryCount in STEP-3
-	* V.21.1.10 (2021-08-08) 
-	*   WG_TRACE 내용 축소(apiUrl 제거)
-	*   rename cookie WG_VERSION --> WG_VER_BACKEND
-	*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
-	* V.21.1.4 (2021-08-08)
-	* 	[minor update] check gateid(from cookie) in STEP1 & STEP2
-	* 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
-	* 	improve trace, WG_TRACE
-	* V.21.1.3 (2021-07-23) 
-	*   [minor update] auto make $WG_GATE_SERVERS list
-	*   [minor update] change api protocol http --> https   
-	* V.21.1.1 (2021-06-29) 
-	* 	minor fix & 안정화
-	* 2021-04-03 : UI응답부 template fileload 대체
-	*              server list update
-	* 2021-03-24 : response.setContentType() 처리 추가
-	* 2021-01-20 : 부하발생용 parameter 처리
-	* 	            api call timeout 1초 --> 2초
-	*/
-}
+
+	/*
+	 * ---------------------------------------------------------------------------------------------
+	 * HISTORY
+	 * --------------------------------------------------------------------------------------------- 
+	 * V.22.08.17
+	 * 	add proxy($WG_PROXY) setting
+	 * 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
+	 * V.22.08.01
+	 *   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
+	 * V.22.05.25
+	 *   remove ui element "<div id='wg-body-wrapper'></div>"
+	 * V.22.05.10
+	 *   fix : add ResultCode check of responseText
+	 * V.22.04.08
+	 *   improve : reuse was ip when first api call for check action
+	 * V.21.1.30 (2021-10-29) 
+	 *   resize default server qty 10 --> 3
+	 *   add cookie WG_GATE_ID, WG_WAS_IP
+	 * V.21.1.20 (2021-09-14) 
+	 *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
+	 * V.21.1.11 (2021-08-16) 
+	 *   Add Trace API TryCount in STEP-3
+	 * V.21.1.10 (2021-08-08) 
+	 *   WG_TRACE 내용 축소(apiUrl 제거)
+	 *   rename cookie WG_VERSION --> WG_VER_BACKEND
+	 *   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
+	 * V.21.1.4 (2021-08-08)
+	 * 	[minor update] check gateid(from cookie) in STEP1 & STEP2
+	 * 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
+	 * 	improve trace, WG_TRACE
+	 * V.21.1.3 (2021-07-23) 
+	 *   [minor update] auto make $WG_GATE_SERVERS list
+	 *   [minor update] change api protocol http --> https   
+	 * V.21.1.1 (2021-06-29) 
+	 * 	minor fix & 안정화
+	 * 2021-04-03 : UI응답부 template fileload 대체
+	 *              server list update
+	 * 2021-03-24 : response.setContentType() 처리 추가
+	 * 2021-01-20 : 부하발생용 parameter 처리
+	 * 	            api call timeout 1초 --> 2초
+	 */%>
+
+
