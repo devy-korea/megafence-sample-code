@@ -8,7 +8,11 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Random;
 
 import javax.servlet.http.Cookie;
@@ -21,32 +25,37 @@ import org.slf4j.LoggerFactory;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
-/* 
-* ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.17.0
-* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
-* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
-* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
-* 작성자 : ysd@devy.co.kr
-* All rights reserved to DEVY / https://devy.kr
-* ----------------------------------------------------------------------------------------------
-* <주의>
-* 0. 이 파일은 코드 수정이 필요 없습니다. (import용 library) 
-* 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
-*	 java framework 환경이라면 java control에서 적용을 권장
-*    java framework 없는 환경이라면 jsp에서 적용을 권장 
-* ==============================================================================================
+/*
+ !중요! 이 brach는 HTTP out-bound port가 차단되어 유량제어 api 호출을 proxy를 사용해야 하는 환경용입니다.  
+ ==============================================================================================
+ 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.17.0
+ 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
+ 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
+ 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
+ 작성자 : ysd@devy.co.kr
+ All rights reserved to DEVY / https://devy.kr
+ ----------------------------------------------------------------------------------------------
+ <주의>
+ 0. 이 파일은 코드 수정이 필요 없습니다. (import용 library) 
+ 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
+  	java framework 환경이라면 java control에서 적용을 권장
+ 	java framework 없는 환경이라면 jsp에서 적용을 권장 
+ ==============================================================================================
 */
 
 public class WebGate {
 	private Logger log = LoggerFactory.getLogger(WebGate.class);
+	
+	// begin of 고객사 설정부
+	private String $WG_PROXY = "10.10.10.10:8080";
+	// end of 고객사 설정부
 
 	public WebGate() {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
 	}
-
-	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
-			HttpServletResponse res) {
+	
+	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
+		
 		// begin of declare variable
 		String $WG_VERSION = "V.22.08.17.0";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
@@ -61,12 +70,7 @@ public class WebGate {
 		String $WG_TRACE = ""; // TRACE 정보 (쿠키응답)
 		String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
 		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
-		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
-		String[] $WG_PROXY = { // proxy 사용하는 경우에만 세팅
-				// "10.10.10.10:1000/devy/1",
-				// "10.10.10.10:1000/devy/2",
-				// "10.10.10.10:1000/devy/3"
-		};
+		boolean $WG_IS_TRACE_DETAIL = true; // Detail TRACE 정보 생성여부
 
 		HttpServletRequest $REQ;
 		HttpServletResponse $RES;
@@ -77,6 +81,17 @@ public class WebGate {
 		$WG_GATE_ID = gateId;
 		$REQ = req;
 		$RES = res;
+		
+		HashMap<String/*proxy source*/, String/*proxy destination*/> $WG_PROXYS = new HashMap();
+		for(int i=0; i<$WG_GATE_SERVER_MAX; i++)
+		{
+			$WG_PROXYS.put($WG_PROXY + "/devy/" + serviceId + "-" + i, serviceId + "-" + i + ".devy.kr");
+			/*  
+			ex) $WG_PROXYS.put("10.10.10.10:8080/devy/9000-0", "9000-0.devy.kr");
+			ex) $WG_PROXYS.put("10.10.10.10:8080/devy/9000-1", "9000-1.devy.kr");
+			ex) $WG_PROXYS.put("10.10.10.10:8080/devy/9000-2", "9000-2.devy.kr");
+			*/
+		}
 
 		if ($REQ.getParameter("WG_IS_TRACE_DETAIL") != null && $REQ.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) {
 			$WG_IS_TRACE_DETAIL = true;
@@ -97,16 +112,11 @@ public class WebGate {
 		}
 
 		/* init gate server list */
-		if ($WG_PROXY == null || $WG_PROXY.length == 0) {
-			for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
-				$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
-			}
-		} else {
-			for (int i = 0; i < $WG_PROXY.length; i++) {
-				$WG_GATE_SERVERS.add($WG_PROXY[i]);
-			}
-		}
-
+		for (Entry<String, String> entry : $WG_PROXYS.entrySet()) {
+			$WG_GATE_SERVERS.add(entry.getValue());
+	    }
+		
+		
 		String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
 		// end of init variable
 
@@ -131,11 +141,16 @@ public class WebGate {
 					String paramGateId = tokenPparamValues[0];
 
 					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false && this.getKeyByValue($WG_PROXYS, $WG_WAS_IP) != null
 							&& $WG_GATE_ID.equals(paramGateId)) {
 						// 대기표 Validation(checkout api call)
-						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+						String apiUrlText = "http://" 
+								+  this.getKeyByValue($WG_PROXYS, $WG_WAS_IP) // proxy로 api call 
+								+ "/?ServiceId=" + $WG_SERVICE_ID 
+								+ "&GateId=" + $WG_GATE_ID 
+								+ "&Action=OUT" 
+								+ "&TokenNo=" + $WG_TOKEN_NO 
+								+ "&TokenKey=" + $WG_TOKEN_KEY
 								+ "&IsLoadTest=" + $WG_IS_LOADTEST;
 						if ($WG_IS_TRACE_DETAIL) {
 							$WG_TRACE += apiUrlText + "→";
@@ -196,11 +211,16 @@ public class WebGate {
 				}
 
 				if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false && this.getKeyByValue($WG_PROXYS, $WG_WAS_IP) != null
 						&& $WG_GATE_ID.equals(cookieGateId)) {
 
-					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+					String apiUrlText = "http://" 
+							+ this.getKeyByValue($WG_PROXYS, $WG_WAS_IP) // proxy로 api call 
+							+ "/?ServiceId=" + $WG_SERVICE_ID 
+							+ "&GateId=" + $WG_GATE_ID 
+							+ "&Action=OUT" 
+							+ "&TokenNo=" + $WG_TOKEN_NO 
+							+ "&TokenKey=" + $WG_TOKEN_KEY
 							+ "&IsLoadTest=" + $WG_IS_LOADTEST;
 					// log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
@@ -250,9 +270,14 @@ public class WebGate {
 						$WG_WAS_IP = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
 					}
 
-					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey="
-							+ $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					String apiUrlText = "http://" 
+							+ this.getKeyByValue($WG_PROXYS, $WG_WAS_IP) // proxy로 api call  
+							+ "/?ServiceId=" + $WG_SERVICE_ID 
+							+ "&GateId=" + $WG_GATE_ID 
+							+ "&Action=CHECK" 
+							+ "&ClientIp=" + $WG_CLIENT_IP 
+							+ "&TokenKey=" + $WG_TOKEN_KEY 
+							+ "&IsLoadTest=" + $WG_IS_LOADTEST;
 					// log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
@@ -380,6 +405,25 @@ public class WebGate {
 		}
 
 	}
+	
+	// find key by value of Hashmap
+	public <T, E> T getKeyByValue(Map<T, E> map, E value) {
+	    for (Entry<T, E> entry : map.entrySet()) {
+	        if (Objects.equals(value, entry.getValue())) {
+	            return entry.getKey();
+	        }
+	    }
+	    return null;
+	}	
+	// find value by key of Hashmap
+	public <T, E> E getValueByKey(Map<T, E> map, T key) {
+	    for (Entry<T, E> entry : map.entrySet()) {
+	        if (Objects.equals(key, entry.getKey())) {
+	            return entry.getValue();
+	        }
+	    }
+	    return null;
+	}	
 	
 	/*---------------------------------------------------------------------------------------------
 	* HISTORY
