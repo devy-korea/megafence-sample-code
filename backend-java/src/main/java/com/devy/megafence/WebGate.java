@@ -62,11 +62,6 @@ public class WebGate {
 		String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
 		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
 		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
-		String[] $WG_PROXY = { // proxy 사용하는 경우에만 세팅
-				// "10.10.10.10:1000/devy/1",
-				// "10.10.10.10:1000/devy/2",
-				// "10.10.10.10:1000/devy/3"
-		};
 
 		HttpServletRequest $REQ;
 		HttpServletResponse $RES;
@@ -97,14 +92,8 @@ public class WebGate {
 		}
 
 		/* init gate server list */
-		if ($WG_PROXY == null || $WG_PROXY.length == 0) {
-			for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
-				$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
-			}
-		} else {
-			for (int i = 0; i < $WG_PROXY.length; i++) {
-				$WG_GATE_SERVERS.add($WG_PROXY[i]);
-			}
+		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
+			$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
 		}
 
 		String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
@@ -385,7 +374,6 @@ public class WebGate {
 	* HISTORY
 	* --------------------------------------------------------------------------------------------- 
 	* V.22.08.17
-	* 	add : proxy($WG_PROXY) setting
 	* 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
 	* V.22.08.01
 	*   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
