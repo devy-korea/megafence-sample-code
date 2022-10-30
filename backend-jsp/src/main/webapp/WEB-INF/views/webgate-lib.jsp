@@ -360,46 +360,6 @@
 
 	}
 
-	/*
-	 * ---------------------------------------------------------------------------------------------
-	 * HISTORY
-	 * --------------------------------------------------------------------------------------------- 
-	 * V.22.08.17
-	 * 	add proxy($WG_PROXY) setting
-	 * 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
-	 * V.22.08.01
-	 *   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
-	 * V.22.05.25
-	 *   remove ui element "<div id='wg-body-wrapper'></div>"
-	 * V.22.05.10
-	 *   fix : add ResultCode check of responseText
-	 * V.22.04.08
-	 *   improve : reuse was ip when first api call for check action
-	 * V.21.1.30 (2021-10-29) 
-	 *   resize default server qty 10 --> 3
-	 *   add cookie WG_GATE_ID, WG_WAS_IP
-	 * V.21.1.20 (2021-09-14) 
-	 *   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-	 * V.21.1.11 (2021-08-16) 
-	 *   Add Trace API TryCount in STEP-3
-	 * V.21.1.10 (2021-08-08) 
-	 *   WG_TRACE 내용 축소(apiUrl 제거)
-	 *   rename cookie WG_VERSION --> WG_VER_BACKEND
-	 *   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
-	 * V.21.1.4 (2021-08-08)
-	 * 	[minor update] check gateid(from cookie) in STEP1 & STEP2
-	 * 	add cookie function (WG_ReadCookie(), WG_WriteCookie())
-	 * 	improve trace, WG_TRACE
-	 * V.21.1.3 (2021-07-23) 
-	 *   [minor update] auto make $WG_GATE_SERVERS list
-	 *   [minor update] change api protocol http --> https   
-	 * V.21.1.1 (2021-06-29) 
-	 * 	minor fix & 안정화
-	 * 2021-04-03 : UI응답부 template fileload 대체
-	 *              server list update
-	 * 2021-03-24 : response.setContentType() 처리 추가
-	 * 2021-01-20 : 부하발생용 parameter 처리
-	 * 	            api call timeout 1초 --> 2초
-	 */%>
+%>
 
 
