@@ -1,7 +1,7 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.08.17
+    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.10.30
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.22.08.17"
+        WG_VERSION              = "V.22.10.30"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
@@ -134,7 +134,7 @@
         
 
             If IsEmpty(WG_TOKEN_KEY) OR Len(WG_TOKEN_KEY) = 0 Then
-                WG_TOKEN_KEY = RandomString(10)
+                WG_TOKEN_KEY = RandomString(8)
             End If
 
             If Not WG_IS_CHECKOUT_OK Then
@@ -325,14 +325,13 @@
 
 
     Function RandomString(StrLen)
-        Dim myStr, i
-        Const MainStr= "0123456789ABCDEF"
+        Dim ReturnValue, i
+        Const CharPool= "12345678ABCDEFGHJKLMNPQRSTWXYZ"
         Randomize
         For i = 1 to StrLen
-            myStr=myStr & Mid(MainStr,Int((Len(MainStr)*Rnd)+1),1)
+            ReturnValue = ReturnValue & Mid(CharPool,Int((Len(CharPool)*Rnd)+1),1)
         Next
-        RandomString = myStr
+        RandomString = ReturnValue
     End Function
-
 
 %>

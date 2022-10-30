@@ -7,7 +7,7 @@ using System.Web;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.22.08.01
+* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.22.10.30
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.22.08.01";
+        const string WG_VERSION = "V.22.10.30";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -160,7 +160,7 @@ namespace devy.WebGateLib
 
                     if (string.IsNullOrEmpty(WG_TOKEN_KEY))
                     {
-                        WG_TOKEN_KEY = WG_GetRandomString(10);
+                        WG_TOKEN_KEY = WG_GetRandomString(8);
                         WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
                     }
 
@@ -317,12 +317,12 @@ namespace devy.WebGateLib
         /// <returns></returns>
         private string WG_GetRandomString(int length)
         {
-            string characters = "0123456789ABCDEF";
+            string characters = "12345678ABCDEFGHJKLMNPQRSTWXYZ";
             string randomText = "";
 
             Random rand = new Random();
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < 10; i++)
             {
                 randomText += characters[rand.Next(0, characters.Length) % characters.Length];
             }
@@ -409,56 +409,3 @@ namespace devy.WebGateLib
         }
     }
 }
-
-
-
-/*
-* V.22.08.17
-* 	add proxy($WG_PROXY) setting 미적용(java쪽은 적용됨)
-* 	update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
-* V.22.08.01
-*   fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
-* V.22.05.25
-*   remove ui element "<div id='wg-body-wrapper'></div>"
-* V.22.04.08
-*   improve : reuse was ip when first api call for check action
-* V.21.1.30 (2021-10-04) 
-*   resize default server qty 10 --> 3
-*   add cookie WG_GATE_ID, WG_WAS_IP
-* V.21.1.20 (2021-09-14) 
-*   add client ip parameter in "CHECK" action api (운영자 IP 체크용)
-* V.21.1.11a (2021-08-17) 
-*   C# 3.0 하위호환성 확보 (ASP.NET 2.0)
-*   change type of serviceid, gateid : int  --> string
-*   remove var keyword
-*   remove initializing when object create
-* V.21.1.11 (2021-08-16) 
-*   Add Trace API TryCount in STEP-3
-* V.21.1.10 (2021-08-08) 
-*   WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
-*   rename cookie WG_VERSION --> WG_VER_BACKEND
-*   add ReadCookie()
-*   add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
-* V.21.1.5 (2021-07-31) 
-*   change cookie default expire 7 --> 1 days
-* V.21.1.5 (2021-07-31) 
-*   [minor fix] change api url protocol, http --> https
-* ----------------------------------------------------------------------------------------------
-* V.21.1.4 (2021-07-29) 
-*   [minor fix] missing getparm of IsLoadTest
-* V.21.1.3 (2021-07-23) 
-*   [minor update] auto make $WG_GATE_SERVERS list
-* ----------------------------------------------------------------------------------------------
-* V.21.1.1 (2021-06-28) 
-*   [minor fix] WG_GetWaitingUi() : html & body style (width 100 --> 100%)
-*   [minor fix] WG_GetWaitingUi() : remove whitespace starting html template($html)
-*   [fix] WG_GetRandomString() index overflow
-* ----------------------------------------------------------------------------------------------
-* 2021-10-29 : resize default WG_GATE_SERVER_MAX 10 --> 3
-* 2021-04-03 : UI응답부 template fileload 대체
-*              server list update
-* 2021-03-24 : response.setContentType() 처리 추가
-* 2021-01-20 : 부하발생용 parameter 처리
-* 	            api call timeout 1초 --> 2초
- 	            
-*/

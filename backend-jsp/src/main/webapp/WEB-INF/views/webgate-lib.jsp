@@ -30,7 +30,7 @@
 <%!public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "V.22.08.01";
+		String $WG_VERSION = "V.22.10.30";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
@@ -170,7 +170,7 @@
 				}
 
 				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
-					$WG_TOKEN_KEY = WG_GetRandomString(10);
+					$WG_TOKEN_KEY = WG_GetRandomString(8);
 					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 				}
 
@@ -303,7 +303,7 @@
 		StringBuffer buffer = new StringBuffer();
 		Random random = new Random();
 
-		String chars[] = "0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F".split(",");
+		String chars[] = "1,2,3,4,5,6,7,8,A,B,C,D,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z".split(",");
 
 		for (int i = 0; i < length; i++) {
 			buffer.append(chars[random.nextInt(chars.length)]);
