@@ -48,7 +48,8 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "V.22.10.30";
+		String $WG_VERSION = "23.02.02";
+		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
@@ -125,7 +126,7 @@ public class WebGate {
 						// 대기표 Validation(checkout api call)
 						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-								+ "&IsLoadTest=" + $WG_IS_LOADTEST;
+								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 						if ($WG_IS_TRACE_DETAIL) {
 							$WG_TRACE += apiUrlText + "→";
 						}
@@ -190,7 +191,7 @@ public class WebGate {
 
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-							+ "&IsLoadTest=" + $WG_IS_LOADTEST;
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 					// log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
@@ -240,8 +241,8 @@ public class WebGate {
 					}
 
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey="
-							+ $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY 
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 					// log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
@@ -280,6 +281,7 @@ public class WebGate {
 
 		// write cookie for trace
 		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
+		WG_WriteCookie($RES, "WG_MOD_BACKEND", $WG_MODULE);
 		Date now = new Date();
 		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); // UTC
 		String nowText = sf.format(now);

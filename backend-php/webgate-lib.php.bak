@@ -322,7 +322,7 @@
 
     function WG_WriteCookie($key, $value)
     {
-        setcookie ($key, $value, time() + (86400 * 1), "/"); 
+        setcookie ($key, $value, time() + (86400 * 1), "/", $WG_COOKIE_DOMAIN); 
     }
 
 /*  

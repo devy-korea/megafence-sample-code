@@ -27,10 +27,52 @@
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="javax.servlet.http.*"%>
 
-<%!public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
-			HttpServletResponse res) {
+<%!
+	/* */
+	public boolean WG_IsNeedToRedirect(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "V.22.10.30";
+		String $WG_VERSION = "23.02.01";
+		String $WG_MODULE = "Backend/JSP";
+		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
+		int $WG_GATE_SERVER_MAX = 3; // [fixed] was dns record count
+		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
+		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
+			$WG_GATE_SERVERS.add(serviceId + "-" + i + ".devy.kr");
+		}
+
+		int $serverCount = $WG_GATE_SERVERS.size();
+		int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
+
+		
+		int $tryCount = 0;
+		// Fail-over를 위해 최대 3차까지 시도
+		for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
+			try {
+				String wasIp = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
+				String apiUrlText = "https://" + wasIp + "/?ServiceId=" + serviceId + "&GateId=" + gateId + "&Action=ASK_NEED_TO_REDIRECT";
+
+				String responseText = WG_CallApi(apiUrlText);
+				//log.info("responseText:" + responseText);
+
+				if (responseText != null && responseText.trim().equalsIgnoreCase("Y")){
+					return true;
+				}
+				else {
+					return false;
+				}
+				
+			} catch (Exception $e) {
+				// ignore & goto next
+			}
+		}	
+		return false;
+	}
+
+	/* 대기여부 판단 */
+	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
+		// begin of declare variable
+		String $WG_VERSION = "23.02.01";
+		String $WG_MODULE = "Backend/JSP";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
@@ -115,7 +157,7 @@
 						// 대기표 Validation(checkout api call)
 						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-								+ "&IsLoadTest=" + $WG_IS_LOADTEST;
+								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 						if ($WG_IS_TRACE_DETAIL) {
 							$WG_TRACE += apiUrlText + "→";
 						}
@@ -180,7 +222,7 @@
 
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
 							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-							+ "&IsLoadTest=" + $WG_IS_LOADTEST;
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 					//log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
@@ -230,8 +272,8 @@
 					}
 
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey="
-							+ $WG_TOKEN_KEY + "&IsLoadTest=" + $WG_IS_LOADTEST;
+							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY 
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
 					//log.info("apiUrlText:" + apiUrlText);
 					if ($WG_IS_TRACE_DETAIL) {
 						$WG_TRACE += apiUrlText + "→";
@@ -270,6 +312,7 @@
 
 		// write cookie for trace
 		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
+		WG_WriteCookie($RES, "WG_MOD_BACKEND", $WG_MODULE);
 		Date now = new Date();
 		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); //UTC
 		String nowText = sf.format(now);
@@ -341,8 +384,8 @@
 		try {
 			URL url = new URL(urlText);
 			URLConnection con = url.openConnection();
-			con.setConnectTimeout(2000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
-			con.setReadTimeout(2000); //대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setConnectTimeout(5000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setReadTimeout(5000); //대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
 
 			BufferedReader buffer = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
