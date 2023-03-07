@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.22.08.17.0
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.23.02.02
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
 * ==============================================================================================
+* 230307 : remove isEmpty() for java 1.5
 */
 
 public class WebGate {
@@ -233,7 +234,7 @@ public class WebGate {
 			for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
 				try {
 					// WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
-					if ($tryCount == 0 && $WG_WAS_IP != null && !$WG_WAS_IP.isEmpty()) {
+					if ($tryCount == 0 && $WG_WAS_IP != null && $WG_WAS_IP.length() > 0) {
 						// 최초1회는 cookie의 wasip 사용
 					} else {
 						// 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
