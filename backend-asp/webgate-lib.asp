@@ -24,10 +24,10 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.22.10.30"
+        WG_VERSION              = "V.23.04.18"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        WG_GATE_SERVER_MAX      = 3                           '[fixed] was dns record count
+        WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
         WG_TOKEN_NO             = ""                           '대기표 ID
         WG_TOKEN_KEY            = ""                           '대기표 key
         WG_WAS_IP               = ""                           '대기표 발급서버
@@ -58,7 +58,6 @@
         'API Call Timeout : 2초 무응답 시 장애 간주
         Dim ApiUrl, ResponseText
         Dim XmlHttp : Set XmlHttp = Server.CreateObject("Msxml2.ServerXMLHTTP.3.0")
-        XmlHttp.SetTimeouts 2000, 2000, 2000, 2000
 
 
         '******************************************************************************
@@ -89,6 +88,7 @@
                     'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
 
                     ' Call API
+                    XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
                     ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                     If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                         WG_IS_CHECKOUT_OK = True
@@ -149,6 +149,7 @@
                         ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
 
                         ' Call API
+                        XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                         If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
                             WG_IS_CHECKOUT_OK = True
@@ -205,6 +206,7 @@
 
                         ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK" & "&ClientIp=" & WG_CLIENT_IP  & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                         ' Call API
+                        XmlHttp.SetTimeouts 5*(TryCount+1), 5*(TryCount+1), 5*(TryCount+1), 5*(TryCount+1)
                         ResponseText = WG_CallApi(ApiUrl, XmlHttp)
                         If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
                             If InStr(ResponseText, "WAIT") Then

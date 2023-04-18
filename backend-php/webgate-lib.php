@@ -1,7 +1,7 @@
 <?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.22.10.30
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.23.04.18
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -13,12 +13,12 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.22.10.30";
+        $WG_VERSION         = "V.23.04.18";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
         $WG_IS_CHECKOUT_OK  = false;        // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        $WG_GATE_SERVER_MAX = 3;           // [fixed] was dns record count
+        $WG_GATE_SERVER_MAX = 6;            // [fixed] was dns record count
         $WG_GATE_SERVERS    = array ();     // [fixed] 대기표 발급서버 Address List
         $WG_TOKEN_NO        = "";           // 대기표 ID
         $WG_TOKEN_KEY       = "";           // 대기표 key
@@ -57,7 +57,6 @@
 
         // Timeout 제어 (2초이내 무응답 장애간주)
         $WG_SOCKET_TIMEOUT = ini_get("default_socket_timeout");
-        ini_set("default_socket_timeout", 2);
 
 
         /******************************************************************************
@@ -65,6 +64,8 @@
         *******************************************************************************/
         try 
         {
+            ini_set("default_socket_timeout", 20);
+
             $WG_TRACE .= "STEP1:";
             if(isset($_GET["WG_TOKEN"])) 
             {
@@ -123,6 +124,8 @@
         *******************************************************************************/
         try 
         {
+            ini_set("default_socket_timeout", 20);
+
             $WG_TRACE .= "→STEP2:";
             if($WG_IS_CHECKOUT_OK == false)
             {
@@ -195,6 +198,9 @@
             {
                 try
                 {
+                    ini_set("default_socket_timeout", 5*($tryCount+1));
+
+
                     if($tryCount == 0 && strlen($WG_WAS_IP) > 0)
                     {
 						$serverIp = $WG_WAS_IP;
@@ -376,6 +382,9 @@
         update : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
     V.22.10.30
         update : WG_GetRandomString() return 8 characters base 30 notation for WG_CLIENT_ID
+    V.23.04.18
+        update : increase default was qty 3 to 6
+        update : change api call timeout (validation : 최대 20초, 대기표 발급 : 5, 10, 15초)
 */
 ?>
 

@@ -31,7 +31,7 @@
 	/* */
 	public boolean WG_IsNeedToRedirect(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.02.01";
+		String $WG_VERSION = "23.04.18";
 		String $WG_MODULE = "Backend/JSP";
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
 		int $WG_GATE_SERVER_MAX = 3; // [fixed] was dns record count
@@ -51,7 +51,7 @@
 				String wasIp = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
 				String apiUrlText = "https://" + wasIp + "/?ServiceId=" + serviceId + "&GateId=" + gateId + "&Action=ASK_NEED_TO_REDIRECT";
 
-				String responseText = WG_CallApi(apiUrlText);
+				String responseText = WG_CallApi(apiUrlText, 5 * ($tryCount+1));
 				//log.info("responseText:" + responseText);
 
 				if (responseText != null && responseText.trim().equalsIgnoreCase("Y")){
@@ -77,7 +77,7 @@
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
 		boolean $WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-		int $WG_GATE_SERVER_MAX = 3; // [fixed] was dns record count
+		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count.
 		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
 		String $WG_TOKEN_NO = ""; // 대기표 ID
 		String $WG_TOKEN_KEY = ""; // 대기표 key
@@ -162,7 +162,7 @@
 							$WG_TRACE += apiUrlText + "→";
 						}
 
-						String responseText = WG_CallApi(apiUrlText);
+						String responseText = WG_CallApi(apiUrlText, 20);
 
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 							$WG_IS_CHECKOUT_OK = true;
@@ -230,7 +230,7 @@
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText);
+					responseText = WG_CallApi(apiUrlText, 20);
 					//log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -279,7 +279,7 @@
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText);
+					String responseText = WG_CallApi(apiUrlText, 5 * ($tryCount+1));
 					//log.info("responseText:" + responseText);
 
 					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -380,12 +380,12 @@
 		}
 	}
 
-	String WG_CallApi(String urlText) {
+	String WG_CallApi(String urlText, int timeoutSeconds) {
 		try {
 			URL url = new URL(urlText);
 			URLConnection con = url.openConnection();
-			con.setConnectTimeout(5000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
-			con.setReadTimeout(5000); //대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setConnectTimeout(timeoutSeconds); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setReadTimeout(timeoutSeconds); //대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
 
 			BufferedReader buffer = new BufferedReader(new InputStreamReader(con.getInputStream()));
 

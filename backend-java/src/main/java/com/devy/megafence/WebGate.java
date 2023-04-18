@@ -1,3 +1,6 @@
+/*
+ * package명은 고객사 프로젝트와 동일하게 변경해도 무방합니다.  
+ */
 package com.devy.megafence;
 
 import java.io.BufferedReader;
@@ -23,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / V.23.02.02
+* 메가펜스 유량제어서비스 Backend Library for JAVA / V.23.04.18
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -49,13 +52,13 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.02.02";
+		String $WG_VERSION = "23.04.18";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
 		boolean $WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-		int $WG_GATE_SERVER_MAX = 3; // [fixed] was dns record count
+		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
 		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
 		String $WG_TOKEN_NO = ""; // 대기표 ID
 		String $WG_TOKEN_KEY = ""; // 대기표 key
@@ -132,7 +135,7 @@ public class WebGate {
 							$WG_TRACE += apiUrlText + "→";
 						}
 
-						String responseText = WG_CallApi(apiUrlText);
+						String responseText = WG_CallApi(apiUrlText, 20);
 
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 							$WG_IS_CHECKOUT_OK = true;
@@ -200,7 +203,7 @@ public class WebGate {
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText);
+					responseText = WG_CallApi(apiUrlText, 20);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -249,7 +252,7 @@ public class WebGate {
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText);
+					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
 					// log.info("responseText:" + responseText);
 
 					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -350,12 +353,12 @@ public class WebGate {
 		}
 	}
 
-	String WG_CallApi(String urlText) {
+	String WG_CallApi(String urlText, int timeoutSeconds) {
 		try {
 			URL url = new URL(urlText);
 			URLConnection con = url.openConnection();
-			con.setConnectTimeout(2000); // 대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
-			con.setReadTimeout(2000); // 대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setConnectTimeout(timeoutSeconds*1000); // 대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+			con.setReadTimeout(timeoutSeconds*1000); // 대깅려 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
 
 			BufferedReader buffer = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
