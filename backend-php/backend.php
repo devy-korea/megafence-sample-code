@@ -23,6 +23,7 @@
     *   ⊙ 쿠키나 세션 등을 이용하는 간단한 처리는 유량제어 코드 이전에 배치되어도 무방합니다.
     * ==============================================================================================
     */
+    //print "REFERER:" . $_SERVER['HTTP_REFERER'];
 
     /* ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ BEGIN OF 유량제어 코드삽입 */
     // import library
@@ -35,7 +36,7 @@
     if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
     {
         print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
-        return; // 응답종료
+        exit(); // 응답종료 
     }
     /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
 
