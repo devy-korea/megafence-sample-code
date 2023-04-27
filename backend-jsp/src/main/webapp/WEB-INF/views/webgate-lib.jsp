@@ -34,7 +34,7 @@
 		String $WG_VERSION = "23.04.18";
 		String $WG_MODULE = "Backend/JSP";
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
-		int $WG_GATE_SERVER_MAX = 3; // [fixed] was dns record count
+		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
 		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
 		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
 			$WG_GATE_SERVERS.add(serviceId + "-" + i + ".devy.kr");

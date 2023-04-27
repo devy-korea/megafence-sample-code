@@ -26,7 +26,7 @@ namespace devy.WebGateLib
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
         public bool WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        const int WG_GATE_SERVER_MAX = 3;    // [fixed] was dns record count
+        const int WG_GATE_SERVER_MAX = 6;    // [fixed] was dns record count
         public List<string> WG_GATE_SERVERS;            // [fixed] 대기표 발급서버 Address List
         public string WG_TOKEN_NO = "";    // 대기표 ID
         public string WG_TOKEN_KEY = "";    // 대기표 key
