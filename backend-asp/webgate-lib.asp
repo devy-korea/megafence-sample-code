@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "V.23.04.18"
+        WG_VERSION              = "V.23.07.21"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -174,82 +174,14 @@
         'Error Clear
         On Error GoTo 0 
 
-
-        '******************************************************************************
-        'STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
-        '         WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
-        '*******************************************************************************/
-        WG_TRACE = WG_TRACE & "→STEP3:"
-        Dim WG_IS_NEED_TO_WAIT 
-        WG_IS_NEED_TO_WAIT = False
-
-        On Error Resume Next   
-            If Not WG_IS_CHECKOUT_OK Then
-                Dim LineText, ReceiveText, DrawResult
-                Dim TryCount
-
-                Randomize
-                DrawResult = Int(WG_GATE_SERVER_MAX * Rnd + 0)
-
-                TryCount = 0
-                For TryCount = 0 To WG_MAX_TRY_COUNT Step 1
-                    'Try 시작
-                    On Error Resume Next   
-                        DrawResult = DrawResult + 1
-                        
-                        If TryCount = 0 And Len(WG_WAS_IP) > 0 Then
-                            'use last was ip from cookie when first time
-                        Else
-                            WG_WAS_IP = WG_GATE_SERVERS(DrawResult Mod WG_GATE_SERVER_MAX)
-                        End If
-                        
-
-                        ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=CHECK" & "&ClientIp=" & WG_CLIENT_IP  & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
-                        ' Call API
-                        XmlHttp.SetTimeouts 5*(TryCount+1), 5*(TryCount+1), 5*(TryCount+1), 5*(TryCount+1)
-                        ResponseText = WG_CallApi(ApiUrl, XmlHttp)
-                        If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) Then
-                            If InStr(ResponseText, "WAIT") Then
-                                WG_TRACE =  WG_TRACE & "WAIT,"
-                                WG_IS_NEED_TO_WAIT = True
-                                Exit For
-                            ElseIf InStr(ResponseText, "PASS") Then ' PASS
-                                WG_TRACE =  WG_TRACE & "PASS,"
-                                WG_IS_NEED_TO_WAIT = False
-                                Exit For
-                            Else 
-                                WG_TRACE =  WG_TRACE & "Fail:" & ResponseText & ","
-                            End If
-                        Else
-                            WG_TRACE = WG_TRACE & "FAIL,"                    
-                        End If
-                    'Catch
-                    If Err <> 0 Then   
-                        WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
-                        'ignore & goto next
-                    End If
-                    'Error Clear
-                    On Error GoTo 0 
-                Next
-            Else
-                WG_TRACE = WG_TRACE & "SKIP,"
-            End If
-            WG_TRACE = WG_TRACE & "TryCount:" & Cstr(TryCount) & ","
-
-            If WG_IS_CHECKOUT_OK Or Not WG_IS_NEED_TO_WAIT Then
-                WG_IsNeedToWaiting = False
-            Else
-                WG_IsNeedToWaiting = True
-            End If
-            WG_TRACE = WG_TRACE & "→Returns:" & Cstr(WG_IsNeedToWaiting)
-
-        'Catch
-        If Err <> 0 Then   
-            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
-            'ignore & goto next
+        
+        If WG_IS_CHECKOUT_OK Then
+            WG_IsNeedToWaiting = False
+        Else
+            WG_IsNeedToWaiting = True
         End If
-        'Error Clear
-        On Error GoTo 0 
+        WG_TRACE = WG_TRACE & "→Returns:" & Cstr(WG_IsNeedToWaiting)
+        
 
 
         'Cookie Write for trace
