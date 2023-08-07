@@ -52,7 +52,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.07.21";
+		String $WG_VERSION = "23.04.18";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -135,7 +135,7 @@ public class WebGate {
 							$WG_TRACE += apiUrlText + "→";
 						}
 
-						String responseText = WG_CallApi(apiUrlText, 30);
+						String responseText = WG_CallApi(apiUrlText, 20);
 
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 							$WG_IS_CHECKOUT_OK = true;
@@ -203,7 +203,7 @@ public class WebGate {
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 30);
+					responseText = WG_CallApi(apiUrlText, 20);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -222,11 +222,65 @@ public class WebGate {
 		}
 		/* end of STEP-2 */
 
-		
 		/******************************************************************************
-		 * RETURN
+		 * STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단 WG_GATE_SERVERS 서버 중
+		 * 임의의 서버에 API 호출
 		 *******************************************************************************/
-		Boolean $WG_IS_NEED_TO_WAIT = !$WG_IS_CHECKOUT_OK;
+		$WG_TRACE += "STEP3:";
+		Boolean $WG_IS_NEED_TO_WAIT = false;
+		if ($WG_IS_CHECKOUT_OK == false) {
+			int $serverCount = $WG_GATE_SERVERS.size();
+			int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
+
+			int $tryCount = 0;
+			// Fail-over를 위해 최대 3차까지 시도
+			for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
+				try {
+					// WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
+					if ($tryCount == 0 && $WG_WAS_IP != null && $WG_WAS_IP.length() > 0) {
+						// 최초1회는 cookie의 wasip 사용
+					} else {
+						// 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
+						$WG_WAS_IP = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
+					}
+
+					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY 
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					// log.info("apiUrlText:" + apiUrlText);
+					if ($WG_IS_TRACE_DETAIL) {
+						$WG_TRACE += apiUrlText + "→";
+					}
+
+					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+					// log.info("responseText:" + responseText);
+
+					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
+					if (responseText != null && responseText.length() > 0
+							&& responseText.indexOf("\"ResultCode\":0") >= 0) {
+						if (responseText.indexOf("WAIT") >= 0) {
+							$WG_TRACE += "WAIT,";
+							$WG_IS_NEED_TO_WAIT = true;
+							break;
+						} else { // PASS (대기가 없는 경우)
+							$WG_TRACE += "PASS,";
+							$WG_IS_NEED_TO_WAIT = false;
+							break;
+						}
+					}
+				} catch (Exception $e) {
+					// ignore & goto next
+					$WG_TRACE += "ERROR:" + $e.getMessage() + ",";
+				}
+			}
+			// 코드가 여기까지 왔다는 것은
+			// 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+			$WG_TRACE += "TryCount:" + $tryCount + ",";
+		} else {
+			$WG_TRACE += "SKIP,";
+		}
+		/* end of STEP-3 */
+
 		$WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
 
 		// write cookie for trace

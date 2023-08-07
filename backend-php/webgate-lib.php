@@ -1,7 +1,7 @@
 <?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / V.23.07.21
+    * 메가펜스 유량제어서비스 Backend Library for PHP / V.23.04.18
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -13,7 +13,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.23.07.21";
+        $WG_VERSION         = "V.23.04.18";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -178,12 +178,78 @@
             // ignore & goto next
         }
 
+
+        /******************************************************************************
+        STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
+                 WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
+        *******************************************************************************/
+        $WG_TRACE .= "→STEP3:";
+
+        $WG_IS_NEED_TO_WAIT = false;
+        $tryCount = 0;
+        if($WG_IS_CHECKOUT_OK == false) 
+        {
+            $lineText="";
+            $receiveText="";
+            $serverCount = count($WG_GATE_SERVERS);
+            $drawResult  = rand(0, $serverCount-1); // 1차대기열서버 : 임의의 대기열 서버
+            
+            // Fail-over를 위해 최대 3차까지 시도
+            for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
+            {
+                try
+                {
+                    ini_set("default_socket_timeout", 5*($tryCount+1));
+
+
+                    if($tryCount == 0 && strlen($WG_WAS_IP) > 0)
+                    {
+						$serverIp = $WG_WAS_IP;
+                    } else {
+                        $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
+                    }
+
+                    
+                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    
+                    //$WG_TRACE .=  $apiUrl.",";
+                    $responseText = file_get_contents($apiUrl);
+                    if($responseText == null || $responseText == "") { continue; }  
+
+                
+                    // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
+                    if(strpos($responseText, "WAIT") !== false) 
+                    {
+                        $WG_TRACE .=  "WAIT,";
+                        $WG_IS_NEED_TO_WAIT = true;
+                        break; 
+                    } 
+                    else if(strpos($responseText, "PASS") !== false)  
+                    {  
+                        $WG_TRACE .=  "PASS,";
+                        $WG_IS_NEED_TO_WAIT = false;
+                        break; 
+                    }
+                    else {
+						$WG_TRACE .=  "FAIL:" . $responseText . ",";
+                    }
+                }
+                catch(Exception $e)  { 
+                    $WG_TRACE .= "ERROR:".$e->getMessage().",";
+                    // try next
+                }
+            }
+        }
+        else {
+            $WG_TRACE .= "SKIP";
+        }
+        $WG_TRACE .= "TryCount:".$tryCount.",";
+
         // Timeout 설정 복구
         ini_set("default_socket_timeout", $WG_SOCKET_TIMEOUT);
 
-
         $result = true;
-        if($WG_IS_CHECKOUT_OK)
+        if($WG_IS_CHECKOUT_OK || !$WG_IS_NEED_TO_WAIT)
         {
             $result = false;
         }
@@ -203,6 +269,7 @@
 		WG_WriteCookie ("WG_WAS_IP", $WG_WAS_IP);
 
 		
+        
         return $result;
 
     }
@@ -323,6 +390,8 @@
     V.23.07.21
         improve : STEP-3 미사용 (backend의 CHECK api 미사용)
         update : api timeout 30초
+    V.23.08.07
+        improve : STEP-3 재사용 (api 교체 예정)
 */
 ?>
 

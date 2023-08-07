@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.23.07.21";
+        const string WG_VERSION = "V.23.04.18";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 6;     // [fixed] failover api retry count
@@ -201,8 +201,85 @@ namespace devy.WebGateLib
             /* end of STEP-2 */
 
 
+
+            /******************************************************************************
+            STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
+                     WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
+            *******************************************************************************/
+            WG_TRACE += "→STEP3:";
+            bool IS_NEED_TO_WAIT = false;
+            if (WG_IS_CHECKOUT_OK == false)
+            {
+                int drawResult = new Random().Next(WG_GATE_SERVERS.Count);
+                int tryCount = 0;
+
+                // Fail-over를 위해 최대 3차까지 시도
+                for (tryCount = 0; tryCount < WG_MAX_TRY_COUNT; tryCount++)
+                {
+
+                    try
+                    {
+
+                        if (tryCount == 0 && !string.IsNullOrEmpty(WG_WAS_IP))
+                        {
+                            // 최초 1회는 cookie의 wasip 사용
+                        }
+                        else
+                        {
+                            // 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
+                            int serverIndex = (drawResult++) % (WG_GATE_SERVERS.Count);
+                            WG_WAS_IP = WG_GATE_SERVERS[serverIndex];
+                        }
+
+
+
+
+                        String apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + WG_CLIENT_IP + "&TokenKey=" + WG_TOKEN_KEY;
+
+                        // 부하테스트(LoadTest)용으로 호출된 경우 IsLoadTest=Y paramter를 URL에 추가하여 대기열 통계가 정확하게 계산되도록 합니다. (일반적인경우에는 상관없음)
+                        if (REQ.QueryString["IsLoadTest"] != null && REQ.QueryString["IsLoadTest"].Equals("Y", StringComparison.OrdinalIgnoreCase))
+                        {
+                            apiUrl += "&IsLoadTest=Y";
+                        }
+                        string responseText = GetHttpText(apiUrl, 5*(tryCount+1));
+
+                        // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
+                        if (!string.IsNullOrEmpty(responseText))
+                        {
+                            // 대기자가 있으면 WAIT(대기열 UI 표시) : 응답을 WG_WAITING_FILE로 교체
+                            if (responseText.IndexOf("WAIT") >= 0)
+                            {
+                                IS_NEED_TO_WAIT = true;
+                                WG_TRACE += "WAIT,";
+                                break;
+                            }
+                            else if (responseText.IndexOf("PASS") >= 0)
+                            {
+                                IS_NEED_TO_WAIT = false;
+                                WG_TRACE += "PASS,";
+                                break;
+                            }
+                            else
+                            {
+                                WG_TRACE += "FAIL:" + responseText + ",";
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // 오류 시 오류 무시하고 재시도
+                        WG_TRACE += "ERROR:" + ex.Message + ",";
+                    }
+                }
+                WG_TRACE += "tryCount:" + tryCount + ",";
+
+                // 코드가 여기까지 왔다는 것은
+                // 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+            }
+            /* end of STEP-3 */
+
             bool isNeedToWait = false;
-            if (WG_IS_CHECKOUT_OK)
+            if (WG_IS_CHECKOUT_OK || !IS_NEED_TO_WAIT)
             {
                 isNeedToWait = false;
             }
