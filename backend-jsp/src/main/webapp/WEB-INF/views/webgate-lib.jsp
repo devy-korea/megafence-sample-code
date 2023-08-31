@@ -374,7 +374,11 @@
 			//Cookie cookie = new Cookie(key, value);
 			cookie.setMaxAge(86400 * 1);
 			cookie.setPath("/");
-			res.addCookie(cookie);
+			/* multi-도메인 환경에서만 아래 코드 추가
+			   	ex) *.devy.kr 에서 사용하는 경우 : .devy.kr 로 입력
+				cookie.setDomain(".devy.kr");  
+			*/
+			res.addCookie(cookie); 
 		} catch (Exception ex) {
 			// skip
 		}
