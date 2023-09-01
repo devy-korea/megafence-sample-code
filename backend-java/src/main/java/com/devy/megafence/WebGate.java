@@ -49,6 +49,38 @@ public class WebGate {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
 	}
 
+	
+	/* 쿠키 저장*/
+	public void WG_WriteCookie(HttpServletResponse res, String key, String value) {
+		// default cookie (auto domain)
+		try {
+			String cookieValue = value;
+			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
+			cookie.setMaxAge(86400 * 1);
+			cookie.setPath("/");
+			res.addCookie(cookie); 
+		} catch (Exception ex) {
+			// skip
+		}
+
+		/* !!!!! multi-도메인 환경에서만 아래 코드 사용 !!!!
+	   		ex) *.devy.kr 에서 사용하는 경우 : .devy.kr 로 입력
+			cookie.setDomain(".devy.kr");  
+		*/
+		try {
+			String cookieValue = value;
+			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
+			cookie.setMaxAge(86400 * 1);
+			cookie.setPath("/");
+			cookie.setDomain(".devy.kr");  
+			res.addCookie(cookie); 
+		} catch (Exception ex) {
+			// skip
+		}
+	}
+	
+	
+	
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
@@ -340,18 +372,6 @@ public class WebGate {
 		return null;
 	}
 
-	public void WG_WriteCookie(HttpServletResponse res, String key, String value) {
-		try {
-			String cookieValue = value;
-			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			// Cookie cookie = new Cookie(key, value);
-			cookie.setMaxAge(86400 * 1);
-			cookie.setPath("/");
-			res.addCookie(cookie);
-		} catch (Exception ex) {
-			// skip
-		}
-	}
 
 	String WG_CallApi(String urlText, int timeoutSeconds) {
 		try {
