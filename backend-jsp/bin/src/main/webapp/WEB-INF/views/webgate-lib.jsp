@@ -27,7 +27,8 @@
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="javax.servlet.http.*"%>
 
-<%!public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
+<%!
+	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
 		String $WG_VERSION = "V.22.08.01";
