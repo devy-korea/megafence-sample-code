@@ -11,7 +11,7 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
 <html>
 <head>
     <!-- custom css -->
-    <link href="//cdn.devy.kr/dist/bulma-0.7.1/bulma.css" rel="stylesheet" />
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
 </head>
 <body>
     <div id="app" class="container">
@@ -20,11 +20,6 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
                 <h1 class="title">Index Page!!!</h1>
                 <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
                 <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
-            </div>
-
-            <hr/>
-            <div class="notification is-white has-text-centered">
-                <a class="button is-dark" href="frontend-sample.html">Frontend 방식 DEMO</a> <a class="button is-dark" href="landing-sample.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

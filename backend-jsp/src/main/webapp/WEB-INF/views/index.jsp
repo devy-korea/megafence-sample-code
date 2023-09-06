@@ -2,7 +2,7 @@
 
 <!-- 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 SAMPLE(JSP) V.21.1.4
+* 메가펜스 유량제어서비스 SAMPLE(JSP) / 23.09.03
 * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
 * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -61,7 +61,7 @@ Heavy business logic ....
 <html>
 <head>
     <!-- custom css -->
-    <link href="//cdn.devy.kr/dist/bulma-0.7.1/bulma.css" rel="stylesheet" />
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
 </head>
 <body>
     <div id="app" class="container">
@@ -70,11 +70,6 @@ Heavy business logic ....
                 <h1 class="title">Hello, World!!!</h1>
                 <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
                 <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
-            </div>
-
-            <hr/>
-            <div class="notification is-white has-text-centered">
-                <a class="button is-dark" href="frontend-sample.html">Frontend 방식 DEMO</a> <a class="button is-dark" href="landing-sample.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

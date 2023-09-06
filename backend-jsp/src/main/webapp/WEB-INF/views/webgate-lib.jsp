@@ -3,7 +3,7 @@
 <%
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JSP /  V.22.08.17.0
+* 메가펜스 유량제어서비스 Backend Library for JSP /  23.09.03
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -61,7 +61,7 @@
 	/* */
 	public boolean WG_IsNeedToRedirect(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.04.18";
+		String $WG_VERSION = "23.09.03";
 		String $WG_MODULE = "Backend/JSP";
 		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
 		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
@@ -356,17 +356,29 @@
 	}
 
 	public String WG_GetWaitingUi(String serviceId, String gateId) {
-		String html = "<!DOCTYPE html>\r\n" + "<html>\r\n" + "<head>\r\n"
-				+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n" + "    <meta charset='utf-8'>\r\n"
+		String versionTag = "";
+		Date nowDate = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+		versionTag = sdf.format(nowDate);		
+		
+		String html = ""
+				+ "<!DOCTYPE html>\r\n" 
+				+ "<html>\r\n" + "<head>\r\n"
+				+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n" 
+				+ "    <meta charset='utf-8'>\r\n"
 				+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
 				+ "    <title></title>\r\n"
-				+ "    <link href='//cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=220406' rel='stylesheet'>\r\n"
-				+ "</head>\r\n" + "<body>\r\n"
-				//+ "    <div id='wg-body-wrapper'></div>\r\n"
-				+ "    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=220406'></script>\r\n"
-				+ "    <script>\r\n" + "        window.addEventListener('load', function () {\r\n"
+				+ "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" + versionTag + "' rel='stylesheet'>\r\n"
+				+ "</head>\r\n" 
+				+ "<body>\r\n"
+				+ "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" + versionTag + "'></script>\r\n"
+				+ "    <script>\r\n" 
+				+ "        window.addEventListener('load', function () {\r\n"
 				+ "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
-				+ "        });\r\n" + "    </script>\r\n" + "</body>\r\n" + "</html>";
+				+ "        });\r\n" 
+				+ "    </script>\r\n" 
+				+ "</body>\r\n" 
+				+ "</html>";
 
 		return html.replaceAll("WG_SERVICE_ID", serviceId).replaceAll("WG_GATE_ID", gateId);
 

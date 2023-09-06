@@ -1,9 +1,9 @@
 <?php
 
     /* debug 필요 시
+    */
     error_reporting(E_ALL);
     ini_set("display_errors", 1);
-    */
 
     /* 
     * ==============================================================================================
@@ -93,9 +93,6 @@
                 <h2 class="has-text-light">Backend 방식의 유량제어가 적용된 SAMPLE 업무페이지입니다.</h2>
                 <h2 class="has-text-light">CDN Landing 방식을 거쳐서 왔다면 바로 열리지만 새로고침이나 직접 접속하는 경우 유량제어가 동작합니다.</h2>
                 <h2 class="has-text-light">Backend 방식은 대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
-                <hr/>
-                <a class="button is-warning" href="frontend.html">Frontend 방식 DEMO</a> 
-                <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
             </div>
         </form>
     </div>

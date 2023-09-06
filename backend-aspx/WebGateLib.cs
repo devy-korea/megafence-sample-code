@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "V.23.04.18";
+        const string WG_VERSION = "23.09.04";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 6;     // [fixed] failover api retry count
@@ -294,6 +294,7 @@ namespace devy.WebGateLib
             // write cookie for trace
             try
             {
+                WriteCookie("WG_MOD_BACKEND", "ASP.NET");
                 WriteCookie("WG_VER_BACKEND", WG_VERSION);
                 WriteCookie("WG_TIME", DateTime.Now.ToString("o"));
                 WriteCookie("WG_TRACE", WG_TRACE);
@@ -356,6 +357,8 @@ namespace devy.WebGateLib
         /// </summary>
         public string WG_GetWaitingUi()
         {
+            var versionTag = DateTime.Now.ToString("yyyyMMddHHmm"); // 1분 캐시용 url param
+
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html>");
             sb.AppendLine("<html>");
@@ -364,10 +367,10 @@ namespace devy.WebGateLib
             sb.AppendLine("    <meta charset='utf-8'>");
             sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>");
             sb.AppendLine("    <title></title>");
-            sb.AppendLine("    <link href='//cdn2.devy.kr/WG_SERVICE_ID/css/default.css' rel='stylesheet'>");
+            sb.AppendLine($"    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet'>");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
-            sb.AppendLine("    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=21.1.0'></script>");
+            sb.AppendLine($"    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v={versionTag}'></script>");
             sb.AppendLine("    <script>");
             sb.AppendLine("        window.addEventListener('load', function () {");
             sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");

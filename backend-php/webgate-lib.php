@@ -10,10 +10,15 @@
     * ==============================================================================================
     */
 
+
+
+    /*
+    대기여부를 판단
+    */
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "V.23.04.18";
+        $WG_VERSION         = "23.09.03";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -261,6 +266,7 @@
 
         
         // write cookie for trace
+		WG_WriteCookie ("WG_MOD_BACKEND", "PHP"); 
         WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
@@ -276,6 +282,8 @@
 
     function WG_GetWaitingUi($service_id, $gate_id)
     {
+        $versionTag = date("YmdHi"); // 1분 캐시용 url param
+
         // template html
 		$html = "<!DOCTYPE html>\r\n"
                 . "<html>\r\n"
@@ -285,11 +293,11 @@
                 . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
                 . "    <title></title>\r\n"
                 . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
+                . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
                 . "</head>\r\n"
                 . "<body>\r\n"
                 //. "    <div id='wg-body-wrapper'></div>\r\n"
-                . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=210611' rel='stylesheet'>\r\n"
-                . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=210611'></script>\r\n"
+                . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" . $versionTag ."'></script>\r\n"
                 . "    <script>\r\n"
                 . "        window.addEventListener('load', function () {\r\n"
                 . "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
@@ -329,7 +337,8 @@
 
     function WG_WriteCookie($key, $value)
     {
-        setcookie ($key, $value, time() + (86400 * 1), "/"); 
+        setcookie ($key, $value, time() + (86400 * 1), "/"); // default
+
     }
 
 /*  
@@ -392,6 +401,8 @@
         update : api timeout 30초
     V.23.08.07
         improve : STEP-3 재사용 (api 교체 예정)
+    V.23.09.04
+        안정화 : WG_GetWaitingUi() css, js url에 VersionText param 추가(캐시 1분 강제화)
 */
 ?>
 
