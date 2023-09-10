@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / 23.09.03
+* 메가펜스 유량제어서비스 Backend Library for JAVA / 23.09.10
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -47,42 +47,10 @@ public class WebGate {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
 	}
 
-	
-	/* 쿠키 저장*/
-	public void WG_WriteCookie(HttpServletResponse res, String key, String value) {
-		// default cookie (auto domain)
-		try {
-			String cookieValue = value;
-			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			cookie.setMaxAge(86400 * 1);
-			cookie.setPath("/");
-			res.addCookie(cookie); 
-		} catch (Exception ex) {
-			// skip
-		}
-
-		/* !!!!! multi-도메인 환경에서만 아래 코드 사용 !!!!
-	   		ex) *.devy.kr 에서 사용하는 경우 : .devy.kr 로 입력
-			cookie.setDomain(".devy.kr");  
-		*/
-		try {
-			String cookieValue = value;
-			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			cookie.setMaxAge(86400 * 1);
-			cookie.setPath("/");
-			cookie.setDomain(".devy.kr");  
-			res.addCookie(cookie); 
-		} catch (Exception ex) {
-			// skip
-		}
-	}
-	
-	
-	
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.09.03";
+		String $WG_VERSION = "23.09.10";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -332,15 +300,18 @@ public class WebGate {
 	public String WG_GetWaitingUi(String serviceId, String gateId) {
 		String versionTag = "";
 		Date nowDate = new Date();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH00");
 		versionTag = sdf.format(nowDate);		
 		
 		String html = ""
 				+ "<!DOCTYPE html>\r\n" 
-				+ "<html>\r\n" + "<head>\r\n"
-				+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n" 
-				+ "    <meta charset='utf-8'>\r\n"
-				+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
+				+ "<html>\r\n" 
+				+ "<head>\r\n"
+				+ "    <meta http-equiv='X-UA-Compatible' content='IE=edge'/>\r\n" 
+				+ "    <meta charset='utf-8'/>\r\n"
+				+ "    <meta http-equiv='cache-control' content='no-cache' />\r\n"
+				+ "    <meta http-equiv='Expires' content='-1'/>\r\n"
+				+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
 				+ "    <title></title>\r\n"
 				+ "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" + versionTag + "' rel='stylesheet'>\r\n"
 				+ "</head>\r\n" 
@@ -383,6 +354,38 @@ public class WebGate {
 		}
 		return null;
 	}
+	
+
+	/* 쿠키 저장*/
+	public void WG_WriteCookie(HttpServletResponse res, String key, String value) {
+		// default cookie (auto domain)
+		try {
+			String cookieValue = value;
+			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
+			cookie.setMaxAge(86400 * 1);
+			cookie.setPath("/");
+			res.addCookie(cookie); 
+		} catch (Exception ex) {
+			// skip
+		}
+
+		/* !!!!! multi-도메인 환경에서만 아래 코드 사용 !!!!
+	   		ex) *.devy.kr 에서 사용하는 경우 : .devy.kr 로 입력
+			cookie.setDomain(".devy.kr");  
+		*/
+		try {
+			String cookieValue = value;
+			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
+			cookie.setMaxAge(86400 * 1);
+			cookie.setPath("/");
+			cookie.setDomain(".devy.kr");  
+			res.addCookie(cookie); 
+		} catch (Exception ex) {
+			// skip
+		}
+	}
+	
+		
 
 
 	String WG_CallApi(String urlText, int timeoutSeconds) {

@@ -357,17 +357,19 @@ namespace devy.WebGateLib
         /// </summary>
         public string WG_GetWaitingUi()
         {
-            var versionTag = DateTime.Now.ToString("yyyyMMddHHmm"); // 1분 캐시용 url param
+            var versionTag = DateTime.Now.ToString("yyyyMMddHH00"); // 1시간 캐시용 url param
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html>");
             sb.AppendLine("<html>");
             sb.AppendLine("<head>");
-            sb.AppendLine("    <meta http-equiv='X-UA-Compatible' content='IE=edge'>");
-            sb.AppendLine("    <meta charset='utf-8'>");
-            sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>");
+            sb.AppendLine("    <meta http-equiv='X-UA-Compatible' content='IE=edge' />");
+            sb.AppendLine("    <meta charset='utf-8' />");
+            sb.AppendLine("    <meta http-equiv='cache-control' content='no-cache' />");
+            sb.AppendLine("    <meta http-equiv='Expires' content='-1' />");
+            sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no' />");
             sb.AppendLine("    <title></title>");
-            sb.AppendLine($"    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet'>");
+            sb.AppendLine($"    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet' />");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine($"    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v={versionTag}'></script>");

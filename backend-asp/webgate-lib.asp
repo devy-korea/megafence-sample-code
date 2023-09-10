@@ -278,7 +278,7 @@
     
     FUNCTION WG_GetWaitingUi(WG_SERVICE_ID, WG_GATE_ID)
         'template html
-        Dim versionTag = Year(Now()) & Month(Now()) & Day(Now()) & Hour(Now()) & Minute(Now()) '분단위(yyyyMMddHHmm)
+        Dim versionTag = Year(Now()) & Month(Now()) & Day(Now()) & Hour(Now()) & "00" '1시간 단위(yyyyMMddHH00)
 
         Dim html
 		Html = "<!DOCTYPE html>"                                                                                                                        & vbCrLf &_
@@ -286,13 +286,15 @@
                 "<head>"                                                                                                                                & vbCrLf &_
                 "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>"                                                                             & vbCrLf &_
                 "    <meta charset='utf-8'>"                                                                                                            & vbCrLf &_
+                "    <meta http-equiv='cache-control' content='no-cache' />"                                                                            & vbCrLf &_
+                "    <meta http-equiv='Expires' content='-1'>"                                                                                          & vbCrLf &_
                 "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>"    & vbCrLf &_
                 "    <title></title>"                                                                                                                   & vbCrLf &_
                 "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "                & vbCrLf &_
-                "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" & versionTag & "' rel='stylesheet'>"                           & vbCrLf &_
+                "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" & versionTag & "' rel='stylesheet'>"                            & vbCrLf &_
                 "</head>"                                                                                                                               & vbCrLf &_
                 "<body>"                                                                                                                                & vbCrLf &_
-                "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" & versionTag & "'></script>"             & vbCrLf &_
+                "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" & versionTag & "'></script>"              & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
                 "        window.addEventListener('load', function () {"                                                                                 & vbCrLf &_
                 "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload "                                                 & vbCrLf &_

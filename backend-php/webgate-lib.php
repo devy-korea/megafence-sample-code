@@ -1,7 +1,7 @@
 <?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / 23.09.03
+    * 메가펜스 유량제어서비스 Backend Library for PHP / 23.09.10
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -18,7 +18,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "23.09.03";
+        $WG_VERSION         = "23.09.10";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -282,17 +282,19 @@
 
     function WG_GetWaitingUi($service_id, $gate_id)
     {
-        $versionTag = date("YmdHi"); // 1분 캐시용 url param
+        $versionTag = date("YmdH"); // 강제 캐시지움(1시간) url param
 
         // template html
 		$html = "<!DOCTYPE html>\r\n"
                 . "<html>\r\n"
                 . "<head>\r\n"
-                . "    <meta http-equiv='X-UA-Compatible' content='IE=edge'>\r\n"
-                . "    <meta charset='utf-8'>\r\n"
-                . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>\r\n"
+                . "    <meta http-equiv='X-UA-Compatible' content='IE=edge'/>\r\n"
+                . "    <meta charset='utf-8'/>\r\n"
+                . "    <meta http-equiv='cache-control' content='no-cache' />\r\n"
+				. "    <meta http-equiv='Expires' content='-1' />\r\n"
+                . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
                 . "    <title></title>\r\n"
-                . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "
+                . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> \r\n"
                 . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
                 . "</head>\r\n"
                 . "<body>\r\n"
