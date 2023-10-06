@@ -3,7 +3,7 @@
 <%
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JSP /  23.09.10
+* 메가펜스 유량제어서비스 Backend Library for JSP /  23.10.06
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -29,52 +29,10 @@
 
 <%!
 
-
-
-	/* */
-	public boolean WG_IsNeedToRedirect(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
-		// begin of declare variable
-		String $WG_VERSION = "23.09.10";
-		String $WG_MODULE = "Backend/JSP";
-		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
-		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
-		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
-		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
-			$WG_GATE_SERVERS.add(serviceId + "-" + i + ".devy.kr");
-		}
-
-		int $serverCount = $WG_GATE_SERVERS.size();
-		int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
-
-		
-		int $tryCount = 0;
-		// Fail-over를 위해 최대 3차까지 시도
-		for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
-			try {
-				String wasIp = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
-				String apiUrlText = "https://" + wasIp + "/?ServiceId=" + serviceId + "&GateId=" + gateId + "&Action=ASK_NEED_TO_REDIRECT";
-
-				String responseText = WG_CallApi(apiUrlText, 5 * ($tryCount+1));
-				//log.info("responseText:" + responseText);
-
-				if (responseText != null && responseText.trim().equalsIgnoreCase("Y")){
-					return true;
-				}
-				else {
-					return false;
-				}
-				
-			} catch (Exception $e) {
-				// ignore & goto next
-			}
-		}	
-		return false;
-	}
-
 	/* 대기여부 판단 */
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.02.01";
+		String $WG_VERSION = "23.10.06";
 		String $WG_MODULE = "Backend/JSP";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -153,6 +111,15 @@
 					$WG_TOKEN_KEY = tokenPparamValues[2];
 					$WG_WAS_IP = tokenPparamValues[3];
 					String paramGateId = tokenPparamValues[0];
+					
+					// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
+					if($WG_WAS_IP == null)
+						$WG_WAS_IP = "";
+					if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+					{
+						$WG_WAS_IP = "";
+					}
+					
 
 					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
 							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
@@ -203,13 +170,22 @@
 				$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO");
 				$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP");
 				$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID");
+				
 
 				if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
 					$WG_TRACE += "$WG_TOKEN_NO is null→";
 				}
+				
 				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
 					$WG_TRACE += "$WG_WAS_IP is null→";
 				}
+				// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
+				else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+				{
+					$WG_WAS_IP = "";
+					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
+				}
+				
 				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
 					$WG_TRACE += "$WG_TOKEN_KEY is null→";
 				}

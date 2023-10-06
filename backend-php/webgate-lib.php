@@ -1,7 +1,7 @@
 <?php
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 Backend Library for PHP / 23.09.10
+    * 메가펜스 유량제어서비스 Backend Library for PHP / 23.10.06
     * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -11,14 +11,13 @@
     */
 
 
-
     /*
     대기여부를 판단
     */
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "23.09.10";
+        $WG_VERSION         = "23.10.06";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -84,6 +83,13 @@
                     $WG_TOKEN_NO    = $parameterValues[1];
                     $WG_TOKEN_KEY   = $parameterValues[2];
                     $WG_WAS_IP      = $parameterValues[3];
+
+                    //SSRF 대응
+					if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+                    {
+						$WG_WAS_IP = "";
+                    }
+
 
                     if( $WG_TOKEN_NO     !== null   && $WG_TOKEN_NO  !=="" 
                         && $WG_TOKEN_KEY !== null   && $WG_TOKEN_KEY !== "" 
@@ -152,6 +158,12 @@
                 }
 
                 $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP");
+                //SSRF 대응
+				if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+                {
+					$WG_WAS_IP = "";
+                }
+
 
                 if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
                    isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
@@ -341,6 +353,20 @@
     {
         setcookie ($key, $value, time() + (86400 * 1), "/"); // default
 
+    }
+
+    
+    function WG_EndsWith( $haystack, $needle ) {
+        $length = strlen( $needle );
+        if( !$length ) {
+            return false;
+        }
+
+        if(!strlen($haystack)) {
+            return false;
+        }
+
+        return substr( $haystack, -$length ) === $needle;
     }
 
 ?>

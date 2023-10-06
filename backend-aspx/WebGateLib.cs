@@ -7,7 +7,7 @@ using System.Web;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.22.10.30
+* 메가펜스 유량제어서비스 Backend Library for ASP.NET / V.23.10.06
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "23.09.04";
+        const string WG_VERSION = "23.10.06";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 6;     // [fixed] failover api retry count
@@ -99,13 +99,20 @@ namespace devy.WebGateLib
                         WG_TOKEN_KEY = parameterValues[2];
                         WG_WAS_IP = parameterValues[3];
 
+                        // SSRF 대응
+                        if (!string.IsNullOrEmpty(WG_WAS_IP)
+                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        {
+                            WG_WAS_IP = "";
+                        }
+
                         if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
                             !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
                             !string.IsNullOrEmpty(WG_WAS_IP))
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30*1000);
+                            string responseText = GetHttpText(apiUrl, 30 * 1000);
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
@@ -156,6 +163,15 @@ namespace devy.WebGateLib
                     WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO") ?? "";
                     WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
+
+                    // SSRF 대응
+                    if (!string.IsNullOrEmpty(WG_WAS_IP)
+                        && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                    {
+                        WG_WAS_IP = "";
+                    }
+
+
                     string cookieGateId = ReadCookie("WG_GATE_ID");
 
                     if (string.IsNullOrEmpty(WG_TOKEN_KEY))
@@ -174,7 +190,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30*1000);
+                            string responseText = GetHttpText(apiUrl, 30 * 1000);
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
@@ -241,7 +257,7 @@ namespace devy.WebGateLib
                         {
                             apiUrl += "&IsLoadTest=Y";
                         }
-                        string responseText = GetHttpText(apiUrl, 5*(tryCount+1));
+                        string responseText = GetHttpText(apiUrl, 5 * (tryCount + 1));
 
                         // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
                         if (!string.IsNullOrEmpty(responseText))

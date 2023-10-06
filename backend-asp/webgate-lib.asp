@@ -1,7 +1,7 @@
 ﻿<%
     '/* 
     '* ==============================================================================================
-    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.22.10.30
+    '* 메가펜스 유량제어서비스 Backend Library for ASP / V.23.10.06
     '* 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     '* 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
     '* 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "23.09.04"
+        WG_VERSION              = "23.10.06"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -81,28 +81,34 @@
                     TEMP_TOKEN_NO  = TokenValues(1)
                     TEMP_TOKEN_KEY = TokenValues(2)
                     TEMP_WAS_IP    = TokenValues(3)
-                    'Response.Write( "WG_TOKEN_NO:" & TEMP_TOKEN_NO & ", WG_TOKEN_KEY:" & TEMP_TOKEN_KEY & ", WG_WAS_IP:" & TEMP_WAS_IP)                
+
                     
-                    '대기표 Validation(checkout api call)
-                    ApiUrl =  "https://" & TEMP_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & TEMP_TOKEN_NO & "&TokenKey=" & TEMP_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
-                    'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
+                    if Right(LCase(TEMP_WAS_IP), Len(".devy.kr")) = ".devy.kr" Then 'Check SSRF
+                        'Response.Write( "WG_TOKEN_NO:" & TEMP_TOKEN_NO & ", WG_TOKEN_KEY:" & TEMP_TOKEN_KEY & ", WG_WAS_IP:" & TEMP_WAS_IP)                
+                    
+                        '대기표 Validation(checkout api call)
+                        ApiUrl =  "https://" & TEMP_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & TEMP_TOKEN_NO & "&TokenKey=" & TEMP_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                        'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
 
-                    ' Call API
-                    XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
-                    ResponseText = WG_CallApi(ApiUrl, XmlHttp)
-                    If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
-                        WG_IS_CHECKOUT_OK = True
-                        WG_TRACE = WG_TRACE & "OK,"
+                        ' Call API
+                        XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
+                        ResponseText = WG_CallApi(ApiUrl, XmlHttp)
+                        If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
+                            WG_IS_CHECKOUT_OK = True
+                            WG_TRACE = WG_TRACE & "OK,"
 
-                        ' set cookie from WG_TOKEN param
-	                    WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
-	                    WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
-	                    WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
+                            ' set cookie from WG_TOKEN param
+	                        WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
+	                        WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
+	                        WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
 
 
+                        Else
+                            WG_TRACE = WG_TRACE & "FAIL,"
+                        End If
                     Else
-                        WG_TRACE = WG_TRACE & "FAIL,"
-                    End If
+                        WG_TRACE = WG_TRACE & "FAIL(SSRF),"
+                    End if
                 Else
                     WG_TRACE = WG_TRACE & "SKIP1,"
                 End If
@@ -131,10 +137,16 @@
             WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
             WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
             WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
+
+            'CHECK SSRF
+            'If Not IsEmpty(WG_WAS_IP) And Right(Lcase(WG_WAS_IP), Len(".devy.kr")) =  ".devy.kr" Then 
+            '    WG_WAS_IP = ""
+            'End if
+
         
 
             If IsEmpty(WG_TOKEN_KEY) OR Len(WG_TOKEN_KEY) = 0 Then
-                WG_TOKEN_KEY = RandomString(8)
+                WG_TOKEN_KEY = WG_RandomString(8)
             End If
 
             If Not WG_IS_CHECKOUT_OK Then
@@ -332,14 +344,14 @@
     End Function
 
 
-    Function RandomString(StrLen)
+    Function WG_RandomString(StrLen)
         Dim ReturnValue, i
         Const CharPool= "12345678ABCDEFGHJKLMNPQRSTWXYZ"
         Randomize
         For i = 1 to StrLen
             ReturnValue = ReturnValue & Mid(CharPool,Int((Len(CharPool)*Rnd)+1),1)
         Next
-        RandomString = ReturnValue
+        WG_RandomString = ReturnValue
     End Function
 
 %>
