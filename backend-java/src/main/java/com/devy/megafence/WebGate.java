@@ -46,6 +46,136 @@ public class WebGate {
 	public WebGate() {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
 	}
+	
+	
+	public static boolean isWatingMegaFence(HttpServletRequest request, HttpServletResponse response, String gateId) throws Exception {
+
+        /**********************************************************************************************************************
+    Backend 구현 SAMPLE : 이 부분을 Backend code의 첫부분에 삽입해 주세요.
+    ***********************************************************************************************************************
+    // TODO :
+    //   1. 이 페이지에서 사용할 GATE ID(WG_GATE_ID)를 설정
+    //   2. 대기열 페이지의 경로 설정(WG_WAITING_FILE)
+    */
+
+    String  WG_GATE_ID         = gateId;        // 부하테스트용 GATE ID
+    String  WG_SERVICE_ID      = "1011";       // fixed
+    String  WG_SECRET_TEXT     = "XXXX";       // fixed
+    String  WG_VALIDATION_KEY  = WG_SERVICE_ID + "-" + WG_GATE_ID + "-" + WG_SECRET_TEXT;
+    String  WG_COOKIE_NAME     = "WG_VALIDATION_KEY";
+    /*String  WG_GATE_SERVERS[]  = {"wk2.devy.kr", "wk3.devy.kr", "wc1.devy.kr", "wc2.devy.kr", "ws1.devy.kr",
+                                  "inc-aws-0.devy.kr", "inc-aws-1.devy.kr", "inc-aws-2.devy.kr", "inc-aws-3.devy.kr", "inc-aws-4.devy.kr" };
+    */
+// String  WG_GATE_SERVERS[]  = {"wk2.devy.kr", "inc-aws-0.devy.kr", "inc-aws-1.devy.kr"};
+    String  WG_GATE_SERVERS[]  = {"1011-01.devy.kr", "1011-02.devy.kr", "1011-03.devy.kr", "1011-04.devy.kr",
+               "1011-05.devy.kr", "1011-06.devy.kr", "1011-07.devy.kr", "1011-08.devy.kr",
+               "1011-09.devy.kr", "1011-10.devy.kr", "1011-11.devy.kr", "1011-12.devy.kr"};
+    int     WG_RETRY_COUNT     = 3; // failover retry count
+    Boolean wg_is_need_to_redirect = true;
+
+
+    /* begin of 쿠키검증 */
+    // 쿠키("WG_VALIDATION_KEY")의 값이 검증키와 같은지 체크해서 wg_is_need_to_redirect set
+    Cookie[] cookies = request.getCookies();
+    if(cookies != null)
+    {
+        for(int i= 0; i<cookies.length;i++){
+            if(cookies[i].getName().equals(WG_COOKIE_NAME) && cookies[i].getValue().equals(WG_VALIDATION_KEY))
+            {
+                // 검증키가 일치하면 OK (redirect 필요 없음)
+                wg_is_need_to_redirect = false;
+
+                // 체크 완료 시 페이지 새로고침 시에도 대기열을 다시 체크하기위해 검증키 쿠키 삭제
+                cookies[i].setMaxAge(0);
+                cookies[i].setPath("/");
+                response.addCookie(cookies[i]);
+                break;
+            }
+        }
+    }
+    /* end of 쿠키검증 */
+
+    /* begin of 대기열UI 표시여부 판단 */
+    if(wg_is_need_to_redirect)
+    {
+        /*
+            검증키가 Cookie에 없거나 일치하지 않아서 쿠키 검증에 실패하면(wg_is_need_to_redirect == true) 이곳으로 진입합니다.
+            대기열서버에 WEB-API를 호출하여 응답 내용으로 대기열UI 표시 여부(PASS/WAIT)를 판단합니다.
+            --> 대기자가 없으면 응답에 "PASS" 포함됨(정상 페이지로드하면 됨)
+            --> 대기자가 있으면 응답에 "WAIT" 포함됨(응답을 _waiting.html의 html로 교체)
+        */
+
+        Boolean wg_isWaiting = false; // 현재 대기자가 있는지 여부
+
+        // Fail-over를 위해 최대 3차까지 시도
+        for(int i = 0; i < WG_RETRY_COUNT; i++)
+        {
+            try{
+                // WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
+                String wg_receiveLine="";
+                String wg_receiveText="";
+                Random wg_rand = new Random();
+
+                // 임의의 대기열 서버 선택하여 대기상태 확인(대기해야 하는지 web-api로 확인)하기 위한 URL SET
+                int wg_serverChoice  = wg_rand.nextInt(WG_GATE_SERVERS.length) + 0;
+                String url = "http://" + WG_GATE_SERVERS[wg_serverChoice] + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK";
+                //url = XSS_ATTACK_REPLACE_SET(url);
+                URL wg_url =  new URL(url);
+
+                // 이 페이지가 부하테스트(LoadTest)용으로 호출된 경우를 대비해서 아래와 같은 처리를 추가합니다.
+                // 부하테스트 시 IsLoadTest=Y paramter를 URL에 추가하여 대기열 통계가 정확하게 계산되도록 합니다. (일반적인경우에는 상관없음)
+                if(request.getParameter("IsLoadTest") != null && request.getParameter("IsLoadTest").equals("Y"))
+                {
+                      url = "http://" + WG_GATE_SERVERS[wg_serverChoice] + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=CHECK&IsLoadTest=Y";
+                      //url = XSS_ATTACK_REPLACE_SET(url);
+                      wg_url =  new URL(url);
+                }
+
+                // WEB-API 호출
+                URLConnection wg_con = wg_url.openConnection();
+                wg_con.setConnectTimeout(1000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+                wg_con.setReadTimeout(1000); //대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
+
+                // WEB-API 응답 수신
+                BufferedReader wg_readBuffer = new BufferedReader(new InputStreamReader(wg_con.getInputStream()));
+                while ((wg_receiveLine = wg_readBuffer.readLine()) != null) {
+                   wg_receiveText += wg_receiveLine;
+                }
+                wg_readBuffer.close();
+
+                // 응답 Text에 "PASS" 포함되어 있는지 체크하여 대기할지 판단(PASS/WAIT)
+                if(wg_receiveText.length() > 0)
+                {
+                    if(wg_receiveText.indexOf("PASS")>=0)
+                    {
+                        wg_isWaiting = false;
+                    }
+                    else {
+                        wg_isWaiting = true;
+                    }
+
+
+                    // 현재 대기자가 있는 경우 WAIT(대기열 UI 표시) 처리 : 응답을 LoadWebGate.html의 html로 교체
+                    // 현재 대기자가 없는 경우 원래의 컨텐츠를 load하기 위해 loop exit
+                    return wg_isWaiting;
+
+                }
+            }catch (Exception e){
+                // 오류 시 오류 무시하고 재시도 (failover)
+            	//Logger log = LoggerFactory.getLogger(ComUtil.class);
+                //      log.debug("isWatingMegaFence err");
+            }
+        }
+
+        // 코드가 여기까지 왔다는 것은
+        // 대기열서버와 3회 이상 통신실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+    }
+    return false;
+    /* end of 대기열UI 표시여부 판단 */
+/* end of SAMPLE CODE */
+}
+
+	
 
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {

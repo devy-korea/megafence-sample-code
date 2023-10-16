@@ -41,7 +41,7 @@ public class BackendSampleController {
 	private Logger log = LoggerFactory.getLogger(BackendSampleController.class);
 	
     @GetMapping("/") 
-    public String index(HttpServletRequest request, HttpServletResponse response) {
+    public String index(HttpServletRequest request, HttpServletResponse response) throws Exception {
     	String mappingPage = "index"; // 이 컨틀롤러가 /index.jsp를 응답하는 경우 
     	
     	/* 	========================================================================
@@ -53,10 +53,11 @@ public class BackendSampleController {
     	//log.info("[STEP-0] 유량제어 체크 시작");
     	/* BEGIN OF 유량제어 코드삽입
     	▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */ 
-    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용) 
+    	String serviceId 	= "1011"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "157";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용) 
     	WebGate webgate = new WebGate(); 
-    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	//if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	if(WebGate.isWatingMegaFence(request, response, gateId))
     	{
     		//log.info("[STEP-1] 유량제어 필요 : 대기UI 응답");
     		// 대기가 필요하면 대기UI로 응답 대체 후 종료
