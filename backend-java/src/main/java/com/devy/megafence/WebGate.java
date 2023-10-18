@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JAVA / 23.10.06
+* 메가펜스 유량제어서비스 Backend Library for JAVA / 23.10.06.1
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -50,7 +51,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.09.10";
+		String $WG_VERSION = "23.10.06.1";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -246,7 +247,7 @@ public class WebGate {
 		Boolean $WG_IS_NEED_TO_WAIT = false;
 		if ($WG_IS_CHECKOUT_OK == false) {
 			int $serverCount = $WG_GATE_SERVERS.size();
-			int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
+			int $drawResult = new SecureRandom().nextInt($WG_GATE_SERVERS.size()) + 0;
 
 			int $tryCount = 0;
 			// Fail-over를 위해 최대 3차까지 시도
@@ -350,7 +351,7 @@ public class WebGate {
 	
 	public String WG_GetRandomString(int length) {
 		StringBuffer buffer = new StringBuffer();
-		Random random = new Random();
+		SecureRandom random = new SecureRandom();
 
 		String chars[] = "1,2,3,4,5,6,7,8,A,B,C,D,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z".split(",");
 
@@ -382,21 +383,6 @@ public class WebGate {
 			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
 			cookie.setMaxAge(86400 * 1);
 			cookie.setPath("/");
-			res.addCookie(cookie); 
-		} catch (Exception ex) {
-			// skip
-		}
-
-		/* !!!!! multi-도메인 환경에서만 아래 코드 사용 !!!!
-	   		ex) *.devy.kr 에서 사용하는 경우 : .devy.kr 로 입력
-			cookie.setDomain(".devy.kr");  
-		*/
-		try {
-			String cookieValue = value;
-			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			cookie.setMaxAge(86400 * 1);
-			cookie.setPath("/");
-			cookie.setDomain(".devy.kr");  
 			res.addCookie(cookie); 
 		} catch (Exception ex) {
 			// skip

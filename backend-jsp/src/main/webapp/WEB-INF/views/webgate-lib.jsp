@@ -3,7 +3,7 @@
 <%
 /* 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Backend Library for JSP /  23.10.06
+* 메가펜스 유량제어서비스 Backend Library for JSP /  23.10.06.1
 * 이 라이브러리는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 수정된 내용은 반드시 공급처에 통보해야 합니다.
 * 허가된 고객 및 환경 이외의 열람, 복사, 배포, 수정, 실행, 테스트 등 일체의 이용을 금합니다.
@@ -26,13 +26,15 @@
 <%@page import="java.util.*"%>
 <%@page import="java.text.SimpleDateFormat"%>
 <%@page import="javax.servlet.http.*"%>
+<%@page import="java.security.SecureRandom"%>
+
 
 <%!
 
 	/* 대기여부 판단 */
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.10.06";
+		String $WG_VERSION = "23.10.06.1";
 		String $WG_MODULE = "Backend/JSP";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -236,7 +238,7 @@
 		Boolean $WG_IS_NEED_TO_WAIT = false;
 		if ($WG_IS_CHECKOUT_OK == false) {
 			int $serverCount = $WG_GATE_SERVERS.size();
-			int $drawResult = new Random().nextInt($WG_GATE_SERVERS.size()) + 0;
+			int $drawResult = new SecureRandom().nextInt($WG_GATE_SERVERS.size()) + 0;
 
 			int $tryCount = 0;
 			// Fail-over를 위해 최대 3차까지 시도
@@ -339,7 +341,7 @@
 	
 	public String WG_GetRandomString(int length) {
 		StringBuffer buffer = new StringBuffer();
-		Random random = new Random();
+		SecureRandom random = new SecureRandom();
 
 		String chars[] = "1,2,3,4,5,6,7,8,A,B,C,D,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z".split(",");
 
