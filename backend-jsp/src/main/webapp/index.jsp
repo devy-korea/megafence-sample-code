@@ -69,7 +69,7 @@ Heavy business logic ....
             <div class="notification is-info">
                 <h1 class="title">Hello, World!!!</h1>
                 <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
-                <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
+                <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JSP) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
             </div>
         </form>
     </div>
