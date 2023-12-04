@@ -42,7 +42,7 @@ public class BackendSampleController {
 	
     @GetMapping("/") 
     public String index(HttpServletRequest request, HttpServletResponse response) {
-    	String mappingPage = "index"; // 이 컨틀롤러가 /index.jsp를 응답하는 경우 
+    	String mappingPage = "index.jsp"; // 이 컨틀롤러가 /index.jsp를 응답하는 경우 
     	
     	/* 	========================================================================
     		Light business logic ....
