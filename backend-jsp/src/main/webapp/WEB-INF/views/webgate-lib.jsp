@@ -34,7 +34,7 @@
 	/* 대기여부 판단 */
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.10.06.1";
+		String $WG_VERSION = "23.10.06.2";
 		String $WG_MODULE = "Backend/JSP";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -294,7 +294,7 @@
 		// write cookie for trace
 		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
 		WG_WriteCookie($RES, "WG_MOD_BACKEND", $WG_MODULE);
-		Date now = new Date();
+		java.util.Date now = new java.util.Date();
 		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); //UTC
 		String nowText = sf.format(now);
 		WG_WriteCookie($RES, "WG_TIME", nowText);
@@ -308,7 +308,7 @@
 
 	public String WG_GetWaitingUi(String serviceId, String gateId) {
 		String versionTag = "";
-		Date nowDate = new Date();
+		java.util.Date nowDate = new java.util.Date();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH00");
 		versionTag = sdf.format(nowDate);		
 		
