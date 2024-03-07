@@ -2,7 +2,7 @@
 <html>
 <!--
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Landing 방식 샘플 V.22.1.0
+* 메가펜스 유량제어서비스 Landing with Countdown 샘플 V.24.1.2.29
 * ----------------------------------------------------------------------------------------------
 * 이 샘플을 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 허가된 대상 및 목적 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -10,55 +10,222 @@
 * 작성자 : ysd@devy.co.kr
 * ----------------------------------------------------------------------------------------------
 
-※ 하단부에 Frontend 방식의 유량제어 서비스 호출 샘플코드가 설명되어 있습니다
+ ※ 이 샘플은 Landing 방식 유량제어 호출코드 및 카운트다운 기능이 구현되어 있습니다.
+ ※ 페이지 컨텐츠 및 스타일은 업무에 맞게 수정해 주세요.
+ ※ 페이지 소스에서 Gate(_gateId), 카운트다운 운영기간(_countdownFrom,_countdownTo), 대기완료 후 이동할 페이지(_nextUrl) 등의 설정값을 적절하게 수정하세요.
+ ※ 카운트다운 UI는 해당 설정된 기간에만 동작하고, 이외 시간에는 대기열서비스만 동작하므로 카운트다운이 동작하는 기간 동안 접속자를 이 페이지에 묶어놓는 효과를 기대할 수 있습니다.
+ ※ 접속폭주 예상되는 업무페이지의 Backend에서 카운트다운 운영기간 동안은 본 Landing 페이지로 강제 redirect 처리를 해주어야 합니다.
 -->
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv='cache-control' content='no-cache' />
+    <meta http-equiv='Expires' content='-1' />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title></title>
+
+    <title>Landing...</title>
 
     <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
-
-    <style>
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow-y: hidden;
-        }
-    </style>
+    <link href="https://cdn2.devy.kr/9000/css/landing.css" rel="stylesheet" />
 </head>
 <body>
-    <div class="wrapper container">
-        <div class="notification is-info has-text-centered" style="position:fixed; left:0; top:0; width:100%; z-index:99999999">
-            <p class="subtitle has-text-light">Landing 방식 데모입니다...</p>
-            <p class="has-text-dark">이 페이지를 CDN에 배포하면 웹사이트 유입 제어 효과가 극대화됩니다. </p>
-            <p class="has-text-dark">대기가 완료되면 업무페이지로 이동합니다. </p>
+    <!--begin of wg-countdown-wrapper-->
+    <div id="wg-countdown-wrapper">
+        <p class="loading-box has-text-centered" v-if="!isNeedToShowUi">
+            <img src="https://cdn2.devy.kr/9000/img/loading.gif" style="width:3rem;" /><br /> loading...
+        </p>
+
+        <div id="wg-countdown-body" class="has-text-centered" v-show="isNeedToShowUi" style="display:none;">
+            <p class="title has-text-info">오픈 대기 안내</p>
+            <hr />
+            <!--오픈전-->
+            <div v-show="isActive">
+                <div v-if="!isFinish">
+                    <!-- begin of countdown ui -->
+                    <div id="wg-countdown-control" class="wrap">
+                        <h1 class="has-text-dark is-size-4"> <span class="tag is-rounded is-dark is-size-6">OPEN TIME</span> <br class="is-mobile-only" /> {{countdownToText}} </h1>
+                        <h1 class="has-text-dark is-size-4 is-marginless">
+                            <img class="icon clock" src="img/icon/clock.png" />
+                            <span v-if="countdown.RemainDays > 0 || countdown.RemainHours > 0"> </span>
+                            <span v-else> 남은시간 </span>
+                            <span v-if="countdown.RemainDays > 0">{{countdown.RemainDays}} DAYS </span>
+                            <span v-if="countdown.RemainHours > 0">{{countdown.RemainHours}} HOURS </span>
+                        </h1>
+                        <div class="countdown">
+                            <!--Remain Minutes-->
+                            <div class="bloc-time min" data-init-value="0">
+                                <span class="count-title">Minutes</span>
+
+                                <div class="figure min min-1">
+                                    <span class="top">0</span>
+                                    <span class="top-back">
+                                        <span>0</span>
+                                    </span>
+                                    <span class="bottom">0</span>
+                                    <span class="bottom-back">
+                                        <span>0</span>
+                                    </span>
+                                </div>
+
+                                <div class="figure min min-2">
+                                    <span class="top">0</span>
+                                    <span class="top-back">
+                                        <span>0</span>
+                                    </span>
+                                    <span class="bottom">0</span>
+                                    <span class="bottom-back">
+                                        <span>0</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!--Remain Seconds-->
+                            <div class="bloc-time sec" data-init-value="0">
+                                <span class="count-title">Seconds</span>
+
+                                <div class="figure sec sec-1">
+                                    <span class="top">0</span>
+                                    <span class="top-back">
+                                        <span>0</span>
+                                    </span>
+                                    <span class="bottom">0</span>
+                                    <span class="bottom-back">
+                                        <span>0</span>
+                                    </span>
+                                </div>
+
+                                <div class="figure sec sec-2">
+                                    <span class="top">0</span>
+                                    <span class="top-back">
+                                        <span>0</span>
+                                    </span>
+                                    <span class="bottom">0</span>
+                                    <span class="bottom-back">
+                                        <span>0</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end of countdown ui -->
+
+
+                    <div style="display:none;">
+                        <p>디버그용</p>
+                        <ul class="has-text-left has-text-grey-light" style="list-style:disc">
+                            <li class='is-size-5'>오픈시각 : {{countdownToText}}</li>
+                            <li class='is-size-5'>현재시각 : {{nowText}}</li>
+                            <li class='is-size-5'>남은시간 : {{countdownText}}</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr />
+                <p class="subtitle has-text-info is-size-6">※ 접수가 시작되면 자동으로 이동됩니다.</p>
+            </div>
+            <!--오픈이후-->
+            <div v-show="!isActive">
+                <p class="title has-text-info">서비스가 오픈되었습니다.</p>
+                <p class="subtitle has-text-info">접수페이지로 자동 이동되지 않았다면 아래 버튼으로 다시 시도해 주세요.</p>
+            </div>
         </div>
     </div>
-
-
+    <!--end of wg-countdown-wrapper-->
+    <!-- begin of memgafence : 주석 제거 후 운영배포 권장 -->
     <!--
-    ===================================================================================
-    페이지 로드 시 유량제어 서비스 호출
-    ===================================================================================
-    ▶테스트 시
-        : 샘플 그대로 사용하여 동작 확인 (대기UI가 표시되면 OK)
-    ▶계약 후
-        : load handler의 gateId, nextUrl 수정해서 사용하세요
-    ---------------------------------------------------------------------------------->
-    <link href="https://cdn2.devy.kr/9000/css/webgate.css?v=1010" rel="stylesheet" />
-    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1010"></script>
+        카운트다운 기능이 포함된 NOTOEPON 페이지 샘플 소스 입니다.
+        아래 설정값을 업무에 맞게 수정하여 사용
+        _gateId         : GateId
+        _countdownFrom  : 카운트다운 시작시각(ISO-FORMAT, ex: 2024-01-23T12:34:56)
+        _countdownTo    : 카운트다운 종료시각(ISO-FORMAT, ex: 2024-01-23T12:34:56)
+        _nextUrl        : 이동할 페이지 (이 페이로 강제 Redirect 처리했던 페이지)
+
+
+        ○ 페이지 로드되면 1초마다 유량제어 서버로부터 현재시각 및 남은시간을 가져옵니다.
+        ○ 남은 시간은 _countdownTo값을 기준으로 계산 됩니다.
+        ○ 남은 시간이 종료되면 대기열 서비스를 호출합니다.
+        ○ 대기가 완료되면 _nextUrl 페이지로 이동을 시도합니다.
+
+        <주의사항>
+        ※ 페이지의 URL에 CountdownFrom, CountdownTo, NextUrl param이 포함되어 있다면 해당 설정값이 우선 적용됩니다.
+            CountdownTo : YYYY-MM-DD HH:MM:SS format
+            NextUrl : 대기 완료 후 이동할 페이지 URL
+    -->
+    <script src="https://dist.devy.kr/jquery/jquery-1.12.4.min.js"></script>
+    <script src="https://dist.devy.kr/utils/TweenMax-2.0.2.min.js"></script>
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
+    <script src="https://cdn2.devy.kr/9000/js/countdown.js"></script>
+
     <script>
-        WG_Init();
+        var _gateId = $WG.getParam("GateId") || "1";                     /* 할당받은 GATE ID로 수정 OR Url param으로 세팅 */
+        var _nextUrl = $WG.getParam("NextUrl") || "backend.php";           /* 이동할 업무페이지 URL */
+
+        var _countdownFrom = $WG.getParam("CountdownFrom") || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작 10분전 권장)  */
+        var _countdownTo = $WG.getParam("CountdownTo") || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작시각) */
+        var _standbyUrl = $WG.getParam("StandbyUrl") || _nextUrl;                /* 카운트다운 기간 이전 이동할 URL */
+        var _usingCountdown = _countdownTo;
+
+
+        function WG_GoNextPage() {
+            WG_StartWebGate(
+                _gateId, // GATE-ID
+                function () { // 대기완료 후 시작할 기존 업무로직
+                    var res = $WG.lastResponse;
+                    if (res.GateOperationMode == "ALERT") {
+                        if (res.GateOperationMessageTitle == "NOT_OPEN") {
+                            WG_CancelWebGate();
+                            alert(res.GateOperationMessageDetail);
+                        }
+                    }
+                    else if (res.GateOperationMode == "GATE") {
+                        window.location.href = _nextUrl;
+                    }
+                    else {
+                        alert('[' + res.ResultCode + '] ' + res.ResultMessage);
+                    }
+                },
+                "FRONTEND",             // fixed
+                "서비스 접속 중",       // 대기UI 제목
+                false,                  // fixed
+                function () {           // 유량제어 서비스 장애 시 처리
+                    alert("죄송합니다. 잠시 후 다시 시도해 주세요");
+                },
+            );
+        }
+
         window.addEventListener("load", function () {
-            gateId = $WG.getParam("WG_GATE_ID") || "1";
-            nextUrl = $WG.getParam("WG_NEXT_URL") || "backend.php";
-            uiTitle = "접속 대기 중";
-            WG_StartLandingWebGate(gateId, nextUrl, uiTitle);
+            if (_usingCountdown) {
+                WG_InitGetTime(
+                    // config
+                    {
+                        gateId: _gateId,
+                        countdownFrom: _countdownFrom,
+                        countdownTo: _countdownTo
+                    },
+                    // callback
+                    function (result, data) {
+                        //console.log(result, data);
+                        if (result == 0) {
+                            $WG_Countdown.response = data.CountDown
+                            // countdown 시작 전
+                            if (!$WG_Countdown.isActive) {
+                                window.location.href = _standbyUrl;
+                            }
+                            // countdown 종료 시 next page 이동
+                            else if ($WG_Countdown.isFinish || !$WG_Countdown.isActive) {
+                                WG_GoNextPage();
+                            }
+                        }
+                        else {
+                            //
+                            console.log(result, data);
+                        }
+                    });
+            } else {
+                WG_GoNextPage();
+            }
         });
     </script>
-    <!-- END -->
+    <!-- end of megafence -->
+
 
 </body>
 </html>
