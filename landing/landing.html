@@ -18,8 +18,7 @@
 -->
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv='cache-control' content='no-cache' />
-    <meta http-equiv='Expires' content='-1' />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
@@ -155,13 +154,13 @@
     <script src="https://cdn2.devy.kr/9000/js/countdown.js"></script>
 
     <script>
-        var _gateId = $WG.getParam("GateId") || "1";                     /* 할당받은 GATE ID로 수정 OR Url param으로 세팅 */
-        var _nextUrl = $WG.getParam("NextUrl") || "backend.php";           /* 이동할 업무페이지 URL */
+        var _gateId         = $WG.getParam("GateId")        || "1";                     /* 할당받은 GATE ID로 수정 OR Url param으로 세팅 */
+        var _nextUrl        = $WG.getParam("NextUrl")       || "backend.php";           /* 이동할 업무페이지 URL */
 
-        var _countdownFrom = $WG.getParam("CountdownFrom") || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작 10분전 권장)  */
-        var _countdownTo = $WG.getParam("CountdownTo") || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작시각) */
-        var _standbyUrl = $WG.getParam("StandbyUrl") || _nextUrl;                /* 카운트다운 기간 이전 이동할 URL */
-        var _usingCountdown = _countdownTo;
+        var _countdownFrom  = $WG.getParam("CountdownFrom") || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작 10분전 권장)  */
+        var _countdownTo    = $WG.getParam("CountdownTo")   || '2024-01-01 00:00:00';   /* 하드코딩 OR Url param으로 설정(접수시작시각) */
+        var _standbyUrl     = $WG.getParam("StandbyUrl")    || _nextUrl;                /* 카운트다운 기간 이전 이동할 URL */
+        var _usingCountdown = $WG.getParam("CountdownTo") ? true : false;
 
 
         function WG_GoNextPage() {
