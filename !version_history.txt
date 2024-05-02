@@ -1,106 +1,147 @@
 ﻿=================================================================
 VERSION HISTORY
 =================================================================
+V.24.1.501(ui)
+    * rename customCss --> uiCustomType
+
+V.24.1.430 (core+ui)
+	* sample update (frontend, landing)
+    + add config paramter on WG_StartWebGate()
+    + add customCss property to config parm on WG_StartWebGate()
+
+V.24.1.429 (core)
+	+ add uiHideDelay Timer
+    * update isShow Property (uiShowDelay, uiHideDelay 연동)
+
+V.24.1.2 (ui)
+    * improve : 대기UI 리소스(icon, image) url 단축(상대경로로 변경)
+
+V.24.1.1 (core)
+    + add : validation data cookie 저장 (WG_ValidationKey, WG_ValidationData)
+
+V.24.1.1 (ui)
+    + add : WG_GetTime() 추가 (Countdown 기능포함)
+
+V.24.1.0 (ui)
+    - fix : url에 #이 포함된 경우, 대기완료 후 reload 미동작 (WG_ChangeUrl() 추가)
+
+V.23.12.28 (core)
+    - fix : deleteCookie not work multi cookie domain(subdomain)
+
+V.23.12.15 (ui)
+    - improve : 대기시간 단축표시 기준 분(shortlyWaitTimeMinutes) 추가
+
+V.23.12.10 (ui)
+    - improve : add successUrl paramter on WG_ACK()
+
+V.23.12.09 (ui&core)
+    - improve : multi cookie domain (string array)
+
+V.23.11.10 (ui)
+    - 안정화 : change showUiDelay Setting 500ms -->  1000ms
+
+V.23.10.27 (core)
+    - fix : 매칭 실패 시 매칭 반복 현상 (network 오류처럼 다른 WAS로 API 서버 변경)
+
 V.23.10.24 (ui)
     - fix : webgate.js 링크를 header부에 배치하는 경우 init 오류 수정
+    - add : $WG_VM.trafficSign, $WG_VM.trafficSignImage, $WG_VM.trafficSignText
 
 V.23.10.19 (ui)
     * update: WG_Init() 타이머 제거
 
 V.23.10.19 (ui-core)
-    * update: interval 조정 (MATCHING: 0 --> 100ms, isFirstAck: 200 --> 100ms)
-	* update: reconnectWebGate() 내 타이머 제거 (호출 시 타이머 적용되어 중복 타이머)
-
-
-V.23.04.18 (backend)
-    * update: increase default was qty 3 to 6
-    * update: change api call timeout (validation : 최대 20초, 대기표 발급 : 5, 10, 15초)
-
-V.23.08.24 (backend)
-    * update: $WG 유효성 체크 추가, SPA routing 변경 시(locationchange) WG_Init(false) 호출이 잘 동작하지 않아 타이머 적용 
-
-V.23.09.03 (ui)
-    + add : uiVersion, coreVersion 추가
-
-V.23.09.04 (backend)
-    * update: WG_GetWaitingUi() css, js url에 VersionText param 추가(캐시 1분 강제화)
-
-V.23.10.06 (backend)
-    * update: SSRF 대응 (WG_WAS_IP 쿠키 검증)
-
-V.23.09.10 (ui)
-    + add : WG_Chk(), WG_PostInit() 추가
-    * update : backend WG_GetWaitingUi() versionTage 1분 --> 1시간
-	* update : backend WG_GetWaitingUi() meta tag 추가 (cache-control)
-
-V.22.10.30 (backend)
-    update : WG_GetRandomString() return 8 characters base 30 notation for WG_CLIENT_ID
+    * 안정화 : interval 조정 (MATCHING: 0 --> 100ms, isFirstAck: 200 --> 100ms)
+	* 안정화 : reconnectWebGate() 내 타이머 제거 (호출 시 타이머 적용되어 중복 타이머)
 
 V.23.10.18 (ui)
-    * update : ACK() 쿠키 validation
+    * 기능추가 : ACK() 쿠키 validation
+
+V.23.10.06 (backend)
+    * 보안 : SSRF 대응 (WG_WAS_IP 쿠키 검증)
+
+V.23.09.10 (ui)
+    + 기능추가 : WG_Chk(), WG_PostInit() 추가
+    * 안정화 : backend WG_GetWaitingUi() versionTage 1분 --> 1시간
+	* 안정화 : backend WG_GetWaitingUi() meta tag 추가 (cache-control)
+
+V.23.09.04 (backend)
+    * 안정화 : WG_GetWaitingUi() css, js url에 VersionText param 추가(캐시 1분 강제화)
+
+V.23.09.03 (ui)
+    + 안정화 : uiVersion, coreVersion 추가
+
+V.23.08.24 (backend)
+    * 안정화 : $WG 유효성 체크 추가, SPA routing 변경 시(locationchange) WG_Init(false) 호출이 잘 동작하지 않아 타이머 적용 
+
+V.23.04.18 (backend)
+    * 안정화 : increase default was qty 3 to 6
+    * 안정화 : change api call timeout (validation : 최대 20초, 대기표 발급 : 5, 10, 15초)
+
+V.22.10.30 (backend)
+    * 안정화 : WG_GetRandomString() return 8 characters base 30 notation for WG_CLIENT_ID
 
 V.22.08.17 (ui)
-    + add: proxy($WG_PROXY) setting 미적용(java쪽은 적용됨)
-    * update: WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
+    * 안정화 : WG_StartWebGate() 함수의 uimode paramter 명시 ('BACKEND') 
 
 V.22.08.01 (ui-core)
-    - fix : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
+    - 안정화 : CDN landing 방식인 경우, CDN때 발급된 WG_CLIENT_ID cookie set
 
 V.22.05.25 (ui)
-    - remove ui element "<div id='wg-body-wrapper'></div>"
+    - 안정화 : remove ui element "<div id='wg-body-wrapper'></div>"
 
 V.22.04.08 (ui-core)
-    * improve: reuse was ip when first api call for check action
+    * 안정화 : reuse was ip when first api call for check action
 
 V.21.10.29 (background)
-    * update: resize default WG_GATE_SERVER_MAX 10 --> 3
+    * 안정화 : resize default WG_GATE_SERVER_MAX 10 --> 3
 
 V.21.1.31 (2021-10-10)
-    * update: IsLoadTest parameter check set "Y" when paramter not null
+    * 안정화 : IsLoadTest parameter check set "Y" when paramter not null
 
 V.21.1.30 (2021-10-04) 
-    * update: resize default server qty 10 --> 3
-    + add : cookie WG_GATE_ID, WG_WAS_IP
+    * 안정화 : change resize default server qty 10 --> 3
+    + 안정화 : add cookie WG_GATE_ID, WG_WAS_IP
 
 V.21.1.20a (2021-09-24) 
-    * update: WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
+    * 안정화 : WG_CLIENT_ID를 form data에서 먼저 체크 (CDN Landing 페이지에서 post 방식으로 이동하는 경우로 rankingdak.com에 해당)
 
 V.21.1.20 (2021-09-14) 
-    + add: client ip parameter in "CHECK" action api (운영자 IP 체크용)
+    + 안정화 : add client ip parameter in "CHECK" action api (운영자 IP 체크용)
 
 V.21.1.11 (2021-08-16) 
-    + add: Trace API TryCount in STEP-3
+    + 안정화 : add Trace API TryCount in STEP-3
 
 V.21.1.10 (2021-08-08) 
-    WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
-    rename cookie WG_VERSION --> WG_VER_BACKEND
-    add WG_ReadCookie(), WG_WriteCookie()
-    add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
+    * 안정화 : WG_TRACE 내용 축소(apiUrl은 Error 시에만 포함)
+    * 안정화 : change cookie WG_VERSION --> WG_VER_BACKEND
+    + 안정화 : add WG_ReadCookie(), WG_WriteCookie()
+    + 안정화 : add GATE-ID가 일치하는 경우에만 OUT api call (STEP-2)
 
 V.21.1.5 (2021-07-31) 
-    * update: change api url protocol, http --> https
+    * 안정화 : change api url protocol, http --> https
 
 
 V.21.1.4 (2021-07-29) 
-    * update: missing getparm of IsLoadTest
+    * 안정화 : missing getparm of IsLoadTest
 
 V.21.1.3 (2021-07-23) 
-    * update: auto make $WG_GATE_SERVERS list
+    * 안정화 : auto make $WG_GATE_SERVERS list
 
 V.21.1.1 (2021-06-28) 
-    * update: WG_GetWaitingUi() : html & body style (width 100 --> 100%)
-    * update: WG_GetWaitingUi() : remove whitespace starting html template($html)
-    - fix: WG_GetRandomString() index overflow
+    * 안정화 : WG_GetWaitingUi() / html & body style (width 100 --> 100%)
+    * 안정화 : WG_GetWaitingUi() / remove whitespace starting html template($html)
+    - 안정화 : WG_GetRandomString() / fix index overflow
 
 2021-04-03 
-    * update: UI응답부 template fileload 대체
-    * update: server list update
+    * 안정화 : change UI응답부 template fileload 대체
+    * 안정화 : change server list update
 
 2021-03-24 
-    + add: response.setContentType() 처리 추가
+    + 안정화 : add response.setContentType() 처리 추가
 
 2021-01-20 
-    * update: 부하발생용 parameter 처리
-	* update: api call timeout 1초 --> 2초
+    * 안정화 : 부하발생용 parameter 처리
+	* 안정화 : api call timeout 1초 --> 2초
 
 --------------------------------------------------------------------

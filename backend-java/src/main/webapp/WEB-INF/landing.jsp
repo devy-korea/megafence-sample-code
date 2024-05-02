@@ -1,8 +1,15 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!--
+################################################################################################# 
+대기전용 landing page
+################################################################################################# 
+-->
+
 <!DOCTYPE html>
 <html>
 <!--
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Landing 방식 샘플 V.22.1
+* 메가펜스 유량제어서비스 Landing 방식 샘플 V.24.1
 * ----------------------------------------------------------------------------------------------
 * 이 샘플을 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 허가된 대상 및 목적 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -19,70 +26,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
-
-    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
-    <style>
-        body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        /*동영상 배경으로 채우기*/
-        video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -1;
-            background-color:black;
-        }
-
-        /*대기UI 내장 배경 사용하지 않고 투명처리 (동영상 배경 표시하기 위해)*/
-        #wg-ui-wrapper {
-            background-color: transparent !important;
-            background-image: initial !important;
-        }
-    </style>
-
 </head>
 <body>
-    <!-- begin of demo contents -->
-    <video autoplay muted loop id="myVideo">
-        <source src="https://cdn2.devy.kr/9000/video/background-movie-1.mp4" type="video/mp4">
-    </video>
-
-    <div id="app" class="container">
-        <div class="notification is-danger has-text-centered ">
-            <h1 class="title">
-                Welcome TO THE MOON Travel!
-            </h1>
-            <p class="has-text-warning">페이지 로드 시 유량제어 호출코드가 실행되었습니다.</p>
-            <p class="has-text-warning">상세 동작내용은 Console Log 참고</p>
-
-        </div>
-    </div>
-    <!--end of demo contents-->
     <!--#########################################################################################
         begin of megafence
         #########################################################################################-->
     <!--begin of init & import -->
-    <script>
-        // WG_PreInit(), WG_PostInit() 구현내용 없으면 이 블럭은 삭제해도 무방
-        'use strict';
-        function WG_PreInit() {
-        }
-        function WG_PostInit() {
-        }
-    </script>
     <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
     <!--end of init & import-->
     <!--begin of calling code-->
     <script>
-        // 버튼 클릭 시 GATE-ID로 유량제어 호출합니다
+        // 페이지 load 시 유량제어 호출합니다
         window.addEventListener("load", function () {
             var config = {
                 gateId: 1,                          // GATE-ID
@@ -95,11 +49,7 @@
                 onSuccess: function (data) {
                     console.log("onSuccess", data);
                     console.log("대기완료. 여기에서 페이지 이동처리를 구현해 주세요...");
-
-                    /*
-                    대기UI가 uiHideDelay 만큼 유지되는데 그냥 바로 닫고 싶다면...
-                    $WG.hideUi();
-                    */
+					window.location.href = "/index";  /* Backend에서 Redirect했던 페이지로 복귀 */
                 },
                 onAlert: function (data) {
                     console.log("onAlert", data);

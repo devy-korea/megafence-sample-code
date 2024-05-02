@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <!--
 * ==============================================================================================
-* 메가펜스 유량제어서비스 Landing 방식 샘플 V.22.1.0
+* 메가펜스 유량제어서비스 Landing 방식 샘플 V.24.1
 * ----------------------------------------------------------------------------------------------
 * 이 샘플을 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 허가된 대상 및 목적 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -15,148 +15,131 @@
 <head>
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title></title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
     <!-- custom css -->
-    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
     <link href="https://dist.devy.kr/element-ui-2.1.3/lib/theme-chalk/index.css" rel="stylesheet" />
-
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
     <style>
-        html, body {
+        body {
             height: 100%;
-            width: 100%;
-            overflow-y: hidden;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /*동영상 배경으로 채우기*/
+        video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
             background-color: black;
         }
 
-        #myVideo {
-            position: fixed;
-            right: 0;
-            bottom: 0;
-            min-width: 100%;
-            min-height: 100%;
-        }
 
-        .container {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translateX(-50%);
-            padding: 20px;
-            text-align: left;
-            max-width: 800px;
-            background-color: white;
-            border: 2px solid grey;
-            border-radius: 20px;
-            overflow-y: hidden;
-        }
-
-        label.error {
-            font-size: 0.9rem;
-            color: red;
+        /*대기UI 내장 배경 사용하지 않고 투명처리 (동영상 배경 표시하기 위해)*/
+        #wg-ui-wrapper {
+            background-color: transparent !important;
+            background-image: initial !important;
         }
     </style>
 
-
 </head>
 <body>
+    <!-- begin of demo contents -->
     <video autoplay muted loop id="myVideo">
-        <source src="//cdn.devy.kr/movie/to-the-moon.mp4" type="video/mp4">
+        <source src="https://cdn2.devy.kr/9000/video/background-movie-1.mp4" type="video/mp4">
     </video>
 
     <div id="app" class="container">
         <form id="form1">
-            <h1 class="title">
-                [DEMO] TO THE MOON 여행 패키지 신청
+            <h1 class="title has-text-centered has-text-info">
+                TO THE MOON 여행 패키지 신청
             </h1>
-            <h2 class="subtitle"></h2>
-            <div class="field">
-                <label class="label">Name</label>
-                <div class="control">
-                    <input class="input" type="text" placeholder="Text input" value="홍길동">
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="label">Email</label>
-                <div class="control">
-                    <input class="input" type="email" placeholder="Email input" value="hello@devy.kr">
-                </div>
-            </div>
-
-            <div class="field ">
-                <label class="label">Course</label>
-                <div class="control">
-                    <div class="select">
-                        <select name="Course" required>
-                            <option value="S">달나라</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
         </form>
         <hr />
 
 
         <div class="field is-grouped">
             <div class="control">
-                <button id="order-button" class="button is-oreder is-danger" type="button">주문하기</button>
-            </div>
-            <div class="control">
-                <button class="button is-text" onclick="window.location.href='/';">Cancel</button>
+                <button id="order-button" class="button is-oreder is-danger" type="button">시작하기</button>
             </div>
         </div>
-        <p class="has-text-grey has-text-weight-bold">버튼 Click 시 Frontend 방식의 유량제어 서비스를 호출합니다.</p>
-        <div class="notification is-white has-text-centered" style="padding-bottom:0;">
-            <a class="button is-warning" href="backend.php">Backend 방식 DEMO</a>
-            <a class="button is-warning" href="landing.html">Landing 방식 DEMO</a>
-        </div>
+        <p class="has-text-warning">버튼 Click 시 Frontend 방식의 유량제어 서비스를 호출합니다.</p>
+        <p class="has-text-warning">상세 동작내용은 Console Log 참고</p>
     </div>
+    <!--end of demo contents-->
 
-    <!-- Custom lib -->
-    <script src="https://dist.devy.kr/jquery/jquery-3.3.1.min.js"></script>
-    <script src="https://dist.devy.kr/vue-2.6.10/vue.min.js"></script>
-    <script src="https://dist.devy.kr/element-ui-2.1.3/lib/index.js"></script>
-    <script src="https://dist.devy.kr/jquery-validation-1.17.0/jquery.validate.min.js"></script>
+
+
+    <!--#########################################################################################
+        begin of megafence
+        #########################################################################################-->
+    <!--begin of init-->
     <script>
-        $(function () {
-            $("#form1").validate();
-        })
+        // WG_PreInit(), WG_PostInit() 구현내용 없으면 이 블럭은 삭제해도 무방합니다.
+        'use strict';
+        function WG_PreInit() {
+        }
+        function WG_PostInit() {
+        }
     </script>
-
-
-
-    <!--
-    ===================================================================================
-    버튼 클릭 시 유량제어 서비스 호출
-    ===================================================================================
-    ▶테스트 시 
-        : 샘플 그대로 사용하여 동작 확인 (대기UI가 표시되면 OK)
-    ▶계약 후
-        : button click handler의 gateId, ui title 수정
-        : 대기완료 후 처리할 업무로직을 callback  function 구현부에서 시작
-    ------------------------------------------------------------------------------------->
-    <link  href="https://cdn2.devy.kr/9000/css/webgate.css?v=1" rel="stylesheet" />
-    <link  href="https://cdn2.devy.kr/9000/css/webgate-frontend.css?v=1" rel="stylesheet" />
+    <!--end of init-->
+    <!--begin of library import-->
     <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
+    <!--end of library import-->
+    <!--begin of calling code-->
     <script>
         // 버튼 클릭 시 GATE-ID로 유량제어 호출합니다
         document.getElementById("order-button")
             .addEventListener("click", function () {
-                WG_StartWebGate(
-                    1,                      // GATE-ID
-                    function () {           // 대기완료 후 시작할 기존 업무로직  
-                        console.log("original business logic start here!!!");
-                        setTimeout(function () { alert("[TEST] 결제 완료!"); });
-                    }, 
-                    "FRONTEND",             // fixed
-                    "결제 대기 중"          // UI Title
-                ); 
+                var config = {
+                    gateId: 1,                          // GATE-ID
+                    uiMode: "FRONTEND",                 // FRONTEND : 대기취소버튼 표시, BACKEND : 대기취소버튼 미표시
+                    topTitle: "서비스 접속 대기 중",    // 대기UI 제목
+                    uiShowDelay: 0 * 1000,              // 대기UI 표시 지연시간(ms)
+                    uiHideDelay: 2 * 1000,              // 대기 종료 후 대기UI 감추기 지연시간(ms)
+                    resetForce: false,                  // 대기표 강제초기화. true:실행시마다 대기표 강제발급, false:유효한 내 대기표가 있으면 사용
+                    customType: "",                     // UI 분기 변경 필요 시
+                    onSuccess: function (data) {
+                        console.log("onSuccess", data);
+                        console.log("대기완료. 여기에서 업무로직을 시작해 주세요...");
+
+                        /*
+                        대기UI가 uiHideDelay 만큼 유지되는데 그냥 바로 닫고 싶다면...
+                        $WG.hideUi();
+                        */
+                    },
+                    onAlert: function (data) {
+                        console.log("onAlert", data);
+                        alert(res.GateOperationMessageDetail);
+                    },
+                    onWaiting: function (data) {
+                        console.log("onWaiting", data);
+                    },
+                    onFail: function (data) { // 유량제어 서비스 장애 시 처리
+                        console.log("onFail", data);
+                        alert("죄송합니다. 잠시 후 다시 시도해 주세요");
+                    },
+                    onFinally: function () {
+                        console.log("onFinally : 호출코드 종료");
+                    }
+                };
+
+                // call WG_StartWebGate
+                WG_StartWebGate(config);
             });
     </script>
-    <!-- END -->
+    <!--end of calling code-->
+    <!--end of megafence -------------------------------------------------------------------->
+
 
 </body>
 </html>

@@ -73,6 +73,30 @@ Heavy business logic ....
             </div>
         </form>
     </div>
+    
+    
+    
+    <!--begin of megafence ------------------------------------------------------------------------>
+    <!-- 
+    Frontend에서 유량제어 유효성 검사를 하는 코드입니다.
+    Backend 적용된 경우 필수 적용 사항은 아님. (권장사항)
+    ※ 주의 : Landing Page가 웹사이트 내부 또는 외부 CDN에 배포되어 있는 경우에만 사용하세요.
+    --->
+    <script>
+        function WG_PreInit() {
+        }
+        function WG_PostInit() {
+            WG_SetACK({
+                gateId          : 1, /* 할당된 GATE ID */
+                invalidTokenUrl : "https://cdn2.devy.kr/9000/landing.html", /* 토큰 유효성실패(비정상 토큰) */
+                countdownUrl    : "https://cdn2.devy.kr/9000/landing.html", /* Countdown 기간 */
+                errorUrl        : "https://cdn2.devy.kr/9000/landing.html"  /* 기타 오류 */
+            });
+        }
+    </script>
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
+    <!--end of megafence -------------------------------------------------------------------->
+    
 </body>
 
 
