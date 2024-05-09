@@ -69,7 +69,7 @@ public class BackendSampleController {
     		 * 1안) Replace (응답 컨텐츠 교체) 
     		 * 2안) Redirect (별도의 대기전용 페이지로 redirect)
     		 */
-    		String useCase = "REDIRECT"; // REPLACE OR REDIRECT
+    		String useCase = "REPLACE"; // REPLACE OR REDIRECT
     		
     		switch (useCase) {
 	    		case "REPLACE" : // 1안) Replace 방식
