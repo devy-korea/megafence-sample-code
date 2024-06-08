@@ -21,10 +21,10 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "23.10.06";
+        const string WG_VERSION = "24.1.608";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
-        const int WG_MAX_TRY_COUNT = 6;     // [fixed] failover api retry count
+        const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
         public bool WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         const int WG_GATE_SERVER_MAX = 6;    // [fixed] was dns record count
         public List<string> WG_GATE_SERVERS;            // [fixed] 대기표 발급서버 Address List
@@ -73,11 +73,7 @@ namespace devy.WebGateLib
             WG_WAS_IP = "";             // 대기표 발급서버
 
             // get client ip
-            WG_CLIENT_IP = REQ.ServerVariables["REMOTE_ADDR"];
-            if (WG_CLIENT_IP == null || WG_CLIENT_IP.Trim().Length == 0)
-            {
-                WG_CLIENT_IP = "N/A";
-            }
+            WG_CLIENT_IP = GetClientIpAddress();
 
             /******************************************************************************
             STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
@@ -427,6 +423,29 @@ namespace devy.WebGateLib
                     return sr.ReadToEnd();
                 }
             }
+        }
+
+
+        private static string GetClientIpAddress()
+        {
+            string ipAddress =  HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = HttpContext.Current.Request.ServerVariables["REMOTE_ADDR"];
+            }
+            else
+            {
+                // When there are multiple IPs in the X-Forwarded-For header, the client's IP is the first one
+                ipAddress = ipAddress.Split(',')[0];
+            }
+
+            if (string.IsNullOrEmpty(ipAddress))
+            {
+                ipAddress = "N/A";
+            }
+
+            return ipAddress;
         }
     }
 }

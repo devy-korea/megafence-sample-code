@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "23.10.06"
+        WG_VERSION              = "24.1.608"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -35,11 +35,7 @@
         WG_IS_LOADTEST          = "N"                          'jmeter 등으로 발생시킨 요청인지 여부
         
         'get client ip
-        WG_CLIENT_IP = Request.ServerVariables("REMOTE_ADDR")
-        If IsNull(WG_CLIENT_IP) Or Len(Trim(WG_CLIENT_IP)) = 0 Then
-            WG_CLIENT_IP = "N/A"
-        End If
-           
+        WG_CLIENT_IP = GetClientIP()
 
 
         'init gate server list 
@@ -352,6 +348,22 @@
             ReturnValue = ReturnValue & Mid(CharPool,Int((Len(CharPool)*Rnd)+1),1)
         Next
         WG_RandomString = ReturnValue
+    End Function
+
+
+    Function GetClientIP()
+        Dim ipAddress
+        ipAddress = Request.ServerVariables("HTTP_X_FORWARDED_FOR")
+
+        If ipAddress = "" Or IsNull(ipAddress) Then
+            ipAddress = Request.ServerVariables("REMOTE_ADDR")
+        End If
+
+        If IsNull(ipAddress) Then
+            ipAddress = "N/A"
+        End If
+
+        GetClientIP = ipAddress
     End Function
 
 %>

@@ -17,7 +17,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "23.10.06";
+        $WG_VERSION         = "24.1.608";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -34,12 +34,7 @@
 
 		
         /* get clipent ip */
-        $WG_CLIENT_IP = $_SERVER["REMOTE_ADDR"];
-        if(empty($WG_CLIENT_IP))
-        {
-            $WG_CLIENT_IP = "N/A";
-        }
-
+        $WG_CLIENT_IP = WG_GetUserIpAddr();
 
         /* init gate server list */
         for($i=0; $i < $WG_GATE_SERVER_MAX; $i++)
@@ -367,6 +362,28 @@
         }
 
         return substr( $haystack, -$length ) === $needle;
+    }
+
+    function WG_GetUserIpAddr() {
+        // Check for shared internet/ISP IP
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        }
+        // Check for IPs passing through proxies
+        elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+        // Check for remote address
+        else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        if(empty($ip))
+        {
+            $ip = "N/A";
+        }
+
+        return $ip;
     }
 
 ?>

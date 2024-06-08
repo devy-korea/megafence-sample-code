@@ -51,7 +51,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "23.10.06.2";
+		String $WG_VERSION = "24.1.608";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -82,10 +82,7 @@ public class WebGate {
 		}
 
 		/* get client ip */
-		$WG_CLIENT_IP = $REQ.getRemoteAddr();
-		if ($WG_CLIENT_IP == null || $WG_CLIENT_IP.length() == 0) {
-			$WG_CLIENT_IP = "N/A";
-		}
+		$WG_CLIENT_IP = WG_GetUserAddress($REQ);
 
 		/*
 		 * jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter
@@ -412,6 +409,25 @@ public class WebGate {
 		} catch (Exception ex) {
 			return null;
 		}
-
+	}
+	
+	String WG_GetUserAddress(HttpServletRequest req) 
+	{
+		// Get the client's IP address
+        String ipAddress = req.getRemoteAddr();
+        
+        // For more accurate IP address, considering proxies
+        String xForwardedForHeader = req.getHeader("X-Forwarded-For");
+        if (xForwardedForHeader != null) {
+            // The X-Forwarded-For header can contain a comma-separated list of IP addresses.
+            // The client's IP address is the first one in the list.
+            ipAddress = xForwardedForHeader.split(",")[0];
+        }
+        
+        if(ipAddress == null)
+        {
+        	ipAddress = "N/A";
+        }
+        return ipAddress;
 	}
 }

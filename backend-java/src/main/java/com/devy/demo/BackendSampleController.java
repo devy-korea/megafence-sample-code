@@ -63,11 +63,11 @@ public class BackendSampleController {
     		//log.info("[STEP-1] 유량제어 필요 : 대기UI 응답");
     		
     		/* ---------------------------------------------------
-    		 * 대기가 필요하면 대기UI 응답(기존 업무로직 SKIP) 처리
+    		 * 대기판정시 대기UI 응답 (기존 업무로직은 SKIP 처리)
     		 * ---------------------------------------------------
     		 * ※ 1안을 우선 시도해 보고, 불가한 경우 2안 사용
-    		 * 1안) Replace (응답 컨텐츠 교체) 
-    		 * 2안) Redirect (별도의 대기전용 페이지로 redirect)
+    		 * 	1안) Replace : URL 변경 없이 응답 컨텐츠가 대기UI로 교체 
+    		 * 	2안) Redirect : 별도의 대기전용(landing) 페이지로 redirect 처리
     		 */
     		String useCase = "REDIRECT"; // REPLACE OR REDIRECT
     		
