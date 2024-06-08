@@ -69,7 +69,7 @@ public class BackendSampleController {
     		 * 	1안) Replace : URL 변경 없이 응답 컨텐츠가 대기UI로 교체 
     		 * 	2안) Redirect : 별도의 대기전용(landing) 페이지로 redirect 처리
     		 */
-    		String useCase = "REDIRECT"; // REPLACE OR REDIRECT
+    		String useCase = "REPLACE"; // REPLACE OR REDIRECT
     		
     		switch (useCase) {
 	    		case "REPLACE" : // 1안) Replace 방식
