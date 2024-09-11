@@ -2,7 +2,7 @@
 
 <!-- 
 * ==============================================================================================
-* 메가펜스 유량제어서비스 SAMPLE(JSP) / 23.09.03
+* 메가펜스 유량제어서비스 SAMPLE(JSP) / 24.1.911
 * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
 * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -38,7 +38,7 @@ BEGIN OF 유량제어 코드삽입
 	String gateId 		= "1"; 	  // 사용할 GATE ID (할당된 GATE ID 중에서 사용) 
 
 	// 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
-	if(WG_IsNeedToWaiting(serviceId, gateId,  request, response))
+	if(!WG_IsValidToken(serviceId, gateId,  request, response))
   	{
 	  	out.print(WG_GetWaitingUi(serviceId, gateId));
 	  	return; // 응답종료

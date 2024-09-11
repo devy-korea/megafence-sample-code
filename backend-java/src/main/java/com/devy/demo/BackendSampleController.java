@@ -14,7 +14,7 @@ import com.devy.megafence.WebGate;
 
 /*
 * ==============================================================================================
-* 메가펜스 유량제어서비스 SAMPLE(JAVA) V.24.1
+* 메가펜스 유량제어서비스 SAMPLE(JAVA) V.24.1.911
 * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
 * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
 * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -46,75 +46,63 @@ public class BackendSampleController {
     	String landingPage = "landing";  // landing.html 샘플파일을 이용하여 만든 대기 전용 경량화된 static 페이지
     	
     	/* 	========================================================================
-    		Light business logic ....
+    		Light business logic here ....
     		========================================================================
     		예) 로그인 체크 : 쿠키나 세션을 체크해서 Login 페이지로 redirect 등의 간단한 업무로직은 유량제어 코드 이전에 실행해도 됩니다.
     	*/
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
-    	/* BEGIN OF 유량제어 코드삽입
-    	▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  */ 
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
     	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
-    	WebGate webgate = new WebGate(); 
-    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	WebGate webgate = new WebGate();
+    	// 대기표 검증하여 컨텐츠 교체 OR 별도의 대기페이지로 REDIRECT
+    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
-    		//log.info("[STEP-1] 유량제어 필요 : 대기UI 응답");
-    		
-    		/* ---------------------------------------------------
-    		 * 대기판정시 대기UI 응답 (기존 업무로직은 SKIP 처리)
-    		 * ---------------------------------------------------
-    		 * ※ 1안을 우선 시도해 보고, 불가한 경우 2안 사용
-    		 * 	1안) Replace : URL 변경 없이 응답 컨텐츠가 대기UI로 교체 
-    		 * 	2안) Redirect : 별도의 대기전용(landing) 페이지로 redirect 처리
-    		 */
-    		String useCase = "REPLACE"; // REPLACE OR REDIRECT
-    		
-    		switch (useCase) {
-	    		case "REPLACE" : // 1안) Replace 방식
-	    			//log.info("response type : REDIRECT");
-	        		try {
-	        			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
-	        			response.setContentType("text/html");
-	            		PrintWriter out = response.getWriter();
-	        			out.write(uiHtml);
-	        			out.close();
-	        			//log.info("[STEP-2] 대기 UI 응답 : 업무로직이 실행되지 않고 대기UI만 표시되어야 정상! (STEP-4으로 진입하지 않고 대기UI 동작 후 page reload 됨)");
-	        			return mappingPage;
-	    	    	} catch (Exception e) {}
-	    	        finally {}
-	    			break;
-	    		case "REDIRECT" : // 2안) Redirect 방식 : landing.html을 이용하여 만든 대기전용 페이지로 강제 redirect 처리
-	    			//log.info("response type : REDIRECT");
-	        		return "redirect:/" + landingPage; // response landing.jsp
-	    		default :
-	    				throw new IllegalArgumentException("undefined useCase:" + useCase);
-    		}
-    		
-    	} else {
-			//log.info("[STEP-3] 유량제어 체크 완료 : 대기상황이 아닐때 페이지 첫 진입 OR 대기를 완료 후 페이지 reload된 경우임");
-    	}
-    	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-    	END OF 유량제어 코드삽입 */    	
-    	//log.info("[STEP-4] 유량제어 완료(SKIP OR PASS) : 대기가 없는 상황(SKIP)이거나, 대기를 완료(PASS)된 후 reload 시 여기로 진입하면 OK");
-
+    		try {
+    			
+    			/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ 
+    			 * 아래 코드가 잘 동작하지 않는다면 적절히 수정해서 사용 바랍니다. 
+    			 * ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+    			
+    			// 페이지 응답교체 또는 별도의 대기페이지로 REDIRECT할지 선택
+    			boolean isReplaceMode = true; 
+    			
+    			// URL 이동없이 응답 컨텐츠 교체
+    			if(isReplaceMode)  
+    			{
+	    			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
+	    			response.setContentType("text/html");
+	        		PrintWriter out = response.getWriter();
+	    			out.write(uiHtml);
+	    			out.close();
+	    			return "index";
+    			}
+    			// 별도의 대기 페이지로 REDIRECT
+    			else { 
+        			return "redirect:/landing";  // 대기용 페이지(/landing)를 별도로 만든 경우  
+    			}
+    			
+	    	} catch (Exception e) {
+	    		// 필요시 log write..
+	    	}
+	        finally {}
+    	} 
+    	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
     	
-    	log.info("[STEP-5] 업무로직 시작");
+    	
+    	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+    	 * 여기까지 왔다면 유량제어 체크가 완료된 상태입니다. 
+    	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     	/*	========================================================================
     		Heavy business logic ....
     		========================================================================
     		예) 고객등급 GET : 고객 DB에서 고객등급(Bronze/Silver/Gold) 조회 
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
-    	log.info("[STEP-6] 업무로직 끝");
-    		
     	
-    	
-    	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-    	 * 여기까지 왔다면 아래의 예시처럼 원래의 업무 페이지가 응답되도록 해주세요 !!!!!! 
-    	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    	return mappingPage; // response index.jsp
+    	return "index"; // response index.jsp
     }
 
     

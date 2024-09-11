@@ -1,6 +1,9 @@
 ﻿=================================================================
 VERSION HISTORY
 =================================================================
+V.24.1.911 (backend)
++ add WG_IsValidToken(), WG_IsNeedToWaiting_V2()
+
 V.24.1.501(ui)
     * rename customCss --> uiCustomType
 

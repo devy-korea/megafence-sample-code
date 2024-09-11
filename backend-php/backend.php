@@ -7,7 +7,7 @@
 
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 SAMPLE(PHP) / 23.09.03
+    * 메가펜스 유량제어서비스 SAMPLE(PHP) / 23.09.10
     * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
     * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -33,7 +33,7 @@
     $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
     // 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
-    if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
+    if (WG_IsNeedToWaiting_V2($WG_SERVICE_ID, $WG_GATE_ID))
     {
         print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
         exit(); // 응답종료 
@@ -87,6 +87,7 @@
         <form id="form1">
             <div class="notification is-info">
                 <h1 class="title">[DEMO] WELLCOME, TO THE MOON TRAVEL!!!</h1>
+                <h1 class="subtitle has-text-success">Backend 호출코드 적용된 페이지입니다. 새로고침을 여러번 시도하면 대기 화면을 다시 만나게 됩니다.</h1>
             </div>
 
             <div class="notification is-white has-text-centered" style="position:fixed; width:100%; left:0; bottom:0; background-color:#000000ee;">
@@ -96,5 +97,27 @@
             </div>
         </form>
     </div>
+
+
+
+    <!--begin of megafence------------------------------------------------------------------------>
+    <!-- 
+    Frontend에서 유량제어 유효성 검사를 하는 코드입니다.
+    ※ 주의 : Landing Page가 웹사이트 내부 또는 외부 CDN에 배포되어 있는 경우에만 사용하세요.
+    --->
+    <script>
+        function WG_PreInit() {
+        }
+        function WG_PostInit() {
+            WG_SetACK({
+                gateId          : 1, /* 할당된 GATE ID */
+                invalidTokenUrl : "https://cdn2.devy.kr/9000/landing.html", /* 토큰 유효성실패(비정상 토큰) */
+                countdownUrl    : "https://cdn2.devy.kr/9000/landing.html", /* Countdown 기간 */
+                errorUrl        : "https://cdn2.devy.kr/9000/landing.html"  /* 기타 오류 */
+            });
+        }
+    </script>
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
+    <!--end of megafence -------------------------------------------------------------------->
 </body>
 </html>
