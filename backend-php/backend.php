@@ -7,7 +7,7 @@
 
     /* 
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 SAMPLE(PHP) / 23.09.10
+    * 메가펜스 유량제어서비스 SAMPLE(PHP)
     * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
     * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -32,8 +32,8 @@
     $WG_GATE_ID      = "1";    // 할당받은 GATE ID 중에서 사용
     $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
-    // 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
-    if (WG_IsNeedToWaiting_V2($WG_SERVICE_ID, $WG_GATE_ID))
+    // 유량제어 체크 : 토큰 유효하지 않으면 재발급(=대기UI 응답)
+    if (!WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
     {
         print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
         exit(); // 응답종료 
@@ -65,22 +65,11 @@
 
         }
 
-        video {
-            position: fixed; right: 0; bottom: 0;
-            min-width: 100%; min-height: 100%;
-            width: auto; height: auto; z-index: -100;
-            max-width: none !important;
-
-        }
 
     </style>
 
 </head>
 <body>
-    <video id="myvideo" autoplay muted loop>
-        <source src="movie/videoblocks-night-view-from-the-hotel-window-on-the-moon-and-sea_b8_v-rcrr_720__D.mp4" type="video/mp4">
-        video 요소를 지원하지 않는 브라우저입니다. 동영상은 다운로드 후 볼 수 있습니다.
-    </video>
 
 
     <div id="app" class="container">
@@ -98,26 +87,5 @@
         </form>
     </div>
 
-
-
-    <!--begin of megafence------------------------------------------------------------------------>
-    <!-- 
-    Frontend에서 유량제어 유효성 검사를 하는 코드입니다.
-    ※ 주의 : Landing Page가 웹사이트 내부 또는 외부 CDN에 배포되어 있는 경우에만 사용하세요.
-    --->
-    <script>
-        function WG_PreInit() {
-        }
-        function WG_PostInit() {
-            WG_SetACK({
-                gateId          : 1, /* 할당된 GATE ID */
-                invalidTokenUrl : "https://cdn2.devy.kr/9000/landing.html", /* 토큰 유효성실패(비정상 토큰) */
-                countdownUrl    : "https://cdn2.devy.kr/9000/landing.html", /* Countdown 기간 */
-                errorUrl        : "https://cdn2.devy.kr/9000/landing.html"  /* 기타 오류 */
-            });
-        }
-    </script>
-    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
-    <!--end of megafence -------------------------------------------------------------------->
 </body>
 </html>
