@@ -46,11 +46,31 @@ namespace Demo
             {
                 try
                 {
-                    // 대기가 필요하면 대기UI로 응답 대체 후 종료
-                    Response.Clear();
-                    Response.Write(webgate.WG_GetWaitingUi());
-                    Response.Flush();
-                    Response.End();
+                    /*
+                     * 응답교체 OR REDIRECT 중 잘 동작하는 방식 하나를 선택해서 적용해 주세요.
+                     * 응답교체 방식이 권장되나 불가한 경우 Redirect 방식 적용
+                     * Redirect 방식은 landing 페이지 별도 작성이 필요하므로 샘플파일 요청 바랍니다.
+                     * */
+                    bool isReplaceMode = true; // true:응답교체, false:리다이렉트
+
+                    if (isReplaceMode)
+                    {
+                        /* ---------------------------------------------------------
+                         * (A)응답교체 : 대기가 필요하면 대기UI로 응답 대체 후 종료
+                         * ---------------------------------------------------------*/
+                        Response.Clear();
+                        Response.Write(webgate.WG_GetWaitingUi());
+                        Response.Flush();
+                        Response.End();
+                    }
+                    else
+                    {
+                        /* ---------------------------------------------------------
+                         * (B)리다이렉트 : 대기가 필요하면 별도 작성된 landing 페이지로 리다이렉트 처리
+                         * ---------------------------------------------------------*/
+                        Response.Redirect("landing.aspx");
+                        Response.End();
+                    }
                 }
                 catch { }
                 finally { }
