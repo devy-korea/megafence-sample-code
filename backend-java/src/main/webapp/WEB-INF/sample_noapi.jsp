@@ -32,7 +32,7 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
     
     
 <!--begin of calling code-->
-<script src="https://demo.devy.kr/9000/js/webgate.js?v=1"></script>
+<script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
 <script>
     // 페이지 로드 시 유량제어 호출합니다
     window.addEventListener("load", function () {

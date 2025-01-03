@@ -47,5 +47,5 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
     </div>
     
     
-	<script src="https://demo.devy.kr/9000/js/webgate.js?v=1"></script>    
+	<script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>    
 </body>
