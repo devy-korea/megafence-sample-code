@@ -49,7 +49,7 @@
                 onSuccess: function (data) {
                     console.log("onSuccess", data);
                     console.log("대기완료. 여기에서 페이지 이동처리를 구현해 주세요...");
-					window.location.href = "/index";  /* Backend에서 Redirect했던 페이지로 복귀 */
+					window.location.href = "/sample_landing";  /* Backend에서 Redirect했던 페이지로 복귀 */
                 },
                 onAlert: function (data) {
                     console.log("onAlert", data);

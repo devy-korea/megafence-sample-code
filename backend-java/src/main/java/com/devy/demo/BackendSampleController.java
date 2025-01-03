@@ -1,5 +1,6 @@
 package com.devy.demo;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,8 +43,15 @@ public class BackendSampleController {
 	
 	@GetMapping({"/", "/index"}) 
     public String index(HttpServletRequest request, HttpServletResponse response) {
-    	String mappingPage = "index";    // 이 컨틀롤러가 /index.jsp를 응답하는 경우 
-    	String landingPage = "landing";  // landing.html 샘플파일을 이용하여 만든 대기 전용 경량화된 static 페이지
+    	return "index"; // response index.jsp
+    }
+
+	/**
+	 * REPLACE 방식 Controller 
+	 */
+	@GetMapping({"/sample_replace"}) 
+    public String sample_replace(HttpServletRequest request, HttpServletResponse response) {
+    	String mappingPage = "sample_replace";    // 이 컨틀롤러가 /sample_replace.jsp를 응답 
     	
     	/* 	========================================================================
     		Light business logic here ....
@@ -57,32 +65,21 @@ public class BackendSampleController {
     	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
-    	// 대기표 검증하여 컨텐츠 교체 OR 별도의 대기페이지로 REDIRECT
+    	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
     	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
     		try {
     			
     			/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ 
-    			 * 아래 코드가 잘 동작하지 않는다면 적절히 수정해서 사용 바랍니다. 
+    			 * 페이지 응답을 대기UI(uiHtml)로 교체하는 코드 샘플입니다.
+    			 * 환경에 따라 아래 코드가 잘 동작하지 않을 수 있어 코드 수정(보완)이 필요할 수 있습니다.    
     			 * ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
-    			
-    			// 페이지 응답교체 또는 별도의 대기페이지로 REDIRECT할지 선택
-    			boolean isReplaceMode = true; 
-    			
-    			// URL 이동없이 응답 컨텐츠 교체
-    			if(isReplaceMode)  
-    			{
-	    			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
-	    			response.setContentType("text/html");
-	        		PrintWriter out = response.getWriter();
-	    			out.write(uiHtml);
-	    			out.close();
-	    			return "index";
-    			}
-    			// 별도의 대기 페이지로 REDIRECT
-    			else { 
-        			return "redirect:/landing";  // 대기용 페이지(/landing)를 별도로 만든 경우  
-    			}
+    			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
+    			response.setContentType("text/html");
+        		PrintWriter out = response.getWriter();
+    			out.write(uiHtml);
+    			out.close();
+    			return "sample_replace"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
     			
 	    	} catch (Exception e) {
 	    		// 필요시 log write..
@@ -102,13 +99,131 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "index"; // response index.jsp
+    	return "sample_replace"; 
     }
 
+	
+	/**
+	 * LANDING(REDIRECT) 방식 SAMPLE
+	 */
+    @GetMapping("/sample_landing") 
+    public String sample_landing(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	String mappingPage = "sample_landing";    // 이 컨틀롤러가 /sample_replace.jsp를 응답 
+    	
+    	/* 	========================================================================
+    		Light business logic here ....
+    		========================================================================
+    		예) 로그인 체크 : 쿠키나 세션을 체크해서 Login 페이지로 redirect 등의 간단한 업무로직은 유량제어 코드 이전에 실행해도 됩니다.
+    	*/
+    	
+    	//log.info("[STEP-0] 유량제어 체크 시작");
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
+    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	
+    	WebGate webgate = new WebGate();
+    	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
+    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
+    	{
+    		return "redirect:/landing"; // landing.jsp로 redirect  
+    	} 
+    	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
+    	
+    	
+    	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+    	 * 여기까지 왔다면 유량제어 체크가 완료된 상태입니다. 
+    	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    	/*	========================================================================
+    		Heavy business logic ....
+    		========================================================================
+    		예) 고객등급 GET : 고객 DB에서 고객등급(Bronze/Silver/Gold) 조회 
+    		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
+    	*/
+    	
+    	return "sample_landing";     
+    }
+    	
+	
+    /**
+     * API 미사용 SAMPLE Controller
+     */
+    @GetMapping({"/sample_noapi"}) 
+    public String sample_noapi(HttpServletRequest request, HttpServletResponse response) {
+    	String mappingPage = "sample_noapi";    // 이 컨틀롤러가 /sample_without_api.jsp를 응답하는 경우 
+    	
+    	/* 	========================================================================
+    		Light business logic here ....
+    		========================================================================
+    		예) 로그인 체크 : 쿠키나 세션을 체크해서 Login 페이지로 redirect 등의 간단한 업무로직은 유량제어 코드 이전에 실행해도 됩니다.
+    	*/
+    	
+    	//log.info("[STEP-0] 유량제어 체크 시작");
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
+    	String serviceId 		= "9000"; 	// [Admin Page 참고] 할당된 SERVICE ID  
+    	String gateId 			= "1";  	// [Admin Page 참고] 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String secretApiKey 	= "YOUR_SECRET_API_KEY"; //[Admin Page 참고] Secret Api Key (외부 노출 주의 : 내부망 SITE 또는 Backend에서만 사용!) 
+    	Integer freepassMinutes = 60; 		// fixed(수정금지) :  default 토큰 만료시간
+    	Integer freepassCount   = 99;		// fixed(수정금지) :  default 토큰 사용회수 = Page load 수
+    	Boolean useIpCheck		= false;	// fixed(수정금지) :  default IP 체크
+    	
+    	WebGate webgate = new WebGate();
+    	
+    	/**
+    	 * 대기표 검증 : 신규 유입자면 유량제어 체크를 위한 응답으로 교체
+    	 * 결과 코드는 WG_TOKEN_CHECKRESULT 쿠키로 저장됩니다.
+    	 */
+    	if(0 != webgate.WG_CheckTokenData(
+    			request, 
+    			response, 
+    			serviceId, 
+    			gateId, 
+    			freepassMinutes, 
+    			freepassCount, 
+    			useIpCheck, 
+    			secretApiKey))
+    	{
+    		try {
+    			
+    			/* ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ 
+    			 * 대기UI Html을 응답으로 교체
+    			 * ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★*/
+    			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
+    			response.setContentType("text/html");
+        		PrintWriter out = response.getWriter();
+    			out.write(uiHtml);
+    			out.close();
+    			return "sample_noapi"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
+    			
+	    	} catch (Exception e) {
+	    		// 필요시 log write..
+	    	}
+	        finally {}
+    	} 
+    	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
+    	
+    	
+    	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+    	 * 여기까지 왔다면 유량제어 체크가 완료된 상태입니다. 
+    	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    	/*	========================================================================
+    		Heavy business logic ....
+    		========================================================================
+    		예) 고객등급 GET : 고객 DB에서 고객등급(Bronze/Silver/Gold) 조회 
+    		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
+    	*/
+    	
+    	return "sample_noapi"; // response sample_without_api.jsp
+    }
     
-    @GetMapping("/landing") 
+
+    /**
+     * 대기 전용 페이지
+     * sample_landing 페이지에서 redirect target 페이지
+     */
+    @GetMapping({"/landing"}) 
     public String landing(HttpServletRequest request, HttpServletResponse response) {
-    	return "landing"; //response landing.jsp
-    }    
+    	return "landing";
+    }
+    	
 }
 

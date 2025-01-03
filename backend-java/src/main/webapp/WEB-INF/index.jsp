@@ -17,10 +17,35 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
     <div id="app" class="container">
         <form id="form1">
             <div class="notification is-info">
-                <h1 class="title">Index Page!!!</h1>
+                <h1 class="title">BACKEND SAMPLE HOME</h1>
                 <h2 class="has-text-light">Backend 방식의 유량제어를 적용한 SAMPLE 업무페이지.</h2>
                 <h2 class="has-text-light">대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
+                <br/>
+                
+                <p class="title">아래 Backend 동작방식 중 1안(REPLACE) 권장. <br/>(1안 적용이 어려운 경우 지원 요청)</p>
+                
+                <br/>
+                
+                
+                <div class='box'>
+                <p> <button type="button" class="button is-dark is-small" onclick="$WG.cancelWebGate(); alert('OK');">대기표 초기화</button> 클릭 후 아래 동작방식 테스트 </p>
+                <a class="button is-large" href="/sample_replace">1) 응답교체(REPLACE) 방식 </a>
+                <p class="has-text-info"> Backend API 체크 + PAGE 응답교체
+                </div>
+                <div class='box'>
+                <p> <button type="button" class="button is-dark is-small" onclick="$WG.cancelWebGate(); alert('OK');">대기표 초기화</button> 클릭 후 아래 동작방식 테스트 </p>
+                <a class="button is-large" href="/sample_landing">2) LANDING 방식 (대기전용 페이지로 강제 REDIRECT)</a>
+                <p class="has-text-info"> Backend API 체크 + PAGE Redirect 
+                </div>
+                <div class='box'>
+                <p> <button type="button" class="button is-dark is-small" onclick="$WG.cancelWebGate(); alert('OK');">대기표 초기화</button> 클릭 후 아래 동작방식 테스트 </p>
+                <a class="button is-large" href="/sample_noapi">3) API 미사용 방식 </a>
+                <p class="has-text-info"> Backend 쿠키체크 + Frontend API 체크
+                </div>	
             </div>
         </form>
     </div>
+    
+    
+	<script src="https://demo.devy.kr/9000/js/webgate.js?v=1"></script>    
 </body>

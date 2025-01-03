@@ -7,13 +7,19 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
-
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,7 +40,7 @@ import org.slf4j.LoggerFactory;
 * All rights reserved to DEVY / https://devy.kr
 * ----------------------------------------------------------------------------------------------
 * <주의>
-* 0. 이 파일은 일반적으로 코드 수정이 필요 없습니다. (import용 library) 
+* 0. 이 파일은 일반적으로 코드 수정이 필요 없습니다. (단순 import용 library) 
 * 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
@@ -52,7 +58,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.911";
+		String $WG_VERSION = "24.1.1303";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -189,7 +195,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.911";
+		String $WG_VERSION = "24.1.1303";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -200,7 +206,7 @@ public class WebGate {
 		String $WG_TOKEN_NO = ""; // 대기표 ID
 		String $WG_TOKEN_KEY = ""; // 대기표 key
 		String $WG_WAS_IP = ""; // 대기표 발급서버
-		String $WG_TRACE = "WG_IsNeedToWaiting_V2()::"; // TRACE 정보 (쿠키응답)
+		String $WG_TRACE = "WG_IsNeedToWaiting()::"; // TRACE 정보 (쿠키응답)
 		String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
 		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
 		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
@@ -450,9 +456,169 @@ public class WebGate {
 	}	
 	
 	
+	/**
+	 * API 호출이 불가한 환경일때, Cookie 값을 이용한 Token 유효성 검증
+	 */
+	public int WG_CheckTokenData(
+			HttpServletRequest req, 
+			HttpServletResponse res, 
+			String serviceId, 
+			String gateId,
+			Integer freepassMinutes,
+			Integer freepassCount,
+			Boolean useIpCheck,
+			String apiSecretKey) {
+		
+		
+		// get validation data from cookie
+		String WG_TOKEN_DATA = WG_ReadCookie(req, "WG_TOKEN_DATA");
+		String WG_TOKEN_HASH = WG_ReadCookie(req, "WG_TOKEN_HASH");
+		String WG_GATE_ID = WG_ReadCookie(req, "WG_GATE_ID");
+		String WG_TOKEN_NO = WG_ReadCookie(req, "WG_TOKEN_NO");
+		String WG_CLIENT_ID = WG_ReadCookie(req, "WG_CLIENT_ID");
+		
+		Integer resultCode = 0;
+		
+		// check validation
+		if (WG_TOKEN_DATA == null 
+				|| WG_TOKEN_DATA.length() == 0
+				|| WG_TOKEN_HASH == null 
+				|| WG_TOKEN_HASH.length() == 0 )
+		{
+			resultCode = 1000; // token cookie not exists
+			WG_WriteCookie(res, "WG_TOKEN_CHECKRESULT", resultCode.toString());
+			return resultCode;
+		}
+		
+		
+		
+		String hmac;
+		try {
+			hmac = WG_GenerateHmac(apiSecretKey, WG_TOKEN_DATA).toLowerCase();
+
+			if(WG_TOKEN_HASH.toLowerCase().equals(hmac))
+			{
+				String[] splits = WG_TOKEN_DATA.split("\\|");
+				String version = splits[0];
+				if(version.equals("V1") && splits.length==11)
+				{
+					String SERVICE_ID = splits[1];
+					String GATE_ID = splits[2];
+					String TOKEN_NO = splits[3];
+					String TOKEN_STATE = splits[4];
+					String CLIENT_ID = splits[5];
+					String CLIENT_IP = splits[6];
+					String OUT_COUNT = splits[7];
+					String CONNECT_TIME = splits[8];
+					String IN_TIME = splits[9];
+					String NOW_TIME = splits[10];
+					
+					if(!SERVICE_ID.equals(serviceId))
+					{
+						resultCode = 1010;
+					}
+					else if(!GATE_ID.equals(gateId)
+							|| !GATE_ID.equals(WG_GATE_ID))
+					{
+						resultCode = 1020; // invalid GATE_ID
+					}
+					else if(!TOKEN_NO.equals(WG_TOKEN_NO))
+					{
+						resultCode = 1030; // invalid TOKEN_NO
+					}
+					else if ("IN,OUT,".indexOf(TOKEN_STATE) == -1)
+					{
+						resultCode = 1040; // invalid TOKEN_STATE
+					}
+					else if (!CLIENT_ID.equals(WG_CLIENT_ID)) {
+						resultCode = 1050; // invalid CLIENT_ID
+					}
+					
+					if(OUT_COUNT == null || OUT_COUNT.length() == 0)
+					{
+						resultCode = 1070;
+					}
+					else {
+						Integer outCount = Integer.parseInt(OUT_COUNT);
+						if(outCount > freepassCount)
+						{
+							resultCode=1071;
+						}
+					}
+					
+					if(IN_TIME == null || IN_TIME.length() == 0)
+					{
+						resultCode = 1090; // invalid feepasstime
+					}
+					else {
+						Instant inTime = Instant.parse(IN_TIME);
+						Instant nowTime = Instant.now();
+						
+						long differenceInMinutes = ChronoUnit.MINUTES.between(inTime, nowTime);
+						
+						if (differenceInMinutes > freepassMinutes)
+						{
+							resultCode = 1091; // over feepasstime
+						}
+					}
+					
+				}
+				else {
+					resultCode = 1001; // invalid format
+				}
+			}
+			else {
+				resultCode = 1002; // invalid hash
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			resultCode =  1009; // hmac error
+		} 
+
+		WG_WriteCookie(res, "WG_TOKEN_CHECKRESULT", resultCode.toString());
+		if(resultCode != 0)
+		{
+			WG_WriteCookie(res, "WG_TOKEN_NO", "");
+		}
+		return resultCode;
+	}
+	
+	
+	public static String WG_GenerateHmac(String key, String message) throws Exception {
+        // HMAC 알고리즘 지정 (SHA-256)
+        String algorithm = "HmacSHA256";
+        
+        // 키를 SecretKeySpec으로 변환
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), algorithm);
+        
+        // Mac 인스턴스 생성 및 초기화
+        Mac mac = Mac.getInstance(algorithm);
+        mac.init(secretKeySpec);
+        
+        // 메시지 HMAC 계산
+        byte[] hmacBytes = mac.doFinal(message.getBytes(StandardCharsets.UTF_8));
+        
+        // Base64로 인코딩하여 반환
+        //return Base64.getEncoder().encodeToString(hmacBytes);
+        
+        // Hex Text
+        return WG_BytesToHex(hmacBytes);
+    }
+	
+	// 바이트 배열을 Hex Text로 변환하는 헬퍼 메서드
+    private static String WG_BytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            hexString.append(String.format("%02x", b)); // 2자리 16진수로 변환
+        }
+        return hexString.toString();
+    }
+	
+	
 	public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.911";
+		String $WG_VERSION = "24.1.1303";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
