@@ -66,7 +66,8 @@ public class BackendSampleController {
     	
     	WebGate webgate = new WebGate();
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
-    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
+    	//if(!webgate.WG_IsValidToken(serviceId, gateId, request, response)) OR
+    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	{
     		try {
     			
