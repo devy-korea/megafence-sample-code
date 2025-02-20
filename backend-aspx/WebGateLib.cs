@@ -324,6 +324,182 @@ namespace devy.WebGateLib
 
         }
 
+
+        public bool WG_IsValidToken()
+        {
+            // init value
+            WG_IS_CHECKOUT_OK = false;  // 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
+            WG_TOKEN_NO = "";           // 대기표 ID
+            WG_TOKEN_KEY = "";          // 대기표 key
+            WG_WAS_IP = "";             // 대기표 발급서버
+
+            // get client ip
+            WG_CLIENT_IP = GetClientIpAddress();
+
+            /******************************************************************************
+            STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
+            *******************************************************************************/
+            try
+            {
+                WG_TRACE = "STEP1:";
+
+                string parameter = REQ["WG_TOKEN"];
+                if (parameter != null && parameter.Length > 0)
+                {
+
+                    // WG_TOKEN paramter를 '|'로 분리 및 분리된 개수 체크
+                    string[] parameterValues = parameter.Split(',');
+                    if (parameterValues.Length == "GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP".Split(',').Length)
+                    {
+                        // WG_TOKEN parameter에 세팅된 값 GET
+                        WG_TOKEN_NO = parameterValues[1];
+                        WG_TOKEN_KEY = parameterValues[2];
+                        WG_WAS_IP = parameterValues[3];
+
+                        // SSRF 대응
+                        if (!string.IsNullOrEmpty(WG_WAS_IP)
+                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        {
+                            WG_WAS_IP = "";
+                        }
+
+                        if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
+                            !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
+                            !string.IsNullOrEmpty(WG_WAS_IP))
+                        {
+                            // 대기표 Validation(checkout api call)
+                            string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
+                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+                            if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
+                            {
+                                WG_IS_CHECKOUT_OK = true;
+                                WG_TRACE += "OK,";
+                                // set cookie from WG_TOKEN param
+                                WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
+                                WriteCookie("WG_WAS_IP", WG_WAS_IP);
+                                WriteCookie("WG_TOKEN_NO", WG_TOKEN_NO);
+
+
+                            }
+                            else
+                            {
+                                WG_TRACE += apiUrl + "--> FAIL, ";
+                            }
+                        }
+                        else
+                        {
+                            WG_TRACE += "SKIP1,";
+                        }
+
+                    }
+                }
+                else
+                {
+                    WG_TRACE += "SKIP2,";
+                }
+            }
+            catch (Exception ex)
+            {
+                WG_TRACE += "ERROR:" + ex.Message + ",";
+                // ignore & goto next
+            }
+            /* end of STEP-1 */
+
+
+            /******************************************************************************
+            STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
+            *******************************************************************************/
+            try
+            {
+                WG_TRACE += "→STEP2:";
+
+                if (WG_IS_CHECKOUT_OK == false)
+                {
+
+                    // 쿠키값을 읽어서 대기완료한 쿠키인지 체크 
+                    WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO") ?? "";
+                    WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
+                    WG_WAS_IP = ReadCookie("WG_WAS_IP");
+
+                    // SSRF 대응
+                    if (!string.IsNullOrEmpty(WG_WAS_IP)
+                        && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                    {
+                        WG_WAS_IP = "";
+                    }
+
+
+                    string cookieGateId = ReadCookie("WG_GATE_ID");
+
+                    if (string.IsNullOrEmpty(WG_TOKEN_KEY))
+                    {
+                        WG_TOKEN_KEY = WG_GetRandomString(8);
+                        WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
+                    }
+
+                    if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
+                        !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
+                        !string.IsNullOrEmpty(WG_WAS_IP) &&
+                        !string.IsNullOrEmpty(cookieGateId))
+                    {
+
+                        if (WG_GATE_ID.Equals(cookieGateId))
+                        {
+                            // 대기표 Validation(checkout api call)
+                            string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
+                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+
+                            if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
+                            {
+                                WG_TRACE += "OK,";
+                                WG_IS_CHECKOUT_OK = true;
+                            }
+                            else
+                            {
+                                WG_TRACE += "FAIL,";
+                            }
+                        }
+                        else
+                        {
+                            WG_TRACE += "SKIP,";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WG_TRACE += "ERROR:" + ex.Message + ",";
+                // ignore & goto next
+            }
+            /* end of STEP-2 */
+
+
+
+
+            WG_TRACE += "→return:" + WG_IS_CHECKOUT_OK.ToString() + ",";
+
+            // write cookie for trace
+            try
+            {
+                WriteCookie("WG_MOD_BACKEND", "ASP.NET");
+                WriteCookie("WG_VER_BACKEND", WG_VERSION);
+                WriteCookie("WG_TIME", DateTime.Now.ToString("o"));
+                WriteCookie("WG_TRACE", WG_TRACE);
+                WriteCookie("WG_CLIENT_IP", WG_CLIENT_IP);
+                WriteCookie("WG_GATE_ID", WG_GATE_ID);
+                WriteCookie("WG_WAS_IP", WG_WAS_IP);
+            }
+            catch
+            {
+                // ignore & goto next
+            }
+
+
+            return WG_IS_CHECKOUT_OK;
+
+        }
+
+
         /// <summary>
         /// TokenKey(=DEVICE KEY) 생성
         /// </summary>

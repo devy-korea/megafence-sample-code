@@ -6,7 +6,7 @@ namespace Demo
 
     /*
     * ==============================================================================================
-    * 메가펜스 유량제어서비스 SAMPLE(ASPX) V.21.1.11a
+    * 메가펜스 유량제어서비스 SAMPLE(ASPX) V.25.02.01
     * 이 샘플소스는 메가펜스 서비스 계약 및 테스트(POC) 고객에게 제공됩니다.
     * 오류조치 및 개선을 목적으로 자유롭게 수정 가능하며 해당 내용은 공급처에 통보 바랍니다.
     * 허가된 고객 이외의 무단 복사, 배포, 수정, 동작 등 일체의 이용을 금합니다.
@@ -42,39 +42,47 @@ namespace Demo
             string serviceId = "9000";  // 할당받은 SERVICE ID (fixed)
             string gateId = "1";     // 사용할 GATE ID (할당받은 GATE ID 범위내에서 사용) 
             WebGate webgate = new WebGate(serviceId, gateId);
-            if (webgate.WG_IsNeedToWaiting())
-            {
-                try
-                {
-                    /*
-                     * 응답교체 OR REDIRECT 중 잘 동작하는 방식 하나를 선택해서 적용해 주세요.
-                     * 응답교체 방식이 권장되나 불가한 경우 Redirect 방식 적용
-                     * Redirect 방식은 landing 페이지 별도 작성이 필요하므로 샘플파일 요청 바랍니다.
-                     * */
-                    bool isReplaceMode = true; // true:응답교체, false:리다이렉트
 
-                    if (isReplaceMode)
+
+            /*
+             * 응답교체 OR REDIRECT 중 잘 동작하는 방식 하나를 선택해서 적용해 주세요.
+             * 응답교체 방식이 권장되나 불가한 경우 Redirect 방식 적용
+             * Redirect 방식은 landing 페이지 별도 작성이 필요하므로 샘플파일 요청 바랍니다.
+             * */
+            bool isReplaceMode = false; // true:응답교체, false:리다이렉트
+
+            try
+            {
+
+                /* ---------------------------------------------------------
+                 * (A)응답교체 : 대기가 필요하면 대기UI로 응답 대체 후 종료
+                 * ---------------------------------------------------------*/
+                if (isReplaceMode)
+                {
+                    if (!webgate.WG_IsNeedToWaiting())
                     {
-                        /* ---------------------------------------------------------
-                         * (A)응답교체 : 대기가 필요하면 대기UI로 응답 대체 후 종료
-                         * ---------------------------------------------------------*/
                         Response.Clear();
                         Response.Write(webgate.WG_GetWaitingUi());
                         Response.Flush();
                         Response.End();
                     }
-                    else
+
+
+                }
+                /* ---------------------------------------------------------
+                 * (B)리다이렉트 : 대기가 필요하면 별도 작성된 landing 페이지로 리다이렉트 처리
+                 * ---------------------------------------------------------*/
+                else
+                {
+                    if (!webgate.WG_IsValidToken())
                     {
-                        /* ---------------------------------------------------------
-                         * (B)리다이렉트 : 대기가 필요하면 별도 작성된 landing 페이지로 리다이렉트 처리
-                         * ---------------------------------------------------------*/
-                        Response.Redirect("landing.aspx");
+                        Response.Redirect("landing.html"); // landing page
                         Response.End();
                     }
                 }
-                catch { }
-                finally { }
             }
+            catch { }
+            finally { }
             /*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             END OF 유량제어 코드삽입 */
 
