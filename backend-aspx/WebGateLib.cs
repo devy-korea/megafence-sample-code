@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "24.1.608";
+        const string WG_VERSION = "24.1.1426";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -201,6 +201,58 @@ namespace devy.WebGateLib
                         else
                         {
                             WG_TRACE += "SKIP,";
+                        }
+                    }
+
+
+                    // SUBDOMAIN 쿠키 체크 추가
+                    if (WG_IS_CHECKOUT_OK == false)
+                    {
+                        // 쿠키값을 읽어서 대기완료한 쿠키인지 체크 
+                        WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO_S") ?? "";
+                        WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
+                        WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
+                        // SSRF 대응
+                        if (!string.IsNullOrEmpty(WG_WAS_IP)
+                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        {
+                            WG_WAS_IP = "";
+                        }
+
+                        cookieGateId = ReadCookie("WG_GATE_ID_S");
+
+                        if (string.IsNullOrEmpty(WG_TOKEN_KEY))
+                        {
+                            WG_TOKEN_KEY = WG_GetRandomString(8);
+                            WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
+                        }
+
+                        if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
+                            !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
+                            !string.IsNullOrEmpty(WG_WAS_IP) &&
+                            !string.IsNullOrEmpty(cookieGateId))
+                        {
+
+                            if (WG_GATE_ID.Equals(cookieGateId))
+                            {
+                                // 대기표 Validation(checkout api call)
+                                string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
+                                string responseText = GetHttpText(apiUrl, 30 * 1000);
+
+                                if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
+                                {
+                                    WG_TRACE += "OK,";
+                                    WG_IS_CHECKOUT_OK = true;
+                                }
+                                else
+                                {
+                                    WG_TRACE += "FAIL,";
+                                }
+                            }
+                            else
+                            {
+                                WG_TRACE += "SKIP,";
+                            }
                         }
                     }
                 }
@@ -462,6 +514,57 @@ namespace devy.WebGateLib
                         else
                         {
                             WG_TRACE += "SKIP,";
+                        }
+                    }
+
+                    // SUBDOMAIN 쿠키 체크 추가
+                    if (WG_IS_CHECKOUT_OK == false)
+                    {
+                        // 쿠키값을 읽어서 대기완료한 쿠키인지 체크 
+                        WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO_S") ?? "";
+                        WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
+                        WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
+                        // SSRF 대응
+                        if (!string.IsNullOrEmpty(WG_WAS_IP)
+                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        {
+                            WG_WAS_IP = "";
+                        }
+
+                        cookieGateId = ReadCookie("WG_GATE_ID_S");
+
+                        if (string.IsNullOrEmpty(WG_TOKEN_KEY))
+                        {
+                            WG_TOKEN_KEY = WG_GetRandomString(8);
+                            WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
+                        }
+
+                        if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
+                            !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
+                            !string.IsNullOrEmpty(WG_WAS_IP) &&
+                            !string.IsNullOrEmpty(cookieGateId))
+                        {
+
+                            if (WG_GATE_ID.Equals(cookieGateId))
+                            {
+                                // 대기표 Validation(checkout api call)
+                                string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
+                                string responseText = GetHttpText(apiUrl, 30 * 1000);
+
+                                if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
+                                {
+                                    WG_TRACE += "OK,";
+                                    WG_IS_CHECKOUT_OK = true;
+                                }
+                                else
+                                {
+                                    WG_TRACE += "FAIL,";
+                                }
+                            }
+                            else
+                            {
+                                WG_TRACE += "SKIP,";
+                            }
                         }
                     }
                 }
