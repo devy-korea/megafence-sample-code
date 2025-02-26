@@ -20,7 +20,7 @@
 	 function WG_IsNeedToWaiting_V2($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.911";
+        $WG_VERSION         = "24.1.1426";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -164,7 +164,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.608";
+        $WG_VERSION         = "24.1.1426";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -281,16 +281,11 @@
             $WG_TRACE .= "→STEP2:";
             if($WG_IS_CHECKOUT_OK == false)
             {
+                
+                // local domain cookie 체크
                 $cookieGateId = WG_ReadCookie("WG_GATE_ID");
                 $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO"); 
-                
-                if(isset($_GET["WG_CLIENT_ID"]) && strlen($_GET["WG_CLIENT_ID"]))
-                {
-                    $WG_TOKEN_KEY = $_GET["WG_CLIENT_ID"];  // cdn에서 post로 이동하는 경우 대응 (rankingdak.com)
-                }
-                else {
-                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
-                }
+                $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
 
 
                 if ($WG_TOKEN_KEY == ""){
@@ -325,6 +320,49 @@
                 else {
                     $WG_TRACE .= "SKIP1,";
                 }
+
+				// begin of sub domain cookie 체크
+                if($WG_IS_CHECKOUT_OK == false) {
+					$cookieGateId = WG_ReadCookie("WG_GATE_ID_S");
+                    $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO_S"); 
+                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID_S");  // client_id를 token_key로 사용중
+
+
+                    if ($WG_TOKEN_KEY == ""){
+                        $WG_TOKEN_KEY = WG_GetRandomString(8);
+                        WG_WriteCookie("WG_CLIENT_ID", $WG_TOKEN_KEY);
+                    }
+
+                    $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP_S");
+                    //SSRF 대응
+                    if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+                    {
+				        $WG_WAS_IP = "";
+                    }
+
+
+                    if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
+                        isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
+                        isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
+                    {
+                        // 대기표 Validation(checkout api call)
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        //$WG_TRACE .=  $apiUrl.",";
+                        $responseText = file_get_contents($apiUrl);
+                        if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
+                        {
+                            $WG_IS_CHECKOUT_OK = true;
+                            $WG_TRACE .= "OK:subdomain,";
+                        } else {
+                            $WG_TRACE .= "FAIL:subdomain,";
+                        }
+                    }
+                    else {
+                        $WG_TRACE .= "SKIP1:subdomain,";
+                    }
+                }
+                // end of subdomain cookie check
+
             }
             else {
                 $WG_TRACE .= "SKIP2";
@@ -444,7 +482,7 @@
     function WG_IsValidToken($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.608";
+        $WG_VERSION         = "24.1.1426";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -562,16 +600,10 @@
             $WG_TRACE .= "→STEP2:";
             if($WG_IS_CHECKOUT_OK == false)
             {
+				// begin of local domain cookie check
                 $cookieGateId = WG_ReadCookie("WG_GATE_ID");
                 $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO"); 
-                
-                if(isset($_GET["WG_CLIENT_ID"]) && strlen($_GET["WG_CLIENT_ID"]))
-                {
-                    $WG_TOKEN_KEY = $_GET["WG_CLIENT_ID"];  // cdn에서 post로 이동하는 경우 대응 (rankingdak.com)
-                }
-                else {
-                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
-                }
+                $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID");  // client_id를 token_key로 사용중
 
 
                 if ($WG_TOKEN_KEY == ""){
@@ -606,6 +638,49 @@
                 else {
                     $WG_TRACE .= "SKIP1,";
                 }
+                // end of local domain cookie check
+
+				// begin of sub domain cookie 체크
+                if($WG_IS_CHECKOUT_OK == false) {
+					$cookieGateId = WG_ReadCookie("WG_GATE_ID_S");
+                    $WG_TOKEN_NO  = WG_ReadCookie("WG_TOKEN_NO_S"); 
+                    $WG_TOKEN_KEY = WG_ReadCookie("WG_CLIENT_ID_S");  // client_id를 token_key로 사용중
+
+
+                    if ($WG_TOKEN_KEY == ""){
+                        $WG_TOKEN_KEY = WG_GetRandomString(8);
+                        WG_WriteCookie("WG_CLIENT_ID", $WG_TOKEN_KEY);
+                    }
+
+                    $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP_S");
+                    //SSRF 대응
+                    if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+                    {
+				        $WG_WAS_IP = "";
+                    }
+
+
+                    if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
+                        isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
+                        isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
+                    {
+                        // 대기표 Validation(checkout api call)
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        //$WG_TRACE .=  $apiUrl.",";
+                        $responseText = file_get_contents($apiUrl);
+                        if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
+                        {
+                            $WG_IS_CHECKOUT_OK = true;
+                            $WG_TRACE .= "OK:subdomain,";
+                        } else {
+                            $WG_TRACE .= "FAIL:subdomain,";
+                        }
+                    }
+                    else {
+                        $WG_TRACE .= "SKIP1:subdomain,";
+                    }
+                }
+                // end of subdomain cookie check
             }
             else {
                 $WG_TRACE .= "SKIP2";
@@ -655,11 +730,11 @@
                 . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
                 . "    <title></title>\r\n"
                 . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> \r\n"
-                . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
+                . "    <link href='https://demo.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
                 . "</head>\r\n"
                 . "<body>\r\n"
                 //. "    <div id='wg-body-wrapper'></div>\r\n"
-                . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" . $versionTag ."'></script>\r\n"
+                . "    <script type='text/javascript' src='https://demo.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" . $versionTag ."'></script>\r\n"
                 . "    <script>\r\n"
                 . "        window.addEventListener('load', function () {\r\n"
                 . "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"

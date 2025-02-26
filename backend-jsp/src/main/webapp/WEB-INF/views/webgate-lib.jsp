@@ -31,9 +31,10 @@
 
 <%!
 
-public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
+public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
+		HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.911";
+	String $WG_VERSION = "24.1.1426";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -170,7 +171,7 @@ public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServle
 public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 		HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.911";
+	String $WG_VERSION = "24.1.1426";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -181,7 +182,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 	String $WG_TOKEN_NO = ""; // 대기표 ID
 	String $WG_TOKEN_KEY = ""; // 대기표 key
 	String $WG_WAS_IP = ""; // 대기표 발급서버
-	String $WG_TRACE = "WG_IsNeedToWaiting_V2()::"; // TRACE 정보 (쿠키응답)
+	String $WG_TRACE = "WG_IsNeedToWaiting()::"; // TRACE 정보 (쿠키응답)
 	String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
 	String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
 	boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
@@ -293,6 +294,8 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 		$WG_TRACE += "STEP2:";
 
 		if ($WG_IS_CHECKOUT_OK == false) {
+			
+			// begin of local domain cookie check
 			// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
 			$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO");
 			$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP");
@@ -348,12 +351,77 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 			} else {
 				$WG_TRACE += "SKIP→";
 			}
+			// end of local domain cookie check
+			
+			// begin of subdomain cookie check
+			if ($WG_IS_CHECKOUT_OK == false)
+			{
+				// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
+				$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO_S");
+				$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP_S");
+				$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID_S");
+
+				
+				if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_NO is null→";
+				}
+				
+				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
+					$WG_TRACE += "$WG_WAS_IP is null→";
+				}
+				// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
+				else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+				{
+					$WG_WAS_IP = "";
+					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
+				}
+								
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_KEY is null→";
+				}
+
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
+					$WG_TOKEN_KEY = WG_GetRandomString(8);
+					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+				}
+
+				if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
+						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+						&& $WG_GATE_ID.equals(cookieGateId)) {
+
+					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					// log.info("apiUrlText:" + apiUrlText);
+					if ($WG_IS_TRACE_DETAIL) {
+						$WG_TRACE += apiUrlText + "→";
+					}
+
+					// 대기표 Validation(checkout api call)
+					String responseText = "";
+					responseText = WG_CallApi(apiUrlText, 20);
+					// log.info("responseText:" + responseText);
+
+					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
+						$WG_IS_CHECKOUT_OK = true;
+						$WG_TRACE += "OK:subdomain→";
+					} else {
+						$WG_TRACE += "FAIL:subdomain→";
+					}
+				} else {
+					$WG_TRACE += "SKIP:subdomain→";
+				}
+			}
+			// end of subdomain cookie check
+			
 		}
 	} catch (Exception $e) {
 		// ignore & goto next
 		$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
 	}
 	/* end of STEP-2 */
+	
+	
 	/******************************************************************************
 	 * STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단 WG_GATE_SERVERS 서버 중
 	 * 임의의 서버에 API 호출
@@ -431,9 +499,10 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 }	
 
 
+
 public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.911";
+	String $WG_VERSION = "24.1.1426";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -611,6 +680,67 @@ public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletReque
 			} else {
 				$WG_TRACE += "SKIP→";
 			}
+			
+			// begin of subdomain cookie check
+			if ($WG_IS_CHECKOUT_OK == false)
+			{
+				// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
+				$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO_S");
+				$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP_S");
+				$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID_S");
+
+				
+				if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_NO is null→";
+				}
+				
+				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
+					$WG_TRACE += "$WG_WAS_IP is null→";
+				}
+				// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
+				else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+				{
+					$WG_WAS_IP = "";
+					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
+				}
+								
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_KEY is null→";
+				}
+
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
+					$WG_TOKEN_KEY = WG_GetRandomString(8);
+					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+				}
+
+				if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
+						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+						&& $WG_GATE_ID.equals(cookieGateId)) {
+
+					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					// log.info("apiUrlText:" + apiUrlText);
+					if ($WG_IS_TRACE_DETAIL) {
+						$WG_TRACE += apiUrlText + "→";
+					}
+
+					// 대기표 Validation(checkout api call)
+					String responseText = "";
+					responseText = WG_CallApi(apiUrlText, 20);
+					// log.info("responseText:" + responseText);
+
+					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
+						$WG_IS_CHECKOUT_OK = true;
+						$WG_TRACE += "OK:subdomain→";
+					} else {
+						$WG_TRACE += "FAIL:subdomain→";
+					}
+				} else {
+					$WG_TRACE += "SKIP:subdomain→";
+				}
+			}
+			// end of subdomain cookie check				
 		}
 	} catch (Exception $e) {
 		// ignore & goto next
@@ -753,7 +883,6 @@ String WG_GetUserAddress(HttpServletRequest req)
     	ipAddress = "N/A";
     }
     return ipAddress;
-}
- 
+} 
 
 %>
