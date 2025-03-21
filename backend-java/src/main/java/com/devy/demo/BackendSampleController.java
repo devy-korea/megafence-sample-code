@@ -61,8 +61,8 @@ public class BackendSampleController {
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
     	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
-    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "2120"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "1770";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
@@ -71,7 +71,7 @@ public class BackendSampleController {
     	 * OR
     	 * if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	 */
-    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
     		try {
     			

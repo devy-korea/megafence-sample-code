@@ -293,6 +293,7 @@ public class WebGate {
 							WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 							WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
 							WG_WriteCookie($RES, "WG_TOKEN_NO", $WG_TOKEN_NO);
+							
 						} else {
 							$WG_TRACE += "FAIL→";
 						}
@@ -857,6 +858,10 @@ public class WebGate {
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 						$WG_IS_CHECKOUT_OK = true;
 						$WG_TRACE += "OK→";
+						
+						// 유입량 COUNT 반영 
+						apiUrlText = apiUrlText.replace("Action=OUT", "Action=CHECK"); 
+						WG_CallApi(apiUrlText, 5);
 					} else {
 						$WG_TRACE += "FAIL→";
 					}
@@ -910,7 +915,7 @@ public class WebGate {
 	
 						// 대기표 Validation(checkout api call)
 						String responseText = "";
-						responseText = WG_CallApi(apiUrlText, 20);
+						responseText = WG_CallApi(apiUrlText, 5);
 						// log.info("responseText:" + responseText);
 	
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
