@@ -57,35 +57,25 @@
     <!-- custom css -->
     <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
 
-    <style>
-        html, body {
-            width:100%;
-            height:100%;
-            overflow-y : hidden;
-
-        }
-
-
-    </style>
 
 </head>
 <body>
 
 
     <div id="app" class="container">
-        <form id="form1">
-            <div class="notification is-info">
-                <h1 class="title">[DEMO] WELLCOME, TO THE MOON TRAVEL!!!</h1>
-                <h1 class="subtitle has-text-success">Backend 호출코드 적용된 페이지입니다. 새로고침을 여러번 시도하면 대기 화면을 다시 만나게 됩니다.</h1>
-            </div>
+        <p class="title has-text-info">SAMPLE BACKEND PAGE</p>
+        <p class="subtitle has-text-danger">GATE ID : <?php print($WG_GATE_ID) ?> </p>
+        <div class="notification is-dark">
+            <h2 class="has-text-warning">Backend 방식의 유량제어가 적용된 SAMPLE 업무페이지입니다.</h2>
+            <h2 class="has-text-warning">GATE가 TEST-MODE 체크되었다면 첫 진입 시 대기표가 발급되어 대기UI가 5~10초 표시됩니다.</h2>
+			<h2 class="has-text-warning">대기완료 후 재진입(F5)은 AdminPage의 FreePass 설정만큼 Pass됩니다.</h2>
+			<h2 class="has-text-warning">AdminPage에서 FreePass 즉시 초기화 버튼을 클릭하면 대기표가 다시 발급되고, TEST MODE 또는 초당 유입량이 설정값을 초과하는 경우 대기가 진행됩니다.</h2>
+        </div>
 
-            <div class="notification is-white has-text-centered" style="position:fixed; width:100%; left:0; bottom:0; background-color:#000000ee;">
-                <h2 class="has-text-light">Backend 방식의 유량제어가 적용된 SAMPLE 업무페이지입니다.</h2>
-                <h2 class="has-text-light">CDN Landing 방식을 거쳐서 왔다면 바로 열리지만 새로고침이나 직접 접속하는 경우 유량제어가 동작합니다.</h2>
-                <h2 class="has-text-light">Backend 방식은 대문(index), 이벤트 안내, 상품상세, 주문하기 페이지 등 Backend 코드(JAVA/JSP/PHP/ASP.NET) 삽입이 가능한 모든 페이지에 적용할 수 있습니다.</h2>
-            </div>
-        </form>
+
+        <hr/>
+        <p class="title has-text-info is-italic">SAMPLE CONTENTS CAPTURE</p>
+        <img src="img/sample-index.jpg" />
     </div>
-
 </body>
 </html>

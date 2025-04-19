@@ -238,7 +238,7 @@
                         && $paramGateId  !== null   && strcmp($paramGateId, $WG_GATE_ID) == 0 )
                     {
                         // 대기표 Validation(checkout api call)
-                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
 
                         $responseText = file_get_contents($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -306,7 +306,7 @@
                    isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
                 {
                     // 대기표 Validation(checkout api call)
-                    $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     //$WG_TRACE .=  $apiUrl.",";
                     $responseText = file_get_contents($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -346,7 +346,7 @@
                         isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
                     {
                         // 대기표 Validation(checkout api call)
-                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                         //$WG_TRACE .=  $apiUrl.",";
                         $responseText = file_get_contents($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -557,7 +557,7 @@
                         && $paramGateId  !== null   && strcmp($paramGateId, $WG_GATE_ID) == 0 )
                     {
                         // 대기표 Validation(checkout api call)
-                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
 
                         $responseText = file_get_contents($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -624,7 +624,7 @@
                    isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
                 {
                     // 대기표 Validation(checkout api call)
-                    $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                    $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     //$WG_TRACE .=  $apiUrl.",";
                     $responseText = file_get_contents($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -665,7 +665,7 @@
                         isset($WG_WAS_IP) && strlen($WG_WAS_IP) > 0 && isset($cookieGateId) && strlen($cookieGateId) > 0  && strcmp($cookieGateId,$WG_GATE_ID) == 0)
                     {
                         // 대기표 Validation(checkout api call)
-                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                        $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                         //$WG_TRACE .=  $apiUrl.",";
                         $responseText = file_get_contents($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
@@ -730,11 +730,11 @@
                 . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
                 . "    <title></title>\r\n"
                 . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> \r\n"
-                . "    <link href='https://demo.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
+                . "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" . $versionTag ."' rel='stylesheet'>\r\n"
                 . "</head>\r\n"
                 . "<body>\r\n"
                 //. "    <div id='wg-body-wrapper'></div>\r\n"
-                . "    <script type='text/javascript' src='https://demo.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" . $versionTag ."'></script>\r\n"
+                . "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" . $versionTag ."'></script>\r\n"
                 . "    <script>\r\n"
                 . "        window.addEventListener('load', function () {\r\n"
                 . "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
