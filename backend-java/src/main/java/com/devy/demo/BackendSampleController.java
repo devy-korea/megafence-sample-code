@@ -2,6 +2,7 @@ package com.devy.demo;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,8 +62,8 @@ public class BackendSampleController {
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
     	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
-    	String serviceId 	= "2120"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1770";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
@@ -111,7 +112,7 @@ public class BackendSampleController {
 	/**
 	 * LANDING(REDIRECT) 방식 SAMPLE
 	 */
-    @GetMapping("/sample_landing") 
+    @GetMapping("/sample_redirect") 
     public String sample_landing(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	String mappingPage = "sample_landing";    // 이 컨틀롤러가 /sample_replace.jsp를 응답 
     	
@@ -130,7 +131,11 @@ public class BackendSampleController {
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
     	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
-    		return "redirect:/landing"; // landing.jsp로 redirect  
+    		StringBuffer url = request.getRequestURL(); // 도메인 + 경로
+    		if(request.getQueryString() != null)
+    			url.append("?").append(request.getQueryString());
+    		
+    		return "redirect:/intro.html";  
     	} 
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
     	
@@ -145,7 +150,7 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "sample_landing";     
+    	return "sample_redirect";     
     }
     	
 	

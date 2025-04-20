@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<!--
+Intro Page 샘플입니다.
+
+컨텐츠는 업무에 맞게 보완해 주세요.
+코드는 TODO 표시한 부분 수정해 주세요.
+
+-->
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- begin of 고객사 META TAG-->
+    <!-- end of 고객사 META TAG-->
+
+    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
+
+    <style>
+        body {
+            height: 100vh;
+            background-color: white;
+            /*background-image: url(img/background-pc.jpg?v=1);*/
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            overflow-y: hidden;
+        }
+
+        /* remove vertical scroll bar */
+        html, body {
+            overflow-y: scroll; /* Ensures content can still scroll */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE & Edge */
+        }
+
+            body::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Edge */
+            }
+
+        hr {
+            margin: 0.5rem 0;
+        }
+
+        button.button {
+            margin: 0.5rem;
+            min-width: 15rem;
+        }
+
+        #loading {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 9999;
+            overflow: hidden;
+        }
+
+            #loading div.content {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+
+                #loading div.content img {
+                    width: 8rem;
+                    height: 8rem;
+                }
+
+        #app {
+            padding: 2rem 1rem 1rem 1rem;
+            width: 90%;
+            max-width: 1024px;
+            background-color: #ffffff;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+            overflow: hidden;
+        }
+
+        /*Mobile*/
+        @media only screen and (max-width: 1024px) {
+            body {
+                height: 100vh;
+                background-color: dimgray;
+                /*background-image: url(img/background-mo.jpg?v=1);*/
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+        }
+    </style>
+</head>
+<body style="position:relative;">
+
+    <!--페이지 뜨자마자 로딩화면 표시용-->
+    <div id="loading">
+        <div class="content">
+            <img src="https://cdn2.devy.kr/9000/img/loading.gif" />
+        </div>
+    </div>
+
+
+    <div id="app" class="container has-text-centered">
+        <div>
+            <img src="https://cdn2.devy.kr/9000/img/logo.png?v=1" alt="logo">
+        </div>
+        <div class="notification" style="padding:2rem 0.5rem;">
+            <h1 class='title'>임시 페이지 운영 안내</h1>
+            <h1 class='is-size-5'>안정적인 서비스 운영을 위한 페이지로 잠시 이동 되었습니다..</h1>
+            <h1 class='is-size-5'>아래의 희망 버튼을 클릭하여 서비스를 계속 이용하실 수 있습니다.</h1>
+            <hr/>
+            <p class="subtitle has-text-danger">예시) [공지사항] 2025-01-01 09:30 ~ 2025-01-01 10:00까지 30분간 홈페이지 이용이 제한됩니다.</p>
+            <!--<p class="subtitle has-text-danger">[공지사항] 서비스 부하 테스트로 인해 매 시 55:00~59:59까지 5분간 홈페이지 이동이 차단될 수 있습니다.</p> -->
+            <hr />
+            <button type="button" class="button is-black is-large" onclick="startWebGate(_gateId)">홈페이지 들어가기</button>
+
+            <div id="turnstile-container" class="turnstile-container"></div>
+
+        </div>
+    </div>
+
+
+
+    <!-- begin of megafence -------------------------------------------->
+    <script>
+        var _nextUrl = "/sample_redirect";
+        var _gateId  = "1";
+
+        function startWebGate(gateId) {
+            var config = {
+                gateId: gateId,                     // GATE-ID
+                uiMode: "BACKEND",                  // FRONTEND : 대기취소버튼 표시, BACKEND : 대기취소버튼 미표시
+                topTitle: "서비스 접속 대기 중",    // 대기UI 제목
+                uiShowDelay: 0 * 1000,              // 대기UI 표시 지연시간(ms)
+                uiHideDelay: 10 * 1000,             // 대기 종료 후 대기UI 감추기 지연시간(ms)
+                resetForce: false,                  // 대기표 강제초기화. true:실행시마다 대기표 강제발급, false:유효한 내 대기표가 있으면 사용
+                customType: "",                     // UI 분기 변경 필요 시
+                onSuccess: function (data) {
+                    //console.log("onSuccess", data);
+
+                    var res = $WG.lastResponse;
+                    if (res.GateOperationMode == "ALERT") {
+                        // 강제대기 기간인 경우 (강제대기기간은 데브와이가 관리)
+                        if (res.GateOperationMessageTitle == "NOT_OPEN") {
+                            setTimeout(function () {
+                                alert(res.GateOperationMessageDetail);
+                                $WG.setCookie("WG_TOKEN_NO", "");
+                            }, 100);
+                        }
+                    } else if (res.GateOperationMode == "GATE") {
+                        window.location.href = _nextUrl;
+                    }
+                },
+                onAlert: function (data) {
+                    //console.log("onAlert", data);
+                    alert(res.GateOperationMessageDetail);
+                },
+                onWaiting: function (data) {
+                    //console.log("onWaiting", data);
+                },
+                onFail: function (data) { // 유량제어 서비스 장애 시 처리
+                    //console.log("onFail", data);
+                    alert("죄송합니다. 잠시 후 다시 시도해 주세요");
+                },
+                onFinally: function () {
+                }
+            };
+            // call WG_StartWebGate
+            WG_StartWebGate(config);
+        }
+    </script>
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
+    <!-- end of megafence ---------------------------------------------->
+
+    <script>
+        // 페이지 로드 시 GateId param이 있다면 자동으로 유량제어 호출합니다
+        window.addEventListener("load", function () {
+            startWebGate(_gateId);
+
+            this.setTimeout(function () {
+                document.getElementById("loading").style.display = "none";
+            }, 2000);
+        });
+
+        function showLoading() {
+            document.getElementById("loading").style.display = "block";
+        }
+        function hideLoading() {
+            document.getElementById("loading").style.display = "none";
+        }
+    </script>
+
+</body>
+</html>
