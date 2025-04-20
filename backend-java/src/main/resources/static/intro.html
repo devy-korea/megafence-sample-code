@@ -101,14 +101,14 @@ Intro Page 샘플입니다.
     <!--페이지 뜨자마자 로딩화면 표시용-->
     <div id="loading">
         <div class="content">
-            <img src="https://cdn2.devy.kr/9000/img/loading.gif" />
+            <img src="https://cdn2.devy.kr/7070/img/loading.gif" />
         </div>
     </div>
 
 	<!-- 메인 컨텐츠 -->
     <div id="app" class="container has-text-centered">
         <div class='loading'>
-            <img src="https://cdn2.devy.kr/9000/img/logo.png?v=1" alt="logo">
+            <img src="https://cdn2.devy.kr/7070/img/logo.png?v=1" alt="logo">
         </div>
         <div class="notification" style="padding:2rem 0.5rem;">
             <h1 class='title'>임시 페이지 운영 안내</h1>
@@ -128,19 +128,18 @@ Intro Page 샘플입니다.
 
 
     <!-- begin of megafence -------------------------------------------->
-    <script defer src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
+    <script defer src="https://cdn2.devy.kr/7070/js/webgate.js"></script>
     <script>
     	/*
     	----------------------------------------------------------
-    	★TO-DO : 
-    		1) _nextUrl(유량제어 체크 후 이동할 홈페이지) 세팅
-    		2) _gateId(동작시킬 GATE ID) 세팅
+    	★TO-DO : 개발/운영 환경에 맞는 stage 값 세팅 ("DEV" OR "PRD") 
     	----------------------------------------------------------
-    	ex) var _nextUrl = "/index.do"; // 이 파일이 웹서버 내부 배치된 경우 상대경로 사용
-    	ex) var _nextUrl = "https://demo.devy.kr/index.do"; // 이 파일이 웹서버 외부(CDN 등..) 배치된 경우 절대경로 사용 
     	*/
-    	var _nextUrl = "backend_redirect";
-        var _gateId  = "1"; 
+    	var stage = "DEV";  // SET "DEV" OR "PRD"
+    	var introPage = stage == "DEV" ? "/main.do" : "https://www.pintopia.co.kr/main.do"; 
+    	
+    	var _nextUrl = "/main.do";
+        var _gateId  = "26490"; // fixed
 
         function startWebGate(gateId) {
             var config = {
@@ -148,7 +147,7 @@ Intro Page 샘플입니다.
                 uiMode: "BACKEND",                  // FRONTEND : 대기취소버튼 표시, BACKEND : 대기취소버튼 미표시
                 topTitle: "서비스 접속 대기 중",    // 대기UI 제목
                 uiShowDelay: 0 * 1000,              // 대기UI 표시 지연시간(ms)
-                uiHideDelay: 10 * 1000,             // 대기 종료 후 대기UI 감추기 지연시간(ms)
+                uiHideDelay: 10 * 1000,              // 대기 종료 후 대기UI 감추기 지연시간(ms)
                 resetForce: false,                  // 대기표 강제초기화. true:실행시마다 대기표 강제발급, false:유효한 내 대기표가 있으면 사용
                 customType: "",                     // UI 분기 변경 필요 시
                 onSuccess: function (data) {
