@@ -24,6 +24,7 @@ import com.devy.megafence.WebGate;
 * ----------------------------------------------------------------------------------------------
 *
 * BACKEND 방식 : 페이지 로드 시 Backend 코드(java,jsp,php 등..)로 유량제어 서비스 호출
+* 
 *
 * <이용 안내> 
 *   ⊙ 아래의 샘플코드를 그대로 테스트용 페이지에 삽입해서 대기UI가 표시되는지 확인
@@ -50,9 +51,9 @@ public class BackendSampleController {
 	/**
 	 * REPLACE 방식 Controller 
 	 */
-	@GetMapping({"/sample_replace"}) 
-    public String sample_replace(HttpServletRequest request, HttpServletResponse response) {
-    	String mappingPage = "sample_replace";    // 이 컨틀롤러가 /sample_replace.jsp를 응답 
+	@GetMapping({"/backend_replace"}) 
+    public String backend_replace(HttpServletRequest request, HttpServletResponse response) {
+    	String mappingPage = "backend_replace";    // 이 컨틀롤러가 /backend_replace.jsp를 응답 
     	
     	/* 	========================================================================
     		Light business logic here ....
@@ -61,18 +62,19 @@ public class BackendSampleController {
     	*/
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
-    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  
+    	 * BEGIN OF 유량제어 코드삽입
+    	 * */
+   	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
     	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
-    	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
-    	/* 아래 2개 중 하나 (일반적으로 WG_IsNeetDoWaiting() 함수 사용
-    	 * if(!webgate.WG_IsValidToken(serviceId, gateId, request, response)) 
-    	 * OR
-    	 * if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	 
+    	/* **
+    	 * 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
     	 */
-    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
+    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
     	{
     		try {
     			
@@ -85,8 +87,7 @@ public class BackendSampleController {
         		PrintWriter out = response.getWriter();
     			out.write(uiHtml);
     			out.close();
-    			return "sample_replace"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
-    			
+    			return "backend_replace"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
 	    	} catch (Exception e) {
 	    		// 필요시 log write..
 	    	}
@@ -105,16 +106,15 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "sample_replace"; 
+    	return "backend_replace"; 
     }
 
 	
 	/**
 	 * LANDING(REDIRECT) 방식 SAMPLE
 	 */
-    @GetMapping("/sample_redirect") 
-    public String sample_landing(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    	String mappingPage = "sample_landing";    // 이 컨틀롤러가 /sample_replace.jsp를 응답 
+    @GetMapping("/backend_redirect") 
+    public String backend_redirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	
     	/* 	========================================================================
     		Light business logic here ....
@@ -123,7 +123,11 @@ public class BackendSampleController {
     	*/
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
-    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  
+    	 * BEGIN OF 유량제어 코드삽입
+    	 * */
+    	
+   	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
     	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
@@ -131,10 +135,7 @@ public class BackendSampleController {
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
     	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
-    		StringBuffer url = request.getRequestURL(); // 도메인 + 경로
-    		if(request.getQueryString() != null)
-    			url.append("?").append(request.getQueryString());
-    		
+       	 	// ★TO-DO : redirect할 intro 페이지 경로 SET 
     		return "redirect:/intro.html";  
     	} 
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
@@ -150,7 +151,7 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "sample_redirect";     
+    	return "backend_redirect";     
     }
     	
 	
@@ -158,7 +159,7 @@ public class BackendSampleController {
      * API 미사용 SAMPLE Controller
      */
     @GetMapping({"/sample_noapi"}) 
-    public String sample_noapi(HttpServletRequest request, HttpServletResponse response) {
+    public String backend_noapi(HttpServletRequest request, HttpServletResponse response) {
     	String mappingPage = "sample_noapi";    // 이 컨틀롤러가 /sample_without_api.jsp를 응답하는 경우 
     	
     	/* 	========================================================================

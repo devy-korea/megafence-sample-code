@@ -2,10 +2,8 @@
 <html>
 <!--
 Intro Page 샘플입니다.
-
-컨텐츠는 업무에 맞게 보완해 주세요.
-코드는 TODO 표시한 부분 수정해 주세요.
-
+이 페이지의 컨텐츠는 업무에 맞게 보완해 주세요.
+코드 작업은 TO-DO 내용 참고하여 작업 바랍니다. 
 -->
 <head>
 
@@ -16,15 +14,14 @@ Intro Page 샘플입니다.
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- begin of 고객사 META TAG-->
+    <!-- TO-DO(선택사항) : 대문페이지에 SEO META TAG가 있다면 똑같이 복사해 주세요 -->
     <!-- end of 고객사 META TAG-->
 
     <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
-
     <style>
         body {
             height: 100vh;
             background-color: white;
-            /*background-image: url(img/background-pc.jpg?v=1);*/
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -92,7 +89,6 @@ Intro Page 샘플입니다.
             body {
                 height: 100vh;
                 background-color: dimgray;
-                /*background-image: url(img/background-mo.jpg?v=1);*/
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -109,9 +105,9 @@ Intro Page 샘플입니다.
         </div>
     </div>
 
-
+	<!-- 메인 컨텐츠 -->
     <div id="app" class="container has-text-centered">
-        <div>
+        <div class='loading'>
             <img src="https://cdn2.devy.kr/9000/img/logo.png?v=1" alt="logo">
         </div>
         <div class="notification" style="padding:2rem 0.5rem;">
@@ -120,10 +116,10 @@ Intro Page 샘플입니다.
             <h1 class='is-size-5'>아래의 희망 버튼을 클릭하여 서비스를 계속 이용하실 수 있습니다.</h1>
             <hr/>
             <p class="subtitle has-text-danger">예시) [공지사항] 2025-01-01 09:30 ~ 2025-01-01 10:00까지 30분간 홈페이지 이용이 제한됩니다.</p>
-            <!--<p class="subtitle has-text-danger">[공지사항] 서비스 부하 테스트로 인해 매 시 55:00~59:59까지 5분간 홈페이지 이동이 차단될 수 있습니다.</p> -->
             <hr />
+            
+            <!-- ★TO-DO : 유량제어 호출하기 위한 onclick 동작은 그대로 변경없이 사용 -->
             <button type="button" class="button is-black is-large" onclick="startWebGate(_gateId)">홈페이지 들어가기</button>
-
             <div id="turnstile-container" class="turnstile-container"></div>
 
         </div>
@@ -132,9 +128,19 @@ Intro Page 샘플입니다.
 
 
     <!-- begin of megafence -------------------------------------------->
+    <script defer src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
     <script>
-        var _nextUrl = "/sample_redirect";
-        var _gateId  = "1";
+    	/*
+    	----------------------------------------------------------
+    	★TO-DO : 
+    		1) _nextUrl(유량제어 체크 후 이동할 홈페이지) 세팅
+    		2) _gateId(동작시킬 GATE ID) 세팅
+    	----------------------------------------------------------
+    	ex) var _nextUrl = "/index.do"; // 이 파일이 웹서버 내부 배치된 경우 상대경로 사용
+    	ex) var _nextUrl = "https://demo.devy.kr/index.do"; // 이 파일이 웹서버 외부(CDN 등..) 배치된 경우 절대경로 사용 
+    	*/
+    	var _nextUrl = "backend_redirect";
+        var _gateId  = "1"; 
 
         function startWebGate(gateId) {
             var config = {
@@ -149,15 +155,17 @@ Intro Page 샘플입니다.
                     //console.log("onSuccess", data);
 
                     var res = $WG.lastResponse;
+                    // 유입차단 기간인 경우 Alert 처리(유입차단 기간 세팅은 데브와이 담당)
                     if (res.GateOperationMode == "ALERT") {
-                        // 강제대기 기간인 경우 (강제대기기간은 데브와이가 관리)
                         if (res.GateOperationMessageTitle == "NOT_OPEN") {
                             setTimeout(function () {
                                 alert(res.GateOperationMessageDetail);
                                 $WG.setCookie("WG_TOKEN_NO", "");
                             }, 100);
                         }
-                    } else if (res.GateOperationMode == "GATE") {
+                    }
+                    // 일반 유량제어 모드
+                    else if (res.GateOperationMode == "GATE") {
                         window.location.href = _nextUrl;
                     }
                 },
@@ -179,26 +187,26 @@ Intro Page 샘플입니다.
             WG_StartWebGate(config);
         }
     </script>
-    <script src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
-    <!-- end of megafence ---------------------------------------------->
-
     <script>
-        // 페이지 로드 시 GateId param이 있다면 자동으로 유량제어 호출합니다
+        // 페이지 로드 시 자동으로 유량제어 호출합니다
         window.addEventListener("load", function () {
             startWebGate(_gateId);
-
+            // 2초간 loading layer 표시
             this.setTimeout(function () {
                 document.getElementById("loading").style.display = "none";
             }, 2000);
         });
 
+        // loading layer 표시
         function showLoading() {
             document.getElementById("loading").style.display = "block";
         }
+     	// loading layer 감춤
         function hideLoading() {
             document.getElementById("loading").style.display = "none";
         }
     </script>
+    <!-- end of megafence ---------------------------------------------->
 
 </body>
 </html>
