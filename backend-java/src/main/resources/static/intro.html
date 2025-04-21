@@ -2,8 +2,10 @@
 <html>
 <!--
 Intro Page 샘플입니다.
-이 페이지의 컨텐츠는 업무에 맞게 보완해 주세요.
-코드 작업은 TO-DO 내용 참고하여 작업 바랍니다. 
+	페이지 로드 시 유량제어 체크를 한 후 업무페이지로 이동합니다.
+	유입차단 기간에는 이 페이지에서 강제로 머므르게 됩니다. 
+	메인 컨텐츠는 업무에 맞게 보완해 주세요.
+	코드 작업은 TO-DO 내용 참고하여 작업 바랍니다. 
 -->
 <head>
 
@@ -118,7 +120,6 @@ Intro Page 샘플입니다.
             <p class="subtitle has-text-danger">예시) [공지사항] 2025-01-01 09:30 ~ 2025-01-01 10:00까지 30분간 홈페이지 이용이 제한됩니다.</p>
             <hr />
             
-            <!-- ★TO-DO : 유량제어 호출하기 위한 onclick 동작은 그대로 변경없이 사용 -->
             <button type="button" class="button is-black is-large" onclick="startWebGate(_gateId)">홈페이지 들어가기</button>
             <div id="turnstile-container" class="turnstile-container"></div>
 
@@ -132,7 +133,7 @@ Intro Page 샘플입니다.
     <script>
     	/*
     	----------------------------------------------------------
-    	★TO-DO : 개발/운영 환경에 맞는 stage 값 세팅 ("DEV" OR "PRD") 
+    	★TO-DO #1) 개발/운영 환경에 맞는 stage 값 세팅 ("DEV" OR "PRD") 
     	----------------------------------------------------------
     	*/
     	var stage = "DEV";  // SET "DEV" OR "PRD"

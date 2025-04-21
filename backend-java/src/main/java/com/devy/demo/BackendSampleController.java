@@ -56,9 +56,8 @@ public class BackendSampleController {
     	if(false == webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
        	 	/*
-       	 	 * ★TO-DO 
-       	 	 * 1) Framework에 따라 아래의 redirect 처리(intro.html로 redirect)가 오류날 수 있으므로 잘 동작하도록 확인 바랍니다!
-       	 	 * 2) 운영서버 최종 배포 시에는 stage값을 "PRD"로 변경해 주세요.  
+       	 	 * ★TO-DO #1) Framework에 따라 아래의 redirect 처리(intro.html로 redirect)가 오류날 수 있으므로 잘 동작하도록 확인 바랍니다!
+       	 	 * ★TO-DO #2) 운영서버 최종 배포 시에는 stage값을 "PRD"로 변경해 주세요.  
        	 	 */
     		String stage = "DEV"; // "DEV" OR "PRD"
     		if(stage.equals("DEV")) // 개발

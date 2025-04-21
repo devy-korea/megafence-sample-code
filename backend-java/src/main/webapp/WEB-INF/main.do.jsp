@@ -1,8 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!--
 #################################################################################################
-backend 호출코드는 JAVA controller에서 동작합니다.
-이 페이지는 ACK 동작을 위한 SAMPLE CODE 입니다. 
+대문페이지 DEMO 페이지입니다.
+frontend 토큰 유효성 체크 코드가 구현되어 있습니다.
+begin of ~ end of megafence 코드블럭 그대로 복사 후 TO-DO 부분 수정해서 사용 바랍니다. 
 ################################################################################################# 
 -->
 
@@ -28,7 +29,7 @@ backend 호출코드는 JAVA controller에서 동작합니다.
 
 	<!-- begin of megafence -->
 	<!-- 유입차단 모드용 Token validation 코드입니다.
-		★TO-DO : 개발/운영 환경에 맞는 stage 값 세팅 
+		★TO-DO #1) 개발/운영 환경에 맞는 stage 값 세팅 
 	-->
 	<!-- begin of megafence -->
     <script defer src="https://cdn2.devy.kr/7070/js/webgate.js?v=1"></script>    
