@@ -190,7 +190,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.1426";
+		String $WG_VERSION = "24.1.1727";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -697,7 +697,7 @@ public class WebGate {
 	
 	public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.1426";
+		String $WG_VERSION = "24.1.1727";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
