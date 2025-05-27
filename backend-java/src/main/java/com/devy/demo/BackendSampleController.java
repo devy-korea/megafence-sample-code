@@ -158,7 +158,7 @@ public class BackendSampleController {
     /**
      * API 미사용 SAMPLE Controller
      */
-    @GetMapping({"/sample_noapi"}) 
+    @GetMapping({"/backend_noapi"}) 
     public String backend_noapi(HttpServletRequest request, HttpServletResponse response) {
     	String mappingPage = "sample_noapi";    // 이 컨틀롤러가 /sample_without_api.jsp를 응답하는 경우 
     	
@@ -203,7 +203,7 @@ public class BackendSampleController {
         		PrintWriter out = response.getWriter();
     			out.write(uiHtml);
     			out.close();
-    			return "sample_noapi"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
+    			return "backend_noapi"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
     			
 	    	} catch (Exception e) {
 	    		// 필요시 log write..
@@ -223,7 +223,7 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "sample_noapi"; // response sample_without_api.jsp
+    	return "backend_noapi"; // response backend_noapi.jsp
     }
     
 

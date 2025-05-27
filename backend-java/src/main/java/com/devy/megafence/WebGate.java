@@ -10,22 +10,17 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
@@ -49,7 +44,7 @@ import org.slf4j.LoggerFactory;
 
 public class WebGate {
 	
-	private Logger log = LoggerFactory.getLogger(WebGate.class);
+	//private Logger log = LoggerFactory.getLogger(WebGate.class);
 
 	public WebGate() {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
@@ -58,7 +53,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "24.1.1426";
+		String $WG_VERSION = "24.1.1727";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -619,14 +614,10 @@ public class WebGate {
 						resultCode = 1090; // invalid feepasstime
 					}
 					else {
-						Instant inTime = Instant.parse(IN_TIME);
-						Instant nowTime = Instant.now();
 						
-						long differenceInMinutes = ChronoUnit.MINUTES.between(inTime, nowTime);
-						
-						if (differenceInMinutes > freepassMinutes)
-						{
-							resultCode = 1091; // over feepasstime
+						long differenceInMinutes = calcDifferenceInMinutes(IN_TIME);
+						if (differenceInMinutes > freepassMinutes) {
+						    resultCode = 1091;  // over feepasstime
 						}
 					}
 					
@@ -651,6 +642,26 @@ public class WebGate {
 		}
 		return resultCode;
 	}
+	
+	public static long calcDifferenceInMinutes(String inTimeStr) throws ParseException {
+	    // 예: IN_TIME = "2025-05-27T12:34:56Z"
+		String raw = "2025-05-27T16:53:29.986250+09:00";
+
+		// 마이크로초 → 밀리초로 (소수점 뒤 3자리만 취함)
+        String truncated = raw.replaceFirst(
+            "(\\.\\d{3})\\d+([+-]\\d{2}:\\d{2})$",
+            "$1$2"
+        );
+        // truncated == "2025-05-27T16:53:29.986+09:00"
+		
+	    SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+
+	    Date inTime = isoFormat.parse(truncated);
+	    Date nowTime = new Date();
+
+	    long diffMillis = nowTime.getTime() - inTime.getTime();
+	    return diffMillis / (60L * 1000L);
+	}	
 	
 	
 	public static String WG_GenerateHmac(String key, String message) throws Exception {
