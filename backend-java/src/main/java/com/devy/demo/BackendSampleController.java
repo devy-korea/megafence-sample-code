@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -235,6 +236,5 @@ public class BackendSampleController {
     public String landing(HttpServletRequest request, HttpServletResponse response) {
     	return "landing";
     }
-    	
 }
 
