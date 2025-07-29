@@ -29,13 +29,14 @@
     // import library
     require_once("webgate-lib.php");
     // setting 
-    $WG_GATE_ID      = "1";    // 할당받은 GATE ID 중에서 사용
+    $WG_GATE_ID      = "3";    // 할당받은 GATE ID 중에서 사용
     $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
-    // 대기 필요 시 응답 교체
-    if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
+    // 유량제어 체크 : 토큰 유효하지 않으면 재발급(=대기UI 응답)
+    if (!WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
     {
-        print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
+        $url = "intro.html?GateId=" . $WG_GATE_ID . "&NextUrl=" . $_SERVER['REQUEST_URI'] ; // [내부] 대기 페이지로 리다이렉트"
+		header("Location: $url");
         exit(); // 응답종료 
     }
     /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
@@ -50,33 +51,46 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv='cache-control' content='no-cache' />
-    <meta http-equiv='Expires' content='-1' />
     <title></title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <meta http-equiv='cache-control' content='no-cache' />
+    <meta http-equiv='Expires' content='-1' />
+
     <!-- custom css -->
     <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
 
+    <style>
+        html, body {
+            width:100%;
+            height:100%;
+        }
+
+
+    </style>
 
 </head>
 <body>
 
 
     <div id="app" class="container">
-        <p class="title has-text-info">SAMPLE BACKEND PAGE</p>
-        <p class="subtitle has-text-danger">GATE ID : <?php print($WG_GATE_ID) ?> </p>
-        <div class="notification is-dark">
-            <h2 class="has-text-warning">Backend 방식의 유량제어가 적용된 SAMPLE 업무페이지입니다.</h2>
-            <h2 class="has-text-warning">GATE가 TEST-MODE 체크되었다면 첫 진입 시 대기표가 발급되어 대기UI가 5~10초 표시됩니다.</h2>
-			<h2 class="has-text-warning">대기완료 후 재진입(F5)은 AdminPage의 FreePass 설정만큼 Pass됩니다.</h2>
-			<h2 class="has-text-warning">AdminPage에서 FreePass 즉시 초기화 버튼을 클릭하면 대기표가 다시 발급되고, TEST MODE 또는 초당 유입량이 설정값을 초과하는 경우 대기가 진행됩니다.</h2>
-        </div>
-
-        <hr/>
-        <a class="button is-danger" href="backend_with_intro.php">INTRO 방식 페이지 가기</a>
-
+        <form id="form1">
+            <p class="title has-text-info">여기는 대문 페이지 입니다.</p>
+            <p class="subtitle has-text-danger">GATE ID : <?php print($WG_GATE_ID) ?> </p>
+            <div class="notification is-dark">
+                <h1 class="subtitle has-text-white">● INTRO 방식 샘플 페이지입니다.</h1>
+                <h1 class="subtitle has-text-white">● 최초 접속이나, FreePass 초과(새로고침 반복시도, 시간제한 등) 시 INTRO 페이지를 다시 다녀옵니다.</h1>
+                <h1 class="subtitle has-text-white">● 유입차단 기간에는 INTRO 페이지로 강제 이동된 후 재 진입이 차단됩니다.</h1>
+                <h1 class="subtitle has-text-warning">※ 데모를 위해 유입차단 기능이 동작 중입니다. (매 10분 단위로 2분간(**:*8:00 ~ **:*9:59)</h1>
+                <h1 class="subtitle has-text-warning">※ 데모를 위해 FreePass는 5분, 10회로 설정되어 있습니다. (초과 시 INTRO 페이지 다녀옵니다)</h1>
+            </div>
+            <div class="">
+                <a href="backend.php" class="button dark">Backend 방식페이지 이동</a>
+                <a href="intro.html" class="button dark">INTRO 페이지 샘플</a>
+                <a href="frontend.html" class="button dark">Frontend 방식 샘플</a>
+            </div>
+        </form>
 
         <hr/>
         <pre>
@@ -87,21 +101,12 @@
     	String gateId 		= "YOUR_GATE_ID";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
-    	//대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
-    	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+    	// 대기표 검증
+    	if(false == webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
-    		try {
-    			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
-    			response.setContentType("text/html");
-        		PrintWriter out = response.getWriter();
-    			out.write(uiHtml);
-    			out.close();
-    			return ...; // 환경(Framework)에 따라 void OR mapping url string을 return....
-	    	} catch (Exception e) {
-	    		// 필요시 log write..
-	    	}
-	        finally {}
-    	}         ...
+    		return "redirect:/intro.html?GateId=" + gateId;  
+    	} 
+        ...
         // 여기에서 부터 기존 업무로직 시작...
         </textarea>
         </pre>
@@ -116,10 +121,11 @@
         $WG_GATE_ID      = "3";    // 할당받은 GATE ID 중에서 사용
         $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
-        // 대기 필요 시 응답 교체
-        if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
+        // 유량제어 체크 : 토큰 유효하지 않으면 재발급(=대기UI 응답)
+        if (!WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
         {
-            print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
+            $url = "intro.html?GateId=" . $WG_GATE_ID;
+		    header("Location: $url");
             exit(); // 응답종료 
         }
         ... 
@@ -150,7 +156,14 @@
         </textarea>
         </pre>
 
+
     </div>
+     
+
+
+
+
+
 
 
 
@@ -160,7 +173,7 @@
     Frontend서 유량제어 효성 검사를 하는 코드입니다.
         ※ INTRO 페이지를 운영하지 경우 이용을 권장합니다.
         ※ INTRO 페이지 없이 Backend만 적용된 페이지라면  페이지 Reload 처리 : nextUrl = function() { window.location.reload(); }
-    --->
+    -->
     <script defer src="https://demo.devy.kr/9000/js/webgate.js?v=1"></script>
     <script>
         function WG_PreInit() {
@@ -173,6 +186,7 @@
                 window.location.reload();
             };
             */
+
             var nextUrl = "intro.html?GateId=" + $WG.getCookie("WG_GATE_ID"); 
             WG_SetACK({
                 invalidTokenUrl: nextUrl,
