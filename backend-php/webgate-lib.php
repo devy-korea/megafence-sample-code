@@ -20,7 +20,7 @@
 	 function WG_IsNeedToWaiting_V2($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.1426";
+        $WG_VERSION         = "25.1.804";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -164,7 +164,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.1426";
+        $WG_VERSION         = "25.1.804";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -482,7 +482,7 @@
     function WG_IsValidToken($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "24.1.1426";
+        $WG_VERSION         = "25.1.804";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -810,6 +810,9 @@
         {
             $ip = "N/A";
         }
+
+        // 공백 제어 (포함 시 api call 오류)
+		$ip = str_replace(' ', '', $ip);
 
         return $ip;
     }
