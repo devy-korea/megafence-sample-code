@@ -20,7 +20,7 @@
 	 function WG_IsNeedToWaiting_V2($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "25.1.804";
+        $WG_VERSION         = "25.1.825";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -164,7 +164,7 @@
     function WG_IsNeedToWaiting($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "25.1.804";
+        $WG_VERSION         = "25.1.825";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -482,7 +482,7 @@
     function WG_IsValidToken($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "25.1.804";
+        $WG_VERSION         = "25.1.825";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -727,6 +727,7 @@
                 . "    <meta charset='utf-8'/>\r\n"
                 . "    <meta http-equiv='cache-control' content='no-cache' />\r\n"
 				. "    <meta http-equiv='Expires' content='-1' />\r\n"
+                . "	   <meta name='robots' content='noindex,nofollow'>\r\n""
                 . "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
                 . "    <title></title>\r\n"
                 . "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> \r\n"

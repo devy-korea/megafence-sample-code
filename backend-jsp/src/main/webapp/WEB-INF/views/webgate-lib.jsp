@@ -34,7 +34,7 @@
 public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
 		HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.1426";
+	String $WG_VERSION = "25.1.825";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -171,7 +171,7 @@ public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServle
 public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 		HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.1426";
+	String $WG_VERSION = "25.1.825";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -502,7 +502,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 
 public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 	// begin of declare variable
-	String $WG_VERSION = "24.1.1426";
+	String $WG_VERSION = "25.1.825";
 	String $WG_MODULE = "Backend/JAVA";
 	String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 	String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -782,6 +782,7 @@ public String WG_GetWaitingUi(String serviceId, String gateId) {
 			+ "    <meta http-equiv='cache-control' content='no-cache' />\r\n"
 			+ "    <meta http-equiv='Expires' content='-1'/>\r\n"
 			+ "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'/>\r\n"
+			+ "    <meta name='robots' content='noindex,nofollow'>\r\n"
 			+ "    <title></title>\r\n"
 			+ "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" + versionTag + "' rel='stylesheet'>\r\n"
 			+ "</head>\r\n" 

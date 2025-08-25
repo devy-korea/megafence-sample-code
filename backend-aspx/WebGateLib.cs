@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "24.1.1426";
+        const string WG_VERSION = "25.1.825";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -658,6 +658,7 @@ namespace devy.WebGateLib
             sb.AppendLine("    <meta charset='utf-8' />");
             sb.AppendLine("    <meta http-equiv='cache-control' content='no-cache' />");
             sb.AppendLine("    <meta http-equiv='Expires' content='-1' />");
+            sb.AppendLine("    <meta name='robots' content='noindex,nofollow'>");
             sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no' />");
             sb.AppendLine("    <title></title>");
             sb.AppendLine($"    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet' />");
