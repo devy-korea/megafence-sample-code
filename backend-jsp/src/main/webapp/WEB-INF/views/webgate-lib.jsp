@@ -789,7 +789,7 @@ public String WG_GetWaitingUi(String serviceId, String gateId) {
 			+ "<body>\r\n"
 			+ "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" + versionTag + "'></script>\r\n"
 			+ "    <script>\r\n" 
-			+ "        window.addEventListener('load', function () {\r\n"
+			+ "        document.addEventListener('DOMContentLoaded', function () {\r\n"
 			+ "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
 			+ "        });\r\n" 
 			+ "    </script>\r\n" 
