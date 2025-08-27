@@ -53,7 +53,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "25.1.825";
+		String $WG_VERSION = "25.1.827";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -190,7 +190,7 @@ public class WebGate {
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "25.1.825";
+		String $WG_VERSION = "25.1.827";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -697,7 +697,7 @@ public class WebGate {
 	
 	public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "25.1.825";
+		String $WG_VERSION = "25.1.827";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -988,9 +988,13 @@ public class WebGate {
 				+ "<body>\r\n"
 				+ "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" + versionTag + "'></script>\r\n"
 				+ "    <script>\r\n" 
-				+ "        document.addEventListener('DOMContentLoaded', function () {\r\n"
+				//+ "        document.addEventListener('DOMContentLoaded', function () {\r\n"
+				//+ "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
+				//+ "        });\r\n"
+				+ "        //V25.1.827 \r\n"
+				+ "        function WG_PageLoaded() { \r\n"
 				+ "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload \r\n"
-				+ "        });\r\n" 
+				+ "        } \r\n"
 				+ "    </script>\r\n" 
 				+ "</body>\r\n" 
 				+ "</html>";

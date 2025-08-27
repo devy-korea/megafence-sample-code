@@ -21,7 +21,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "25.1.825";
+        const string WG_VERSION = "25.1.827";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -666,9 +666,12 @@ namespace devy.WebGateLib
             sb.AppendLine("<body>");
             sb.AppendLine($"    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v={versionTag}'></script>");
             sb.AppendLine("    <script>");
-            sb.AppendLine("        window.addEventListener('load', function () {");
+            //sb.AppendLine("        window.addEventListener('load', function () {");
+            //sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");
+            sb.AppendLine("        //V25.1.827");
+            sb.AppendLine("        function WG_PageLoaded {");
             sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");
-            sb.AppendLine("        });");
+            sb.AppendLine("        }");
             sb.AppendLine("    </script>");
             sb.AppendLine("</body>");
             sb.AppendLine("</html>");

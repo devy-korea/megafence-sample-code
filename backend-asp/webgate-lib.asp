@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "25.1.825"
+        WG_VERSION              = "25.1.827"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -305,9 +305,9 @@
                 "<body>"                                                                                                                                & vbCrLf &_
                 "    <script type='text/javascript' src='https://demo.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" & VersionTag & "'></script>"              & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
-                "        window.addEventListener('load', function () {"                                                                                 & vbCrLf &_
+                "        function WG_PageLoaded () {"                                                                                                   & vbCrLf &_
                 "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload "                                                 & vbCrLf &_
-                "        });"                                                                                                                           & vbCrLf &_
+                "        }"                                                                                                                             & vbCrLf &_
                 "    </script>"                                                                                                                         & vbCrLf &_
                 "</body>"                                                                                                                               & vbCrLf &_
                 "</html>"                                                                                                                               
