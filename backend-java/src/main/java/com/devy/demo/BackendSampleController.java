@@ -67,8 +67,8 @@ public class BackendSampleController {
     	 * BEGIN OF 유량제어 코드삽입
     	 * */
    	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
-    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "8370"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "31979";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	 
@@ -129,8 +129,8 @@ public class BackendSampleController {
     	 * */
     	
    	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
-    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "8370"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "31979";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
@@ -171,8 +171,8 @@ public class BackendSampleController {
     	
     	//log.info("[STEP-0] 유량제어 체크 시작");
     	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  BEGIN OF 유량제어 코드삽입 */ 
-    	String serviceId 		= "9000"; 	// [Admin Page 참고] 할당된 SERVICE ID  
-    	String gateId 			= "1";  	// [Admin Page 참고] 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 		= "8370"; 	// [Admin Page 참고] 할당된 SERVICE ID  
+    	String gateId 			= "31979";  	// [Admin Page 참고] 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	String secretApiKey 	= "YOUR_SECRET_API_KEY"; //[Admin Page 참고] Secret Api Key (외부 노출 주의 : 내부망 SITE 또는 Backend에서만 사용!) 
     	Integer freepassMinutes = 60; 		// fixed(수정금지) :  default 토큰 만료시간
     	Integer freepassCount   = 99;		// fixed(수정금지) :  default 토큰 사용회수 = Page load 수
