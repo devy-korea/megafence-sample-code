@@ -9,162 +9,10 @@
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
     */
+	define("WG_VERSION", "25.1.911");
 
-
-    /*
-    대기여부를 판단 (Validation 분리 버젼)
-    @param service_id 서비스 ID
-    @param gate_id 게이트 ID
-    @return 대기여부 (true : 대기, false : 대기안함)
-    */
-	 function WG_IsNeedToWaiting_V2($service_id, $gate_id)
+	function WG_IsNeedToWaiting($service_id, $gate_id)
     {
-
-        $WG_VERSION         = "25.1.827";
-        $WG_SERVICE_ID      = $service_id;            
-        $WG_GATE_ID         = $gate_id;              
-        $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
-        $WG_IS_CHECKOUT_OK  = false;        // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-        $WG_GATE_SERVER_MAX = 6;            // [fixed] was dns record count
-        $WG_GATE_SERVERS    = array ();     // [fixed] 대기표 발급서버 Address List
-        $WG_TOKEN_NO        = "";           // 대기표 ID
-        $WG_TOKEN_KEY       = "";           // 대기표 key
-        $WG_WAS_IP          = "";           // 대기표 발급서버
-        $WG_TRACE           = "WG_IsNeedToWaiting_V2()::";           // TRACE 정보 (쿠키응답)
-        $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
-        $WG_CLIENT_IP       = "";           // 단말 IP (운영자 IP 판단용)
-	    $WG_COOKIE_DOMAIN   = "";
-
-		
-
-        /* get clipent ip */
-        $WG_CLIENT_IP = WG_GetUserIpAddr();
-
-        /* init gate server list */
-        for($i=0; $i < $WG_GATE_SERVER_MAX; $i++)
-        {
-            array_push($WG_GATE_SERVERS, $service_id."-".$i.".devy.kr");
-        }
-
-        /*
-            JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
-        */
-        if (isset($_GET["IsLoadTest"]))
-        {
-            $WG_IS_LOADTEST = $_GET["IsLoadTest"];
-        }
-        if($WG_IS_LOADTEST != null && $WG_IS_LOADTEST == "Y" )
-        {
-            $WG_IS_LOADTEST = "Y";
-        }
-
-        // Timeout 제어 (2초이내 무응답 장애간주)
-        $WG_SOCKET_TIMEOUT = ini_get("default_socket_timeout");
-
-
-        if( WG_IsValidToken($service_id, $gate_id) )
-	    {
-		    return false; // 대기없이 바로 업무페이지 표시
-	    }
-
-
-        /******************************************************************************
-        STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
-                WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
-        *******************************************************************************/
-        $WG_TRACE .= "→STEP3:";
-
-        $WG_IS_NEED_TO_WAIT = false;
-        $tryCount = 0;
-        if($WG_IS_CHECKOUT_OK == false) 
-        {
-            $lineText="";
-            $receiveText="";
-            $serverCount = count($WG_GATE_SERVERS);
-            $drawResult  = rand(0, $serverCount-1); // 1차대기열서버 : 임의의 대기열 서버
-         
-            // Fail-over를 위해 최대 3차까지 시도
-            for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
-            {
-                try
-                {
-                    ini_set("default_socket_timeout", 5*($tryCount+1));
-
-
-                    if($tryCount == 0 && strlen($WG_WAS_IP) > 0)
-                    {
-		                $serverIp = $WG_WAS_IP;
-                    } else {
-                        $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
-                    }
-
-                 
-                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
-                 
-                    //$WG_TRACE .=  $apiUrl.",";
-                    $responseText = file_get_contents($apiUrl);
-                    if($responseText == null || $responseText == "") { continue; }  
-
-             
-                    // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
-                    if(strpos($responseText, "WAIT") !== false) 
-                    {
-                        $WG_TRACE .=  "WAIT,";
-                        $WG_IS_NEED_TO_WAIT = true;
-                        break; 
-                    } 
-                    else if(strpos($responseText, "PASS") !== false)  
-                    {  
-                        $WG_TRACE .=  "PASS,";
-                        $WG_IS_NEED_TO_WAIT = false;
-                        break; 
-                    }
-                    else {
-		                $WG_TRACE .=  "FAIL:" . $responseText . ",";
-                    }
-                }
-                catch(Exception $e)  { 
-                    $WG_TRACE .= "ERROR:".$e->getMessage().",";
-                    // try next
-                }
-            }
-        }
-        else {
-            $WG_TRACE .= "SKIP";
-        }
-        $WG_TRACE .= "TryCount:".$tryCount.",";
-
-        // Timeout 설정 복구
-        ini_set("default_socket_timeout", $WG_SOCKET_TIMEOUT);
-
-        $result = true;
-        if($WG_IS_CHECKOUT_OK || !$WG_IS_NEED_TO_WAIT)
-        {
-            $result = false;
-        }
-        else 
-        {
-            $result = true;
-        }
-        $WG_TRACE .= "→returns:".$result;
-
-     
-        // write cookie for trace
-	    WG_WriteCookie ("WG_MOD_BACKEND", "PHP"); 
-        WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
-        WG_WriteCookie ("WG_TIME", date("c")); 
-        WG_WriteCookie ("WG_TRACE", $WG_TRACE);
-	    WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
-	    WG_WriteCookie ("WG_GATE_ID", $WG_GATE_ID);
-	    WG_WriteCookie ("WG_WAS_IP", $WG_WAS_IP);
-
-        return $result;
-    }
-
-    function WG_IsNeedToWaiting($service_id, $gate_id)
-    {
-
-        $WG_VERSION         = "25.1.827";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -226,7 +74,7 @@
                     $WG_WAS_IP      = $parameterValues[3];
 
                     //SSRF 대응
-					if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+					if(false == WG_IsValidApiUrl($WG_WAS_IP))
                     {
 						$WG_WAS_IP = "";
                     }
@@ -295,7 +143,7 @@
 
                 $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP");
                 //SSRF 대응
-				if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+				if(false == WG_IsValidApiUrl($WG_WAS_IP))
                 {
 					$WG_WAS_IP = "";
                 }
@@ -458,7 +306,7 @@
         
         // write cookie for trace
 		WG_WriteCookie ("WG_MOD_BACKEND", "PHP"); 
-        WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
+        WG_WriteCookie ("WG_VER_BACKEND", WG_VERSION); 
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
 		WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
@@ -469,6 +317,156 @@
         
         return $result;
 
+    }
+
+
+    /*
+    대기여부를 판단 (Validation 분리 버젼)
+    @param service_id 서비스 ID
+    @param gate_id 게이트 ID
+    @return 대기여부 (true : 대기, false : 대기안함)
+    */
+	 function WG_IsNeedToWaiting_V2($service_id, $gate_id)
+    {
+
+        $WG_SERVICE_ID      = $service_id;            
+        $WG_GATE_ID         = $gate_id;              
+        $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
+        $WG_IS_CHECKOUT_OK  = false;        // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
+        $WG_GATE_SERVER_MAX = 6;            // [fixed] was dns record count
+        $WG_GATE_SERVERS    = array ();     // [fixed] 대기표 발급서버 Address List
+        $WG_TOKEN_NO        = "";           // 대기표 ID
+        $WG_TOKEN_KEY       = "";           // 대기표 key
+        $WG_WAS_IP          = "";           // 대기표 발급서버
+        $WG_TRACE           = "WG_IsNeedToWaiting_V2()::";           // TRACE 정보 (쿠키응답)
+        $WG_IS_LOADTEST     = "N";          // jmeter 등으로 발생시킨 요청인지 여부
+        $WG_CLIENT_IP       = "";           // 단말 IP (운영자 IP 판단용)
+	    $WG_COOKIE_DOMAIN   = "";
+
+		
+
+        /* get clipent ip */
+        $WG_CLIENT_IP = WG_GetUserIpAddr();
+
+        /* init gate server list */
+        for($i=0; $i < $WG_GATE_SERVER_MAX; $i++)
+        {
+            array_push($WG_GATE_SERVERS, $service_id."-".$i.".devy.kr");
+        }
+
+        /*
+            JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
+        */
+        if (isset($_GET["IsLoadTest"]))
+        {
+            $WG_IS_LOADTEST = $_GET["IsLoadTest"];
+        }
+        if($WG_IS_LOADTEST != null && $WG_IS_LOADTEST == "Y" )
+        {
+            $WG_IS_LOADTEST = "Y";
+        }
+
+        // Timeout 제어 (2초이내 무응답 장애간주)
+        $WG_SOCKET_TIMEOUT = ini_get("default_socket_timeout");
+
+
+        if( WG_IsValidToken($service_id, $gate_id) )
+	    {
+		    return false; // 대기없이 바로 업무페이지 표시
+	    }
+
+
+        /******************************************************************************
+        STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단
+                WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출
+        *******************************************************************************/
+        $WG_TRACE .= "→STEP3:";
+
+        $WG_IS_NEED_TO_WAIT = false;
+        $tryCount = 0;
+        if($WG_IS_CHECKOUT_OK == false) 
+        {
+            $lineText="";
+            $receiveText="";
+            $serverCount = count($WG_GATE_SERVERS);
+            $drawResult  = rand(0, $serverCount-1); // 1차대기열서버 : 임의의 대기열 서버
+         
+            // Fail-over를 위해 최대 3차까지 시도
+            for($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++)
+            {
+                try
+                {
+                    ini_set("default_socket_timeout", 5*($tryCount+1));
+
+
+                    if($tryCount == 0 && strlen($WG_WAS_IP) > 0)
+                    {
+		                $serverIp = $WG_WAS_IP;
+                    } else {
+                        $serverIp = $WG_GATE_SERVERS[($drawResult++)%($serverCount)];
+                    }
+
+                 
+                    $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
+                 
+                    //$WG_TRACE .=  $apiUrl.",";
+                    $responseText = file_get_contents($apiUrl);
+                    if($responseText == null || $responseText == "") { continue; }  
+
+             
+                    // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
+                    if(strpos($responseText, "WAIT") !== false) 
+                    {
+                        $WG_TRACE .=  "WAIT,";
+                        $WG_IS_NEED_TO_WAIT = true;
+                        break; 
+                    } 
+                    else if(strpos($responseText, "PASS") !== false)  
+                    {  
+                        $WG_TRACE .=  "PASS,";
+                        $WG_IS_NEED_TO_WAIT = false;
+                        break; 
+                    }
+                    else {
+		                $WG_TRACE .=  "FAIL:" . $responseText . ",";
+                    }
+                }
+                catch(Exception $e)  { 
+                    $WG_TRACE .= "ERROR:".$e->getMessage().",";
+                    // try next
+                }
+            }
+        }
+        else {
+            $WG_TRACE .= "SKIP";
+        }
+        $WG_TRACE .= "TryCount:".$tryCount.",";
+
+        // Timeout 설정 복구
+        ini_set("default_socket_timeout", $WG_SOCKET_TIMEOUT);
+
+        $result = true;
+        if($WG_IS_CHECKOUT_OK || !$WG_IS_NEED_TO_WAIT)
+        {
+            $result = false;
+        }
+        else 
+        {
+            $result = true;
+        }
+        $WG_TRACE .= "→returns:".$result;
+
+     
+        // write cookie for trace
+	    WG_WriteCookie ("WG_MOD_BACKEND", "PHP"); 
+        WG_WriteCookie ("WG_VER_BACKEND", WG_VERSION); 
+        WG_WriteCookie ("WG_TIME", date("c")); 
+        WG_WriteCookie ("WG_TRACE", $WG_TRACE);
+	    WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
+	    WG_WriteCookie ("WG_GATE_ID", $WG_GATE_ID);
+	    WG_WriteCookie ("WG_WAS_IP", $WG_WAS_IP);
+
+        return $result;
     }
 
 	
@@ -482,7 +480,6 @@
     function WG_IsValidToken($service_id, $gate_id)
     {
 
-        $WG_VERSION         = "25.1.827";
         $WG_SERVICE_ID      = $service_id;            
         $WG_GATE_ID         = $gate_id;              
         $WG_MAX_TRY_COUNT   = 3;            // [fixed] failover api retry count
@@ -545,10 +542,11 @@
                     $WG_WAS_IP      = $parameterValues[3];
 
                     //SSRF 대응
-					if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+				    if(false == WG_IsValidApiUrl($WG_WAS_IP))
                     {
-						$WG_WAS_IP = "";
+					    $WG_WAS_IP = "";
                     }
+
 
 
                     if( $WG_TOKEN_NO     !== null   && $WG_TOKEN_NO  !=="" 
@@ -613,7 +611,7 @@
 
                 $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP");
                 //SSRF 대응
-				if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
+				if(false == WG_IsValidApiUrl($WG_WAS_IP))
                 {
 					$WG_WAS_IP = "";
                 }
@@ -702,7 +700,7 @@
         
         // write cookie for trace
 		WG_WriteCookie ("WG_MOD_BACKEND", "PHP"); 
-        WG_WriteCookie ("WG_VER_BACKEND", $WG_VERSION); 
+        WG_WriteCookie ("WG_VER_BACKEND", WG_VERSION); 
         WG_WriteCookie ("WG_TIME", date("c")); 
         WG_WriteCookie ("WG_TRACE", $WG_TRACE);
 		WG_WriteCookie ("WG_CLIENT_IP", $WG_CLIENT_IP);
@@ -712,7 +710,6 @@
         return $result;
 
     }
-
 
 
     function WG_GetWaitingUi($service_id, $gate_id)
@@ -777,7 +774,15 @@
     function WG_WriteCookie($key, $value)
     {
         setcookie ($key, $value, time() + (86400 * 1), "/"); // default
-
+        /* TO-DO
+        setcookie ($key, $value, [
+          'expires'  => time() + 86400,
+          'path'     => '/',
+          'secure'   => true,
+          'httponly' => false,
+          'samesite' => 'None'
+        ]);
+        */
     }
 
     
@@ -819,5 +824,15 @@
         return $ip;
     }
 
+    // SSRF 대응용 API URL 검증
+    function WG_IsValidApiUrl(string $url): bool {
+        // prarm validtion
+        if(isset($url) == false || strlen($url) == 0) {
+            return false;
+        }
+        // pattern validtion
+        $regEx = "/^\d{4}-\w{1,4}\.devy\.kr$/i";
+        return (bool)preg_match($regEx, $url);
+    }
 ?>
 

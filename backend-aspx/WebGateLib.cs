@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Web;
+using System.Text.RegularExpressions;
 
 /* 
 * ==============================================================================================
@@ -21,7 +22,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "25.1.827";
+        const string WG_VERSION = "25.1.911";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -96,8 +97,7 @@ namespace devy.WebGateLib
                         WG_WAS_IP = parameterValues[3];
 
                         // SSRF 대응
-                        if (!string.IsNullOrEmpty(WG_WAS_IP)
-                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
                         {
                             WG_WAS_IP = "";
                         }
@@ -161,8 +161,7 @@ namespace devy.WebGateLib
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
 
                     // SSRF 대응
-                    if (!string.IsNullOrEmpty(WG_WAS_IP)
-                        && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                    if (false == WG_IsValidApiUrl(WG_WAS_IP))
                     {
                         WG_WAS_IP = "";
                     }
@@ -213,8 +212,7 @@ namespace devy.WebGateLib
                         WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
                         WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
                         // SSRF 대응
-                        if (!string.IsNullOrEmpty(WG_WAS_IP)
-                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
                         {
                             WG_WAS_IP = "";
                         }
@@ -409,8 +407,7 @@ namespace devy.WebGateLib
                         WG_WAS_IP = parameterValues[3];
 
                         // SSRF 대응
-                        if (!string.IsNullOrEmpty(WG_WAS_IP)
-                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
                         {
                             WG_WAS_IP = "";
                         }
@@ -474,8 +471,7 @@ namespace devy.WebGateLib
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
 
                     // SSRF 대응
-                    if (!string.IsNullOrEmpty(WG_WAS_IP)
-                        && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                    if (false == WG_IsValidApiUrl(WG_WAS_IP))
                     {
                         WG_WAS_IP = "";
                     }
@@ -525,8 +521,7 @@ namespace devy.WebGateLib
                         WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
                         WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
                         // SSRF 대응
-                        if (!string.IsNullOrEmpty(WG_WAS_IP)
-                            && !WG_WAS_IP.ToLower().EndsWith(".devy.kr"))
+                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
                         {
                             WG_WAS_IP = "";
                         }
@@ -729,6 +724,24 @@ namespace devy.WebGateLib
             }
 
             return ipAddress;
+        }
+
+        /// <summary>
+        /// SSRF 대응을 위한 API URL 검증 (25.1.911)
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private static bool WG_IsValidApiUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) 
+                return false;
+
+            Regex regEx = new Regex(
+                @"^\d{4}-\w{1,4}\.devy\.kr$",
+                RegexOptions.IgnoreCase | RegexOptions.Compiled
+            );
+
+            return  regEx.IsMatch(url);
         }
     }
 }

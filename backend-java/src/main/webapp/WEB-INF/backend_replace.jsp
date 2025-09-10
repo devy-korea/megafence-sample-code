@@ -27,28 +27,4 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
             </div>
         </form>
     </div>
-    
-	<!-- begin of megafence -->
-	<!-- 유입차단 모드용 Token validation 코드입니다.
-		★TO-DO : 
-			1) webgate.js script의 src 속성값에서 ServiceId(숫자4자리)맞는지 확인 
-			2) 개발/운영 환경에 맞는 introPage 값 세팅 
-	-->
-	<!-- begin of megafence -->
-    <script defer src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>    
-    <script>
-    	/*
-    	ex) var introPage = "intro.html"; // 개발 시 
-    	ex) var introPage = "https://cdn.yourdomain.com/intro.html"; //운영 시   	
-    	*/ 
-    	var introPage = ""; // 유입차단모드 미사용 시 공백
-        function WG_PostInit() {
-            WG_SetACK({
-                invalidTokenUrl : introPage,
-                notOpenUrl      : introPage,
-                errorUrl        : introPage
-            });
-        }
-    </script>
-    <!-- end of megafence -->
 </body>

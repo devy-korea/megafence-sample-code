@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.regex.Pattern;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.Cookie;
@@ -35,14 +37,20 @@ import javax.servlet.http.HttpServletResponse;
 * All rights reserved to DEVY / https://devy.kr
 * ----------------------------------------------------------------------------------------------
 * <주의>
-* 0. 이 파일은 일반적으로 코드 수정이 필요 없습니다. (단순 import용 library) 
-* 1. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
+* 1. 이 파일은 일반적으로 코드 수정이 필요 없습니다. (단순 import용 library) 
+* 2. Bootspring등의 java framework를 이용하는 경우 java(controller) 또는 jsp 중에 하나만 적용하세요.(중복 적용 금지)
 *	 java framework 환경이라면 java control에서 적용을 권장
 *    java framework 없는 환경이라면 jsp에서 적용을 권장 
-* ==============================================================================================
+* 3. local pc에서는 정상적으로 동작하지 않을 수 있습니다. SSL(https) 적용된 웹서버에서 테스트를 권장합니다.
+* * ==============================================================================================
 */
 
+
 public class WebGate {
+	
+	////////////////////////////////////////////////
+	static final String $WG_VERSION = "25.1.911";
+	////////////////////////////////////////////////
 	
 	//private Logger log = LoggerFactory.getLogger(WebGate.class);
 
@@ -50,10 +58,346 @@ public class WebGate {
 		// jsp 소스와 동일하게 만들기 위해 Class 기능은 사용하지 않고, 함수 기능 위주로 구현
 	}
 
+	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
+			HttpServletResponse res) {
+		// begin of declare variable
+		String $WG_MODULE = "Backend/JAVA";
+		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
+		String $WG_GATE_ID = "0"; // 사용할 GATE ID
+		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
+		boolean $WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
+		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
+		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
+		String $WG_TOKEN_NO = ""; // 대기표 ID
+		String $WG_TOKEN_KEY = ""; // 대기표 key
+		String $WG_WAS_IP = ""; // 대기표 발급서버
+		String $WG_TRACE = "WG_IsNeedToWaiting()::"; // TRACE 정보 (쿠키응답)
+		String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
+		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
+		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
+
+		HttpServletRequest $REQ;
+		HttpServletResponse $RES;
+		// end of declare variable
+
+		// begin of declare init variable
+		$WG_SERVICE_ID = serviceId;
+		$WG_GATE_ID = gateId;
+		$REQ = req;
+		$RES = res;
+
+		if ($REQ.getParameter("WG_IS_TRACE_DETAIL") != null && $REQ.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) {
+			$WG_IS_TRACE_DETAIL = true;
+		}
+
+		/* get client ip */
+		$WG_CLIENT_IP = WG_GetUserAddress($REQ);
+
+		/*
+		 * jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter
+		 * 추가바랍니다)
+		 */
+		if ($REQ.getParameter("IsLoadTest") != null && $REQ.getParameter("IsLoadTest").equals("Y")) {
+			$WG_IS_LOADTEST = "Y";
+		}
+
+		/* init gate server list */
+		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
+			$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
+		}
+
+		String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
+		// end of init variable
+
+		// log.info("ServiceId:" + $WG_SERVICE_ID);
+
+		/******************************************************************************
+		 * STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
+		 *******************************************************************************/
+		try {
+			$WG_TRACE += "STEP1:";
+
+			String tokenParam = $REQ.getParameter("WG_TOKEN");
+
+			if (tokenParam != null && tokenParam.length() > 0) {
+				// WG_TOKEN paramter를 '|'로 분리 및 분리된 개수 체크
+				String tokenPparamValues[] = tokenParam.split(",");
+				if (tokenPparamValues.length == "GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP".split(",").length) {
+					// WG_TOKEN parameter에 세팅된 값 GET
+					$WG_TOKEN_NO = tokenPparamValues[1];
+					$WG_TOKEN_KEY = tokenPparamValues[2];
+					$WG_WAS_IP = tokenPparamValues[3];
+					String paramGateId = tokenPparamValues[0];
+					
+					// SSRF 대응용 api url 검증 (V25.1.911)
+					if(false == WG_IsValidApiUrl($WG_WAS_IP))
+					{
+						$WG_WAS_IP = "";
+					}
+
+					// try api call
+					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
+							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+							&& $WG_GATE_ID.equals(paramGateId)) {
+						// 대기표 Validation(checkout api call)
+						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+						if ($WG_IS_TRACE_DETAIL) {
+							$WG_TRACE += apiUrlText + "→";
+						}
+
+						String responseText = WG_CallApi(apiUrlText, 20);
+
+						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
+							$WG_IS_CHECKOUT_OK = true;
+							$WG_TRACE += "OK→";
+							// cookie set
+							WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+							WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
+							WG_WriteCookie($RES, "WG_TOKEN_NO", $WG_TOKEN_NO);
+							
+						} else {
+							$WG_TRACE += "FAIL→";
+						}
+					} else {
+						$WG_TRACE += "SKIP1→";
+					}
+				} else {
+					$WG_TRACE += "SKIP2→";
+				}
+			} else {
+				$WG_TRACE += "SKIP3→";
+			}
+		} catch (Exception $e) {
+			$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
+			// ignore & goto next
+		}
+		/* end of STEP-1 */
+
+		/******************************************************************************
+		 * STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
+		 *******************************************************************************/
+		try {
+			$WG_TRACE += "STEP2:";
+
+			if ($WG_IS_CHECKOUT_OK == false) {
+				
+				// begin of local domain cookie check
+				// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
+				$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO");
+				$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP");
+				$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID");
+
+				
+				if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_NO is null→";
+				}
+				
+				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
+					$WG_TRACE += "$WG_WAS_IP is null→";
+				}
+				// SSRF 대응용 api url 검증 (V25.1.911)
+				if(false == WG_IsValidApiUrl($WG_WAS_IP))
+				{
+					$WG_WAS_IP = "";
+					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
+				}
+				
+				
+								
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
+					$WG_TRACE += "$WG_TOKEN_KEY is null→";
+				}
+
+				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
+					$WG_TOKEN_KEY = WG_GetRandomString(8);
+					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+				}
+
+				// try api call
+				if ($WG_TOKEN_NO != null 
+						&& $WG_TOKEN_NO.equals("") == false 
+						&& $WG_TOKEN_KEY != null
+						&& $WG_TOKEN_KEY.equals("") == false 
+						&& $WG_WAS_IP != null 
+						&& $WG_WAS_IP.equals("") == false
+						&& $WG_GATE_ID.equals(cookieGateId)) {
+
+					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					// log.info("apiUrlText:" + apiUrlText);
+					if ($WG_IS_TRACE_DETAIL) {
+						$WG_TRACE += apiUrlText + "→";
+					}
+
+					// 대기표 Validation(checkout api call)
+					String responseText = "";
+					responseText = WG_CallApi(apiUrlText, 20);
+					// log.info("responseText:" + responseText);
+
+					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
+						$WG_IS_CHECKOUT_OK = true;
+						$WG_TRACE += "OK→";
+					} else {
+						$WG_TRACE += "FAIL→";
+					}
+				} else {
+					$WG_TRACE += "SKIP→";
+				}
+				// end of local domain cookie check
+				
+				// begin of subdomain cookie check
+				if ($WG_IS_CHECKOUT_OK == false)
+				{
+					// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
+					$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO_S");
+					$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP_S");
+					$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID_S");
+	
+					
+					if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
+						$WG_TRACE += "$WG_TOKEN_NO is null→";
+					}
+					
+					if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
+						$WG_TRACE += "$WG_WAS_IP is null→";
+					}
+
+					// SSRF 대응용 api url 검증 (V25.1.911)
+					if(false == WG_IsValidApiUrl($WG_WAS_IP))
+					{
+						$WG_WAS_IP = "";
+						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
+					}
+
+									
+					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
+						$WG_TRACE += "$WG_TOKEN_KEY is null→";
+					}
+	
+					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
+						$WG_TOKEN_KEY = WG_GetRandomString(8);
+						WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+					}
+	
+					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
+							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+							&& $WG_GATE_ID.equals(cookieGateId)) {
+	
+						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
+								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+						// log.info("apiUrlText:" + apiUrlText);
+						if ($WG_IS_TRACE_DETAIL) {
+							$WG_TRACE += apiUrlText + "→";
+						}
+	
+						// 대기표 Validation(checkout api call)
+						String responseText = "";
+						responseText = WG_CallApi(apiUrlText, 20);
+						// log.info("responseText:" + responseText);
+	
+						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
+							$WG_IS_CHECKOUT_OK = true;
+							$WG_TRACE += "OK:subdomain→";
+						} else {
+							$WG_TRACE += "FAIL:subdomain→";
+						}
+					} else {
+						$WG_TRACE += "SKIP:subdomain→";
+					}
+				}
+				// end of subdomain cookie check
+				
+			}
+		} catch (Exception $e) {
+			// ignore & goto next
+			$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
+		}
+		/* end of STEP-2 */
+		
+		
+		/******************************************************************************
+		 * STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단 WG_GATE_SERVERS 서버 중
+		 * 임의의 서버에 API 호출
+		 *******************************************************************************/
+		$WG_TRACE += "STEP3:";
+		Boolean $WG_IS_NEED_TO_WAIT = false;
+		if ($WG_IS_CHECKOUT_OK == false) {
+			int $serverCount = $WG_GATE_SERVERS.size();
+			int $drawResult = new SecureRandom().nextInt($WG_GATE_SERVERS.size()) + 0;
+
+			int $tryCount = 0;
+			// Fail-over를 위해 최대 3차까지 시도
+			for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
+				try {
+					// WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
+					if ($tryCount == 0 && $WG_WAS_IP != null && $WG_WAS_IP.length() > 0) {
+						// 최초1회는 cookie의 wasip 사용
+					} else {
+						// 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
+						$WG_WAS_IP = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
+					}
+
+					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
+							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY 
+							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
+					// log.info("apiUrlText:" + apiUrlText);
+					if ($WG_IS_TRACE_DETAIL) {
+						$WG_TRACE += apiUrlText + "→";
+					}
+
+					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+					// log.info("responseText:" + responseText);
+
+					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
+					if (responseText != null && responseText.length() > 0
+							&& responseText.indexOf("\"ResultCode\":0") >= 0) {
+						if (responseText.indexOf("WAIT") >= 0) {
+							$WG_TRACE += "WAIT,";
+							$WG_IS_NEED_TO_WAIT = true;
+							break;
+						} else { // PASS (대기가 없는 경우)
+							$WG_TRACE += "PASS,";
+							$WG_IS_NEED_TO_WAIT = false;
+							break;
+						}
+					}
+				} catch (Exception $e) {
+					// ignore & goto next
+					$WG_TRACE += "ERROR:" + $e.getMessage() + ",";
+				}
+			}
+			// 코드가 여기까지 왔다는 것은
+			// 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
+			$WG_TRACE += "TryCount:" + $tryCount + ",";
+		} else {
+			$WG_TRACE += "SKIP,";
+		}
+		/* end of STEP-3 */
+
+		$WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
+
+		// write cookie for trace
+		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
+		WG_WriteCookie($RES, "WG_MOD_BACKEND", $WG_MODULE);
+		java.util.Date now = new java.util.Date();
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); // UTC
+		String nowText = sf.format(now);
+		WG_WriteCookie($RES, "WG_TIME", nowText);
+		WG_WriteCookie($RES, "WG_TRACE", $WG_TRACE);
+		WG_WriteCookie($RES, "WG_CLIENT_IP", $WG_CLIENT_IP);
+		WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
+		WG_WriteCookie($RES, "WG_GATE_ID", $WG_GATE_ID);
+
+		return $WG_IS_NEED_TO_WAIT;
+	}	
+
 	public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServletRequest req,
 			HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "25.1.827";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -186,338 +530,6 @@ public class WebGate {
 		return $WG_IS_NEED_TO_WAIT;
 	}
 
-	
-	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req,
-			HttpServletResponse res) {
-		// begin of declare variable
-		String $WG_VERSION = "25.1.827";
-		String $WG_MODULE = "Backend/JAVA";
-		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
-		String $WG_GATE_ID = "0"; // 사용할 GATE ID
-		int $WG_MAX_TRY_COUNT = 3; // [fixed] failover api retry count
-		boolean $WG_IS_CHECKOUT_OK = false; // [fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
-		int $WG_GATE_SERVER_MAX = 6; // [fixed] was dns record count
-		List<String> $WG_GATE_SERVERS = new ArrayList<String>(); // [fixed] 대기표 발급서버 LIST
-		String $WG_TOKEN_NO = ""; // 대기표 ID
-		String $WG_TOKEN_KEY = ""; // 대기표 key
-		String $WG_WAS_IP = ""; // 대기표 발급서버
-		String $WG_TRACE = "WG_IsNeedToWaiting()::"; // TRACE 정보 (쿠키응답)
-		String $WG_IS_LOADTEST = "N"; // jmeter 등으로 발생시킨 요청인지 여부
-		String $WG_CLIENT_IP = ""; // 단말 IP (운영자 IP 판단용)
-		boolean $WG_IS_TRACE_DETAIL = false; // Detail TRACE 정보 생성여부
-
-		HttpServletRequest $REQ;
-		HttpServletResponse $RES;
-		// end of declare variable
-
-		// begin of declare init variable
-		$WG_SERVICE_ID = serviceId;
-		$WG_GATE_ID = gateId;
-		$REQ = req;
-		$RES = res;
-
-		if ($REQ.getParameter("WG_IS_TRACE_DETAIL") != null && $REQ.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) {
-			$WG_IS_TRACE_DETAIL = true;
-		}
-
-		/* get client ip */
-		$WG_CLIENT_IP = WG_GetUserAddress($REQ);
-
-		/*
-		 * jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter
-		 * 추가바랍니다)
-		 */
-		if ($REQ.getParameter("IsLoadTest") != null && $REQ.getParameter("IsLoadTest").equals("Y")) {
-			$WG_IS_LOADTEST = "Y";
-		}
-
-		/* init gate server list */
-		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
-			$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
-		}
-
-		String cookieGateId = WG_ReadCookie($REQ, "WG_GATE_ID");
-		// end of init variable
-
-		// log.info("ServiceId:" + $WG_SERVICE_ID);
-
-		/******************************************************************************
-		 * STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
-		 *******************************************************************************/
-		try {
-			$WG_TRACE += "STEP1:";
-
-			String tokenParam = $REQ.getParameter("WG_TOKEN");
-
-			if (tokenParam != null && tokenParam.length() > 0) {
-				// WG_TOKEN paramter를 '|'로 분리 및 분리된 개수 체크
-				String tokenPparamValues[] = tokenParam.split(",");
-				if (tokenPparamValues.length == "GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP".split(",").length) {
-					// WG_TOKEN parameter에 세팅된 값 GET
-					$WG_TOKEN_NO = tokenPparamValues[1];
-					$WG_TOKEN_KEY = tokenPparamValues[2];
-					$WG_WAS_IP = tokenPparamValues[3];
-					String paramGateId = tokenPparamValues[0];
-					
-					// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-					if($WG_WAS_IP == null)
-						$WG_WAS_IP = "";
-					if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
-					{
-						$WG_WAS_IP = "";
-					}
-					
-
-					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
-							&& $WG_GATE_ID.equals(paramGateId)) {
-						// 대기표 Validation(checkout api call)
-						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
-						if ($WG_IS_TRACE_DETAIL) {
-							$WG_TRACE += apiUrlText + "→";
-						}
-
-						String responseText = WG_CallApi(apiUrlText, 20);
-
-						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
-							$WG_IS_CHECKOUT_OK = true;
-							$WG_TRACE += "OK→";
-							// cookie set
-							WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-							WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
-							WG_WriteCookie($RES, "WG_TOKEN_NO", $WG_TOKEN_NO);
-							
-						} else {
-							$WG_TRACE += "FAIL→";
-						}
-					} else {
-						$WG_TRACE += "SKIP1→";
-					}
-				} else {
-					$WG_TRACE += "SKIP2→";
-				}
-			} else {
-				$WG_TRACE += "SKIP3→";
-			}
-		} catch (Exception $e) {
-			$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
-			// ignore & goto next
-		}
-		/* end of STEP-1 */
-
-		/******************************************************************************
-		 * STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
-		 *******************************************************************************/
-		try {
-			$WG_TRACE += "STEP2:";
-
-			if ($WG_IS_CHECKOUT_OK == false) {
-				
-				// begin of local domain cookie check
-				// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
-				$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO");
-				$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP");
-				$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID");
-
-				
-				if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
-					$WG_TRACE += "$WG_TOKEN_NO is null→";
-				}
-				
-				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
-					$WG_TRACE += "$WG_WAS_IP is null→";
-				}
-				// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-				else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
-				{
-					$WG_WAS_IP = "";
-					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-				}
-								
-				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
-					$WG_TRACE += "$WG_TOKEN_KEY is null→";
-				}
-
-				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
-					$WG_TOKEN_KEY = WG_GetRandomString(8);
-					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-				}
-
-				if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
-						&& $WG_GATE_ID.equals(cookieGateId)) {
-
-					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
-					// log.info("apiUrlText:" + apiUrlText);
-					if ($WG_IS_TRACE_DETAIL) {
-						$WG_TRACE += apiUrlText + "→";
-					}
-
-					// 대기표 Validation(checkout api call)
-					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 20);
-					// log.info("responseText:" + responseText);
-
-					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
-						$WG_IS_CHECKOUT_OK = true;
-						$WG_TRACE += "OK→";
-					} else {
-						$WG_TRACE += "FAIL→";
-					}
-				} else {
-					$WG_TRACE += "SKIP→";
-				}
-				// end of local domain cookie check
-				
-				// begin of subdomain cookie check
-				if ($WG_IS_CHECKOUT_OK == false)
-				{
-					// 쿠키값을 읽어서 대기완료한 쿠키인지 체크
-					$WG_TOKEN_NO = WG_ReadCookie($REQ, "WG_TOKEN_NO_S");
-					$WG_WAS_IP = WG_ReadCookie($REQ, "WG_WAS_IP_S");
-					$WG_TOKEN_KEY = WG_ReadCookie($REQ, "WG_CLIENT_ID_S");
-	
-					
-					if ($WG_TOKEN_NO == null || $WG_TOKEN_NO.equals("") == true) {
-						$WG_TRACE += "$WG_TOKEN_NO is null→";
-					}
-					
-					if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
-						$WG_TRACE += "$WG_WAS_IP is null→";
-					}
-					// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-					else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
-					{
-						$WG_WAS_IP = "";
-						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-					}
-									
-					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
-						$WG_TRACE += "$WG_TOKEN_KEY is null→";
-					}
-	
-					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
-						$WG_TOKEN_KEY = WG_GetRandomString(8);
-						WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-					}
-	
-					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
-							&& $WG_GATE_ID.equals(cookieGateId)) {
-	
-						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-								+ $WG_GATE_ID + "&Action=OUT&TokenNo=" + $WG_TOKEN_NO + "&TokenKey=" + $WG_TOKEN_KEY
-								+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
-						// log.info("apiUrlText:" + apiUrlText);
-						if ($WG_IS_TRACE_DETAIL) {
-							$WG_TRACE += apiUrlText + "→";
-						}
-	
-						// 대기표 Validation(checkout api call)
-						String responseText = "";
-						responseText = WG_CallApi(apiUrlText, 20);
-						// log.info("responseText:" + responseText);
-	
-						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
-							$WG_IS_CHECKOUT_OK = true;
-							$WG_TRACE += "OK:subdomain→";
-						} else {
-							$WG_TRACE += "FAIL:subdomain→";
-						}
-					} else {
-						$WG_TRACE += "SKIP:subdomain→";
-					}
-				}
-				// end of subdomain cookie check
-				
-			}
-		} catch (Exception $e) {
-			// ignore & goto next
-			$WG_TRACE += "ERROR:" + $e.getMessage() + "→";
-		}
-		/* end of STEP-2 */
-		
-		
-		/******************************************************************************
-		 * STEP-3 : 대기표가 정상이 아니면(=체크아웃실패) 신규접속자로 간주하고 대기열 표시여부 판단 WG_GATE_SERVERS 서버 중
-		 * 임의의 서버에 API 호출
-		 *******************************************************************************/
-		$WG_TRACE += "STEP3:";
-		Boolean $WG_IS_NEED_TO_WAIT = false;
-		if ($WG_IS_CHECKOUT_OK == false) {
-			int $serverCount = $WG_GATE_SERVERS.size();
-			int $drawResult = new SecureRandom().nextInt($WG_GATE_SERVERS.size()) + 0;
-
-			int $tryCount = 0;
-			// Fail-over를 위해 최대 3차까지 시도
-			for ($tryCount = 0; $tryCount < $WG_MAX_TRY_COUNT; $tryCount++) {
-				try {
-					// WG_GATE_SERVERS 서버 중 임의의 서버에 API 호출 --> json 응답
-					if ($tryCount == 0 && $WG_WAS_IP != null && $WG_WAS_IP.length() > 0) {
-						// 최초1회는 cookie의 wasip 사용
-					} else {
-						// 임의의 대기열 서버 선택하여 대기상태 확인 (대기해야 하는지 web api로 확인)
-						$WG_WAS_IP = $WG_GATE_SERVERS.get(($drawResult++) % ($serverCount));
-					}
-
-					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
-							+ $WG_GATE_ID + "&Action=CHECK" + "&ClientIp=" + $WG_CLIENT_IP + "&TokenKey=" + $WG_TOKEN_KEY 
-							+ "&ModuleType=" + $WG_MODULE + "&ModuleVersion=" + $WG_VERSION + "&IsLoadTest=" + $WG_IS_LOADTEST;
-					// log.info("apiUrlText:" + apiUrlText);
-					if ($WG_IS_TRACE_DETAIL) {
-						$WG_TRACE += apiUrlText + "→";
-					}
-
-					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
-					// log.info("responseText:" + responseText);
-
-					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
-					if (responseText != null && responseText.length() > 0
-							&& responseText.indexOf("\"ResultCode\":0") >= 0) {
-						if (responseText.indexOf("WAIT") >= 0) {
-							$WG_TRACE += "WAIT,";
-							$WG_IS_NEED_TO_WAIT = true;
-							break;
-						} else { // PASS (대기가 없는 경우)
-							$WG_TRACE += "PASS,";
-							$WG_IS_NEED_TO_WAIT = false;
-							break;
-						}
-					}
-				} catch (Exception $e) {
-					// ignore & goto next
-					$WG_TRACE += "ERROR:" + $e.getMessage() + ",";
-				}
-			}
-			// 코드가 여기까지 왔다는 것은
-			// 대기열서버응답에 실패 OR 대기자가 없는("PASS") 상태이므로 원래 페이지를 로드합니다.
-			$WG_TRACE += "TryCount:" + $tryCount + ",";
-		} else {
-			$WG_TRACE += "SKIP,";
-		}
-		/* end of STEP-3 */
-
-		$WG_TRACE += "→return:" + $WG_IS_NEED_TO_WAIT;
-
-		// write cookie for trace
-		WG_WriteCookie($RES, "WG_VER_BACKEND", $WG_VERSION);
-		WG_WriteCookie($RES, "WG_MOD_BACKEND", $WG_MODULE);
-		java.util.Date now = new java.util.Date();
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"); // UTC
-		String nowText = sf.format(now);
-		WG_WriteCookie($RES, "WG_TIME", nowText);
-		WG_WriteCookie($RES, "WG_TRACE", $WG_TRACE);
-		WG_WriteCookie($RES, "WG_CLIENT_IP", $WG_CLIENT_IP);
-		WG_WriteCookie($RES, "WG_WAS_IP", $WG_WAS_IP);
-		WG_WriteCookie($RES, "WG_GATE_ID", $WG_GATE_ID);
-
-		return $WG_IS_NEED_TO_WAIT;
-	}	
-	
 	
 	/**
 	 * API 호출이 불가한 환경일때, Cookie 값을 이용한 Token 유효성 검증
@@ -697,7 +709,6 @@ public class WebGate {
 	
 	public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
 		// begin of declare variable
-		String $WG_VERSION = "25.1.827";
 		String $WG_MODULE = "Backend/JAVA";
 		String $WG_SERVICE_ID = "0"; // 할당받은 Service ID
 		String $WG_GATE_ID = "0"; // 사용할 GATE ID
@@ -723,7 +734,9 @@ public class WebGate {
 		$REQ = req;
 		$RES = res;
 
-		if ($REQ.getParameter("WG_IS_TRACE_DETAIL") != null && $REQ.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) {
+		if ($REQ.getParameter("WG_IS_TRACE_DETAIL") != null 
+				&& $REQ.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) 
+		{
 			$WG_IS_TRACE_DETAIL = true;
 		}
 
@@ -734,12 +747,15 @@ public class WebGate {
 		 * jmeter 등에서 부하테스트 목적으로 호출 시를 위한 처리 (HttpReqeust URL에 IsLoadTest=Y parameter
 		 * 추가바랍니다)
 		 */
-		if ($REQ.getParameter("IsLoadTest") != null && $REQ.getParameter("IsLoadTest").equals("Y")) {
+		if ($REQ.getParameter("IsLoadTest") != null 
+				&& $REQ.getParameter("IsLoadTest").equals("Y")) 
+		{
 			$WG_IS_LOADTEST = "Y";
 		}
 
 		/* init gate server list */
-		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) {
+		for (int i = 0; i < $WG_GATE_SERVER_MAX; i++) 
+		{
 			$WG_GATE_SERVERS.add($WG_SERVICE_ID + "-" + i + ".devy.kr");
 		}
 
@@ -766,17 +782,20 @@ public class WebGate {
 					$WG_WAS_IP = tokenPparamValues[3];
 					String paramGateId = tokenPparamValues[0];
 					
-					// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-					if($WG_WAS_IP == null)
-						$WG_WAS_IP = "";
-					if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+					// SSRF 대응용 api url 검증 (V25.1.911)
+					if(false == WG_IsValidApiUrl($WG_WAS_IP))
 					{
 						$WG_WAS_IP = "";
+						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
 					}
 					
-
-					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+					// try api call
+					if ($WG_TOKEN_NO != null 
+							&& $WG_TOKEN_NO.equals("") == false 
+							&& $WG_TOKEN_KEY != null
+							&& $WG_TOKEN_KEY.equals("") == false 
+							&& $WG_WAS_IP != null 
+							&& $WG_WAS_IP.equals("") == false
 							&& $WG_GATE_ID.equals(paramGateId)) {
 						// 대기표 Validation(checkout api call)
 						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
@@ -849,8 +868,13 @@ public class WebGate {
 					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 				}
 
-				if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-						&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+				// try api call
+				if ($WG_TOKEN_NO != null 
+						&& $WG_TOKEN_NO.equals("") == false 
+						&& $WG_TOKEN_KEY != null
+						&& $WG_TOKEN_KEY.equals("") == false 
+						&& $WG_WAS_IP != null 
+						&& $WG_WAS_IP.equals("") == false
 						&& $WG_GATE_ID.equals(cookieGateId)) {
 
 					String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
@@ -896,8 +920,9 @@ public class WebGate {
 					if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
 						$WG_TRACE += "$WG_WAS_IP is null→";
 					}
-					// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-					else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
+					
+					// SSRF 대응용 api url 검증 (V25.1.911)
+					if(false == WG_IsValidApiUrl($WG_WAS_IP))
 					{
 						$WG_WAS_IP = "";
 						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
@@ -912,8 +937,12 @@ public class WebGate {
 						WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 					}
 	
-					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
-							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
+					// try api call
+					if ($WG_TOKEN_NO != null 
+							&& $WG_TOKEN_NO.equals("") == false 
+							&& $WG_TOKEN_KEY != null
+							&& $WG_TOKEN_KEY.equals("") == false 
+							&& $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
 							&& $WG_GATE_ID.equals(cookieGateId)) {
 	
 						String apiUrlText = "https://" + $WG_WAS_IP + "/?ServiceId=" + $WG_SERVICE_ID + "&GateId="
@@ -963,7 +992,6 @@ public class WebGate {
 
 		return $WG_IS_CHECKOUT_OK == true;
 	}
-	
 	
 	
 	public String WG_GetWaitingUi(String serviceId, String gateId) {
@@ -1088,5 +1116,21 @@ public class WebGate {
         }
         return ipAddress;
 	}
+	
+	
 
+	/*
+	 * SSRF 대응용 API URL 검증 (V25.1.911)
+	 */
+    public boolean WG_IsValidApiUrl(String url) {
+        if (url == null || url.isEmpty()) 
+        	return false;
+
+    	Pattern regEx = Pattern.compile(
+    	        "^\\d{4}-\\w{1,4}\\.devy\\.kr$",
+    	        Pattern.CASE_INSENSITIVE
+    	    );
+
+        return regEx.matcher(url).matches();
+    }
 }
