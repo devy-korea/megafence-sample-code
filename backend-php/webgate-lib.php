@@ -9,7 +9,7 @@
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
     */
-	define("WG_VERSION", "25.1.911");
+	define("WG_VERSION", "25.1.914");
 
 	function WG_IsNeedToWaiting($service_id, $gate_id)
     {
@@ -73,13 +73,6 @@
                     $WG_TOKEN_KEY   = $parameterValues[2];
                     $WG_WAS_IP      = $parameterValues[3];
 
-                    //SSRF 대응
-					if(false == WG_IsValidApiUrl($WG_WAS_IP))
-                    {
-						$WG_WAS_IP = "";
-                    }
-
-
                     if( $WG_TOKEN_NO     !== null   && $WG_TOKEN_NO  !=="" 
                         && $WG_TOKEN_KEY !== null   && $WG_TOKEN_KEY !== "" 
                         && $WG_WAS_IP    !== null   && $WG_WAS_IP    !== ""
@@ -88,7 +81,7 @@
                         // 대기표 Validation(checkout api call)
                         $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
 
-                        $responseText = file_get_contents($apiUrl);
+                        $responseText = WG_CallApi($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
                             $WG_IS_CHECKOUT_OK = true;
@@ -142,12 +135,6 @@
                 }
 
                 $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP");
-                //SSRF 대응
-				if(false == WG_IsValidApiUrl($WG_WAS_IP))
-                {
-					$WG_WAS_IP = "";
-                }
-
 
                 if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
                    isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
@@ -156,7 +143,7 @@
                     // 대기표 Validation(checkout api call)
                     $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     //$WG_TRACE .=  $apiUrl.",";
-                    $responseText = file_get_contents($apiUrl);
+                    $responseText = WG_CallApi($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                     {
                         $WG_IS_CHECKOUT_OK = true;
@@ -182,12 +169,6 @@
                     }
 
                     $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP_S");
-                    //SSRF 대응
-                    if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
-                    {
-				        $WG_WAS_IP = "";
-                    }
-
 
                     if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
                         isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
@@ -196,7 +177,7 @@
                         // 대기표 Validation(checkout api call)
                         $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                         //$WG_TRACE .=  $apiUrl.",";
-                        $responseText = file_get_contents($apiUrl);
+                        $responseText = WG_CallApi($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
                             $WG_IS_CHECKOUT_OK = true;
@@ -257,7 +238,7 @@
                     $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     
                     //$WG_TRACE .=  $apiUrl.",";
-                    $responseText = file_get_contents($apiUrl);
+                    $responseText = WG_CallApi($apiUrl);
                     if($responseText == null || $responseText == "") { continue; }  
 
                 
@@ -410,7 +391,7 @@
                     $apiUrl =  "https://" . $serverIp . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=CHECK" . "&ClientIp=" . $WG_CLIENT_IP . "&TokenKey=" . $WG_TOKEN_KEY . "&IsLoadTest=" . $WG_IS_LOADTEST;
                  
                     //$WG_TRACE .=  $apiUrl.",";
-                    $responseText = file_get_contents($apiUrl);
+                    $responseText = WG_CallApi($apiUrl);
                     if($responseText == null || $responseText == "") { continue; }  
 
              
@@ -541,14 +522,6 @@
                     $WG_TOKEN_KEY   = $parameterValues[2];
                     $WG_WAS_IP      = $parameterValues[3];
 
-                    //SSRF 대응
-				    if(false == WG_IsValidApiUrl($WG_WAS_IP))
-                    {
-					    $WG_WAS_IP = "";
-                    }
-
-
-
                     if( $WG_TOKEN_NO     !== null   && $WG_TOKEN_NO  !=="" 
                         && $WG_TOKEN_KEY !== null   && $WG_TOKEN_KEY !== "" 
                         && $WG_WAS_IP    !== null   && $WG_WAS_IP    !== ""
@@ -557,7 +530,7 @@
                         // 대기표 Validation(checkout api call)
                         $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
 
-                        $responseText = file_get_contents($apiUrl);
+                        $responseText = WG_CallApi($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
                             $WG_IS_CHECKOUT_OK = true;
@@ -610,12 +583,6 @@
                 }
 
                 $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP");
-                //SSRF 대응
-				if(false == WG_IsValidApiUrl($WG_WAS_IP))
-                {
-					$WG_WAS_IP = "";
-                }
-
 
                 if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
                    isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
@@ -624,7 +591,7 @@
                     // 대기표 Validation(checkout api call)
                     $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                     //$WG_TRACE .=  $apiUrl.",";
-                    $responseText = file_get_contents($apiUrl);
+                    $responseText = WG_CallApi($apiUrl);
                     if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                     {
                         $WG_IS_CHECKOUT_OK = true;
@@ -651,12 +618,6 @@
                     }
 
                     $WG_WAS_IP = WG_ReadCookie("WG_WAS_IP_S");
-                    //SSRF 대응
-                    if(!WG_EndsWith(strtolower($WG_WAS_IP), ".devy.kr"))
-                    {
-				        $WG_WAS_IP = "";
-                    }
-
 
                     if(isset($WG_TOKEN_NO) && strlen($WG_TOKEN_NO) > 0 && 
                         isset($WG_TOKEN_KEY) && strlen($WG_TOKEN_KEY) > 0 && 
@@ -665,7 +626,7 @@
                         // 대기표 Validation(checkout api call)
                         $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
                         //$WG_TRACE .=  $apiUrl.",";
-                        $responseText = file_get_contents($apiUrl);
+                        $responseText = WG_CallApi($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
                             $WG_IS_CHECKOUT_OK = true;
@@ -831,8 +792,25 @@
             return false;
         }
         // pattern validtion
-        $regEx = "/^\d{4}-\w{1,4}\.devy\.kr$/i";
+        // $regEx = "/^\d{4}-\w{1,4}\.devy\.kr$/i";
+        // ex: https://9000-0.devy.kr/?ServiceId=9000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
+        $regEx = "/^http[s]?:\/\/\d{4}-\w{1,2}\.devy\.kr[\/\?].*$/i";
         return (bool)preg_match($regEx, $url);
+    }
+
+    function WG_CallApi(string $url) : string {
+
+        $responseText = "";
+        try {
+            if (false == WG_IsValidApiUrl($url) ) {
+                //echo ("Invalid API URL");
+                return $responseText;
+            }
+            $responseText = file_get_contents($url);
+        } catch(Exception $e) {
+            // ignore
+        }
+        return $responseText;
     }
 ?>
 

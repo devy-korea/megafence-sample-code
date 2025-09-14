@@ -22,7 +22,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "25.1.911";
+        const string WG_VERSION = "25.1.914";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -108,7 +108,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 10 * 1000);
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
@@ -185,7 +185,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 10 * 1000);
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
@@ -235,7 +235,7 @@ namespace devy.WebGateLib
                             {
                                 // 대기표 Validation(checkout api call)
                                 string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                                string responseText = GetHttpText(apiUrl, 30 * 1000);
+                                string responseText = WG_CallApi(apiUrl, 10 * 1000);
 
                                 if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                                 {
@@ -303,7 +303,7 @@ namespace devy.WebGateLib
                         {
                             apiUrl += "&IsLoadTest=Y";
                         }
-                        string responseText = GetHttpText(apiUrl, 5 * (tryCount + 1));
+                        string responseText = WG_CallApi(apiUrl, 5 * (tryCount + 1));
 
                         // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
                         if (!string.IsNullOrEmpty(responseText))
@@ -418,7 +418,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 30 * 1000);
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
@@ -495,7 +495,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = GetHttpText(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 30 * 1000);
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
@@ -544,7 +544,7 @@ namespace devy.WebGateLib
                             {
                                 // 대기표 Validation(checkout api call)
                                 string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                                string responseText = GetHttpText(apiUrl, 30 * 1000);
+                                string responseText = WG_CallApi(apiUrl, 30 * 1000);
 
                                 if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                                 {
@@ -685,7 +685,7 @@ namespace devy.WebGateLib
         /// <param name="url"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static string GetHttpText(string url, int timeout)
+        public static string WG_CallApi(string url, int timeout)
         {
 
             WebRequest request = WebRequest.Create(url);
@@ -736,8 +736,11 @@ namespace devy.WebGateLib
             if (string.IsNullOrEmpty(url)) 
                 return false;
 
+            // ex: https://9000-0.devy.kr/?ServiceId=9000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
+            // /^http[s]?:\/\/\d{4}-\w{1,2}\.devy\.kr[\/\?].*$/i
+
             Regex regEx = new Regex(
-                @"^\d{4}-\w{1,4}\.devy\.kr$",
+                @"^http[s]?://\d{4}-\w{1,2}\.devy\.kr[\/\?].*$",
                 RegexOptions.IgnoreCase | RegexOptions.Compiled
             );
 

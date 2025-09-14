@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 public class WebGate {
 	
 	////////////////////////////////////////////////
-	static final String $WG_VERSION = "25.1.911";
+	static final String $WG_VERSION = "25.1.914";
 	////////////////////////////////////////////////
 	
 	//private Logger log = LoggerFactory.getLogger(WebGate.class);
@@ -129,12 +129,6 @@ public class WebGate {
 					$WG_WAS_IP = tokenPparamValues[3];
 					String paramGateId = tokenPparamValues[0];
 					
-					// SSRF 대응용 api url 검증 (V25.1.911)
-					if(false == WG_IsValidApiUrl($WG_WAS_IP))
-					{
-						$WG_WAS_IP = "";
-					}
-
 					// try api call
 					if ($WG_TOKEN_NO != null && $WG_TOKEN_NO.equals("") == false && $WG_TOKEN_KEY != null
 							&& $WG_TOKEN_KEY.equals("") == false && $WG_WAS_IP != null && $WG_WAS_IP.equals("") == false
@@ -197,14 +191,6 @@ public class WebGate {
 				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
 					$WG_TRACE += "$WG_WAS_IP is null→";
 				}
-				// SSRF 대응용 api url 검증 (V25.1.911)
-				if(false == WG_IsValidApiUrl($WG_WAS_IP))
-				{
-					$WG_WAS_IP = "";
-					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-				}
-				
-				
 								
 				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
 					$WG_TRACE += "$WG_TOKEN_KEY is null→";
@@ -265,14 +251,6 @@ public class WebGate {
 						$WG_TRACE += "$WG_WAS_IP is null→";
 					}
 
-					// SSRF 대응용 api url 검증 (V25.1.911)
-					if(false == WG_IsValidApiUrl($WG_WAS_IP))
-					{
-						$WG_WAS_IP = "";
-						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-					}
-
-									
 					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
 						$WG_TRACE += "$WG_TOKEN_KEY is null→";
 					}
@@ -782,13 +760,6 @@ public class WebGate {
 					$WG_WAS_IP = tokenPparamValues[3];
 					String paramGateId = tokenPparamValues[0];
 					
-					// SSRF 대응용 api url 검증 (V25.1.911)
-					if(false == WG_IsValidApiUrl($WG_WAS_IP))
-					{
-						$WG_WAS_IP = "";
-						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-					}
-					
 					// try api call
 					if ($WG_TOKEN_NO != null 
 							&& $WG_TOKEN_NO.equals("") == false 
@@ -851,12 +822,6 @@ public class WebGate {
 				
 				if ($WG_WAS_IP == null || $WG_WAS_IP.equals("") == true) {
 					$WG_TRACE += "$WG_WAS_IP is null→";
-				}
-				// SSRF 대응 : was ip가 devy.kr로 끝나지 않으면 무효화
-				else if(!$WG_WAS_IP.toLowerCase().endsWith(".devy.kr"))
-				{
-					$WG_WAS_IP = "";
-					$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
 				}
 								
 				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
@@ -921,13 +886,6 @@ public class WebGate {
 						$WG_TRACE += "$WG_WAS_IP is null→";
 					}
 					
-					// SSRF 대응용 api url 검증 (V25.1.911)
-					if(false == WG_IsValidApiUrl($WG_WAS_IP))
-					{
-						$WG_WAS_IP = "";
-						$WG_TRACE += "Invalid $WG_WAS_IP(SSRF)→";
-					}
-									
 					if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("") == true) {
 						$WG_TRACE += "$WG_TOKEN_KEY is null→";
 					}
@@ -1077,6 +1035,12 @@ public class WebGate {
 
 	String WG_CallApi(String urlText, int timeoutSeconds) {
 		try {
+			
+			// SSRF check
+			if(false == WG_IsValidApiUrl(urlText)) {
+				return null;
+			}
+			
 			URL url = new URL(urlText);
 			URLConnection con = url.openConnection();
 			con.setConnectTimeout(timeoutSeconds*1000); // 대기열 서버 통신 오류로 인해 접속 지연시 강제로 timeout 처리;
@@ -1120,14 +1084,18 @@ public class WebGate {
 	
 
 	/*
-	 * SSRF 대응용 API URL 검증 (V25.1.911)
+	 * SSRF 대응용 API URL 검증 (V25.1.914)
 	 */
     public boolean WG_IsValidApiUrl(String url) {
         if (url == null || url.isEmpty()) 
         	return false;
 
     	Pattern regEx = Pattern.compile(
-    	        "^\\d{4}-\\w{1,4}\\.devy\\.kr$",
+    	        /*
+    	         * SSRF 방어용 
+    	         * https://9000-0.devy.kr/?ServiceId=9000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
+    	         */
+    	        "^http[s]?:\\/\\/\\d{4}-\\w{1,2}\\.devy\\.kr[\\/,\\?].*$",
     	        Pattern.CASE_INSENSITIVE
     	    );
 

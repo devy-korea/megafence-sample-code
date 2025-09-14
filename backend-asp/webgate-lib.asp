@@ -24,7 +24,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "25.1.827"
+        WG_VERSION              = "25.1.914"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -53,8 +53,7 @@
 
         'API Call Timeout : 2초 무응답 시 장애 간주
         Dim ApiUrl, ResponseText
-        Dim XmlHttp : Set XmlHttp = Server.CreateObject("Msxml2.ServerXMLHTTP.3.0")
-
+        Dim XmlHttp : Set XmlHttp = Server.CreateObject("MSXML2.ServerXMLHTTP.6.0")
 
         '******************************************************************************
         'STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
@@ -300,10 +299,10 @@
                 "    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no'>"    & vbCrLf &_
                 "    <title></title>"                                                                                                                   & vbCrLf &_
                 "    <style> html, body {margin:0; padding:0; overflow-x:hidden; overflow-y:hidden; width:100%; height:100%;} </style> "                & vbCrLf &_
-                "    <link href='https://demo.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" & VersionTag & "' rel='stylesheet'>"                            & vbCrLf &_
+                "    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v=" & VersionTag & "' rel='stylesheet'>"                            & vbCrLf &_
                 "</head>"                                                                                                                               & vbCrLf &_
                 "<body>"                                                                                                                                & vbCrLf &_
-                "    <script type='text/javascript' src='https://demo.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" & VersionTag & "'></script>"              & vbCrLf &_
+                "    <script type='text/javascript' src='https://cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v=" & VersionTag & "'></script>"              & vbCrLf &_
                 "    <script>"                                                                                                                          & vbCrLf &_
                 "        function WG_PageLoaded () {"                                                                                                   & vbCrLf &_
                 "            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload "                                                 & vbCrLf &_
@@ -322,17 +321,39 @@
 
     ' HTTP API Call
     Function WG_CallApi(Url, XmlHttp)
-        XmlHttp.Open "GET", Url, False
-        XmlHttp.Send
+        On Error Resume Next
 
-        If XmlHttp.Status = 200 Then
-            WG_CallApi = XmlHttp.ResponseText
+
+        ' 1) 정규식 검증 실패 시 즉시 반환
+        If Not WG_IsValidApi(Url) Then
+            WG_HttpGet = ""
+            Exit Function
         End If
+
+        ' 2) HTTP 호출
+        XmlHttp.open "GET", Url, False
+        XmlHttp.send
+
+        If Err.Number <> 0 Then
+            WG_CallApi = ""
+            Err.Clear
+            Exit Function
+        End If
+
+        If XmlHttp.status = 200 Then
+            WG_CallApi = XmlHttp.responseText
+        Else
+            WG_CallApi = ""  ' 필요하면 에러 바디 반환하도록 바꾸세요: XmlHttp.responseText
+        End If
+
+        On Error GoTo 0
     End Function
+
+
 
     Function WG_WriteCookie(Key,Value)
         Dim Expire : Expire = FormatDateTime(Date()+7, 2) & " " & FormatDateTime(Date()+1, 4) 
-        Response.AddHeader "Set-Cookie", Key & "=" & Server.URLEncode(Value) & ";Path=/;Expires=" & Expire
+        Response.AddHeader "Set-Cookie", Key & "=" & Value & ";Path=/;Expires=" & Expire
     End Function
 
 
@@ -366,5 +387,25 @@
 
         GetClientIP = ipAddress
     End Function
+
+
+    ' --------------------------------------------
+    ' SSRF 대응을 위한 API URL 정규식 검증
+    '  - 허용 패턴: ^http[s]?://\d{4}-\w{1,2}\.devy\.kr[\/\?].*$
+    '  - VBScript RegExp에는 \d, \w 축약클래스가 없으므로 [0-9], [A-Za-z0-9_]로 치환
+    ' --------------------------------------------
+    Function WG_IsValidApi(Url)
+        Dim rx : Set rx = New RegExp
+        rx.Pattern    = "^https?://[0-9]{4}-[A-Za-z0-9_]{1,2}\.devy\.kr[/?].*$"
+        rx.IgnoreCase = True
+        rx.Global     = False
+
+        WG_IsValidApi = rx.Test(Url)
+
+        Set rx = Nothing
+    End Function
+
+    ' (옵션) 호스트만 있어도 허용하려면 위 패턴 대신 아래 주석을 사용하세요.
+    ' rx.Pattern = "^https?://[0-9]{4}-[A-Za-z0-9_]{1,2}\.devy\.kr(?:[/?].*)?$"
 
 %>
