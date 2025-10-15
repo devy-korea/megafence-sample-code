@@ -1,27 +1,27 @@
-﻿<!DOCTYPE html>
+
+<!DOCTYPE html>
 <html>
 <!--
-Intro Page 샘플입니다.
+landing Page 샘플입니다.
 컨텐츠는 업무에 맞게 보완해 주세요.
 코드는 TODO-XX 표시한 부분 수정해 주세요.
 -->
 <head>
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- begin of 고객사 META TAG-->
     <meta name="robots" content="noindex,nofollow">
-
-    <!-- TO-DO : SEO 설정이 있을경우 여기에 삽입해 주세요-->
+    <!-- favicon : hoam -->
+    <!-- Open Graph : hoam -->
     <!-- end of 고객사 META TAG-->
 
 
     <link href="https://dist.devy.kr/bulma/0.7.1/bulma.css" rel="stylesheet" />
-
     <style>
         body {
             height: 100vh;
@@ -43,21 +43,6 @@ Intro Page 샘플입니다.
             body::-webkit-scrollbar {
                 display: none; /* Chrome, Safari, Edge */
             }
-
-        hr {
-            margin: 1rem 0;
-        }
-
-        #app {
-            padding: 2rem 1rem 1rem 1rem;
-            width: 90%;
-            max-width: 1024px;
-            background-color: #ffffff;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
 
         #loading {
             position: absolute;
@@ -81,136 +66,91 @@ Intro Page 샘플입니다.
                     width: 8rem;
                     height: 8rem;
                 }
-
-        /*Mobile*/
-        @media only screen and (max-width: 1024px) {
-            body {
-                height: 100vh;
-                background-color: dimgray;
-                /*background-image: url(img/background-mo.jpg?v=1);*/
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-            }
-        }
     </style>
+
+
 </head>
 <body>
-
     <div id="loading">
         <div class="content">
             <img src="https://cdn2.devy.kr/9000/img/loading.gif" />
         </div>
     </div>
     <div id="app" class="container has-text-centered">
-        <div>
-            <img src="https://cdn2.devy.kr/9000/img/logo.png?v=1" alt="logo" style="width:100%; max-width:20rem;">
-        </div>
-        <div class="notification" style="padding:1rem 0.5rem;">
-            <h1 class='title'>임시 페이지 운영 안내</h1>
-            <hr />
-
-            <h1 class='is-size-5'>매크로 및 접속폭주 방지 등 안정적인 웹사이트 운영을 위한 임시 페이지입니다.</h1>
-            <h1 class='is-size-5'>'홈페이지 이동하기' 버튼을 클릭하시면 홈페이지로 정상 이동 됩니다.</h1>
-            <hr />
-            <h1 class='is-size-5 has-text-danger'>
-                데모를 위해 유입차단 기능이 매 10분 단위로 2분간(08:00 ~ 09:59) 설정되어 운영 중입니다.<br />
-                해당 기간에는 업무페이지로의 이동이 차단됩니다.
-            </h1>
-            <hr />
-
-            <!-- TODO-2 : 사용할 GateId를 paramter로 SET -->
-            <button type="button" class="button is-danger is-large" onclick="startWebGate('3')">홈페이지 접속하기</button>
-
-            <hr />
-            <!-- 선택사항 : aws turnstile-->
-            <div id="turnstile-container" class="turnstile-container"></div>
-        </div>
     </div>
 
 
-
-    <!--begin of script-->
-    <script>
-        // 1초후 loading 닫기
-        window.setTimeout(function () {
-            document.getElementById("loading").style.display = "none";
-        }, 1000)
-
-    </script>
-
-
-    <!-- TO-DO : 아래 코드블럭 복사 후 TODO-1 ~ TODO-2 수정 -->
     <!-- begin of megafence -------------------------------------------->
-
     <!-- TODO-1 : webgate.js 경로의 9000 대신 할당된 SERVICE ID로 수정-->
-    <script src="https://cdn2.devy.kr/9000/js/webgate.js"></script>
-    <script src="https://dist.devy.kr/jquery/jquery-3.7.1.min.js"></script>
-    <script src="https://dist.devy.kr/utils/sweetalert2-11.16.1.all.min.js"></script>
-    <!--
-    <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback"></script>
-    -->
-
+    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=250717a"></script>
+    <script src="https://dist.devy.kr/utils/sweetalert2-11.22.2.js"></script>
     <script>
-        var _gateId     = ""; 
-        var _nextUrl    = "";
+        var _gateId = "4";  // SET your default gate id
+        var _nextUrl = "backend_with_landing.php"; // SET your default next page
 
-        function WG_PageLoaded() { 
+
+        function WG_PageLoaded() {
+            _gateId = $WG.getParam("GateId") || _gateId;
+            _nextUrl = decodeURIComponent($WG.getParam("NextUrl")) || _nextUrl;
+
+            if ($WG.getParam("IsDevTest") == "Y") {
+                // nothing to do
+                alert("DEV-TEST : 소스 보기용");
+            }
+            else {
+                // auto start
+                if (_gateId)
+                    startWebGate(_gateId, _nextUrl);
+                else {
+                    alert("GateId paramter 누락")
+                }
+            }
         }
-        function startWebGate(gateId) {
-            gateId = gateId + ""; 
 
-            $(".button").addClass("is-loading");
+        function startWebGate(gateId, nextUrl) {
+            gateId = gateId + "";
+
+            if (!gateId) {
+                Swal.fire({
+                    title: '',
+                    text: "잘못된 호출입니다.",
+                    icon: '', //'warning',
+                    confirmButtonText: '확인'
+                })
+                return;
+            }
+            // NextUrl 없이 GateId만 호출된 경우 NextUrl Default 처리
+            if (gateId && !nextUrl) {
+                switch (gateId) {
+                    default:
+                        nextUrl = "/";
+                        break;
+                }
+            }
 
             var config = {
-                gateId: gateId || _gateId,          // GATE-ID
+                gateId: gateId,                     // GATE-ID
                 uiMode: "BACKEND",                  // FRONTEND : 대기취소버튼 표시, BACKEND : 대기취소버튼 미표시
                 topTitle: "서비스 접속 대기 중",    // 대기UI 제목
                 uiShowDelay: 0 * 1000,              // 대기UI 표시 지연시간(ms)
-                uiHideDelay: 2 * 1000,             // 대기 종료 후 대기UI 감추기 지연시간(ms)
+                uiHideDelay: 10 * 1000,             // 대기 종료 후 대기UI 감추기 지연시간(ms)
                 resetForce: false,                  // 대기표 강제초기화. true:실행시마다 대기표 강제발급, false:유효한 내 대기표가 있으면 사용
                 customType: "",                     // UI 분기 변경 필요 시
                 onSuccess: function (data) {
                     //console.log("onSuccess", data);
-
                     var res = $WG.lastResponse;
                     if (res.GateOperationMode == "ALERT") {
-                        // 강제대기 기간인 경우 (강제대기기간은 데브와이가 관리)
+                        // 유입차단 기간인 경우 (동작 스케쥴 세팅은 데브와이가 함)
                         if (res.GateOperationMessageTitle == "NOT_OPEN") {
                             $WG.setCookie("WG_TOKEN_NO", "");
-
-                            // show alert message
-                            Swal.mixin({
-                              customClass: {
-                                confirmButton: "button is-black",
-                                cancelButton: "button is-danger"
-                              },
-                              buttonsStyling: false
-                            })
-                            .fire({
+                            Swal.fire({
                                 title: '',
-                                width: 640,
-                                padding: "2rem 0rem",
-                                html: res.GateOperationMessageDetail.replaceAll('\n','<br/>'),
+                                html: res.GateOperationMessageDetail.replaceAll('\n', '<br/>'),
                                 icon: '', //'warning',
                                 confirmButtonText: '확인'
                             })
                         }
                     } else if (res.GateOperationMode == "GATE") {
-                        if ($WG.getParam("NextUrl")) {
-                            // NextUrl 파라미터가 있는 경우
-                            var nextUrl = $WG.getParam("NextUrl");
-                        } else {
-                            // NextUrl 파라미터가 없는경우, GATE별 이동할 페이지를 설정합니다.
-                            // TODO-2 : GATE별 이동할 페이지를 업무에 맞게 수정해 주세요
-                            if (gateId == "1") {
-                                // 홈페이지
-                                var nextUrl = "https://demo.devy.kr/9000/backend.php";
-                            } else if (gateId == "3") {
-                                // 래플응모
-                                var nextUrl = "https://demo.devy.kr/9000/backend_with_intro.php";
-                            }
-                        }
                         WG_ChangeUrl(nextUrl);
                     }
                 },
@@ -241,23 +181,17 @@ Intro Page 샘플입니다.
                     return;
                 },
                 onAlert: function (data) {
-                    //console.log("onAlert", data);
                     alert(res.GateOperationMessageDetail);
                 },
                 onWaiting: function (data) {
-                    //console.log("onWaiting", data);
                 },
                 onFail: function (data) { // 유량제어 서비스 장애 시 처리
-                    //console.log("onFail", data);
                     alert("죄송합니다. 잠시 후 다시 시도해 주세요");
                 },
                 onFinally: function () {
-                    setTimeout(function () {
-                        $(".button").removeClass("is-loading");
-                    }, 1000)
+                    document.getElementById("loading").style.display = "none";
                 }
             };
-            // call WG_StartWebGate
             WG_StartWebGate(config);
         }
     </script>

@@ -29,14 +29,19 @@
     // import library
     require_once("webgate-lib.php");
     // setting 
-    $WG_GATE_ID      = "3";    // 할당받은 GATE ID 중에서 사용
+    $WG_GATE_ID      = "4";    // 할당받은 GATE ID 중에서 사용
     $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
-    // 유량제어 체크 : 토큰 유효하지 않으면 Intro 페이지로 redirect
+    // 유량제어 체크 : 토큰 유효하지 않으면 재발급(=대기UI 응답)
     if (false == WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
     {
-        $url = "intro.html"; 
-		header("Location: $url");
+        // 현재 페이지의 URL 구하기
+        $currentUrl = $_SERVER['REQUEST_URI'];
+
+        // intro.html로 리다이렉트 (URL 인코딩 포함)
+        $nextUrl = urlencode($currentUrl);
+        header("Location: landing.html?GateId={$WG_GATE_ID}&NextUrl={$nextUrl}");
+
         exit(); // 응답종료 
     }
     /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
@@ -85,7 +90,7 @@
                 <h1 class="subtitle has-text-warning">※ 데모를 위해 FreePass는 5분, 10회로 설정되어 있습니다. (초과 시 INTRO 페이지 다녀옵니다)</h1>
             </div>
             <div class="">
-                <a href="intro.html" class="button dark">INTRO 페이지 샘플</a>
+                <a href="landing.html?IsDevTest=Y" class="button dark">LANDING 페이지 샘플</a>
             </div>
         </form>
 
@@ -101,7 +106,17 @@
     	// 대기표 검증
     	if(false == webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
-    		return "redirect:/intro.html?GateId=" + gateId;  
+            // 현재 요청 경로 + 쿼리
+            StringBuilder currentPath = new StringBuilder(request.getRequestURI());
+            if (request.getQueryString() != null) {
+                currentPath.append("?").append(request.getQueryString());
+            }
+
+            // URL 인코딩 (UTF-8)
+            String nextUrl = URLEncoder.encode(currentPath.toString(), "UTF-8");
+
+            // 동일 서버 내 landing.html로 리다이렉트
+    		return "redirect:/landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl;  // OR response.sendRedirect("landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl);
     	} 
         ...
         // 여기에서 부터 기존 업무로직 시작...
@@ -121,8 +136,13 @@
         // 유량제어 체크 : 토큰 유효하지 않으면 재발급(=대기UI 응답)
         if (!WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
         {
-            $url = "intro.html?GateId=" . $WG_GATE_ID;
-		    header("Location: $url");
+            // 현재 페이지의 URL 구하기
+            $currentUrl = $_SERVER['REQUEST_URI'];
+
+            // intro.html로 리다이렉트 (URL 인코딩 포함)
+            $nextUrl = urlencode($currentUrl);
+            header("Location: landing.html?GateId={$WG_GATE_ID}&NextUrl={$nextUrl}");
+
             exit(); // 응답종료 
         }
         ... 

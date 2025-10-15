@@ -33,7 +33,8 @@
     $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
 
     // 대기 필요 시 응답 교체
-    if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
+    //if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
+    if (false == WG_IsValidToken($WG_SERVICE_ID, $WG_GATE_ID))
     {
         print WG_GetWaitingUi($WG_SERVICE_ID, $WG_GATE_ID);
         exit(); // 응답종료 
@@ -57,12 +58,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- custom css -->
-    <link href="https://dist.devy.kr/bulma-0.7.1/bulma.css" rel="stylesheet" />
+    <link href="https://dist.devy.kr/bulma/0.7.1/bulma.css" rel="stylesheet" />
 
 
 </head>
 <body>
-
 
     <div id="app" class="container">
         <p class="title has-text-info">SAMPLE BACKEND PAGE</p>
@@ -83,8 +83,8 @@
         <p>JAVA 호출코드 예시</p>
         <textarea class="textarea" rows="20" readonly>
         ...
-    	String serviceId 	= "YOUR_SERVICE_ID"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "YOUR_GATE_ID";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "<?php print($WG_SERVICE_ID)?>"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "<?php print($WG_GATE_ID)?>";  	    // 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	//대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
@@ -113,8 +113,8 @@
         ...
         require_once("webgate-lib.php");
         // setting 
-        $WG_GATE_ID      = "3";    // 할당받은 GATE ID 중에서 사용
-        $WG_SERVICE_ID   = "9000"; // 고정값(fixed)
+        $WG_SERVICE_ID  = "<?php print($WG_SERVICE_ID)?>";    // 고정값(fixed)
+        $WG_GATE_ID     = "<?php print($WG_GATE_ID)?>"; // 할당받은 GATE ID 중에서 사용
 
         // 대기 필요 시 응답 교체
         if (WG_IsNeedToWaiting($WG_SERVICE_ID, $WG_GATE_ID))
@@ -126,63 +126,8 @@
 		// 여기에서 부터 기존 업무로직 시작...
         </textarea>
         </pre>
-
-
-        <pre>
-        <p>[선택사항] Frontend Validation 예시 (페이지 새로고침을 하지 않아도 주기적으로 토큰 유효성 검사를 수행)</p>
-        <textarea class="textarea" rows="20" readonly>
-        <!-- begin of memafence -->
-        <script defer src="https://demo.devy.kr/YOUR_SERVICE_ID/js/webgate.js?v=1"></script>
-        <script>
-            function WG_PostInit() {
-                // TODO : set intro page url
-                var introUrl = "intro.html?GateId=YOUR_GATE_ID"; 
-
-
-                WG_SetACK({
-                    invalidTokenUrl : introUrl,
-                    notOpenUrl      : introUrl
-                });
-            }
-        </script>
-	    <!-- end of memafence -->
-
-        </textarea>
-        </pre>
-
     </div>
 
-
-
-
-    <!--begin of megafence validation ------------------------------------------------------------------------>
-    <!--
-    Frontend서 유량제어 효성 검사를 하는 코드입니다.
-        ※ INTRO 페이지를 운영하지 경우 이용을 권장합니다.
-        ※ INTRO 페이지 없이 Backend만 적용된 페이지라면  페이지 Reload 처리 : nextUrl = function() { window.location.reload(); }
-    --->
-    <script defer src="https://demo.devy.kr/9000/js/webgate.js?v=1"></script>
-    <script>
-        function WG_PreInit() {
-        }
-        function WG_PostInit() {
-            /* 
-            var nextUrl = "intro.html?GateId=" + $WG.getCookie("WG_GATE_ID"); 
-            또는
-            var nextUrl = function () {
-                window.location.reload();
-            };
-            */
-            var nextUrl = "intro.html?GateId=" + $WG.getCookie("WG_GATE_ID"); 
-            WG_SetACK({
-                invalidTokenUrl: nextUrl,
-                countdownUrl: nextUrl,
-                notOpenUrl: nextUrl,
-                errorUrl: function () { /* nothing to do */ }
-            });
-        }
-    </script>
-    <!--end of megafence validation -------------------------------------------------------------------->
 
 </body>
 </html>

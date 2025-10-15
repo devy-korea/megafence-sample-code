@@ -43,12 +43,12 @@ Controller (IndexController.java)에 유량제어 서비스를 적용했으므�
                 </div>
                 <div class='box'>
                 <p> <button type="button" class="button is-dark is-small" onclick="$WG.cancelWebGate(); alert('OK');">대기표 초기화</button> 클릭 후 아래 동작방식 테스트 </p>
-                <a class="button is-large is-danger" href="/backend_redirect">REDIRECT 방식</a>
+                <a class="button is-large is-danger" href="/backend_landing">LANDING (REDIRECT) 방식</a>
                 <p class="has-text-info"> Backend API 체크 + 대기용 페이지 Redirect 
                 </div>
                 <div class='box'>
                 <p> <button type="button" class="button is-dark is-small" onclick="$WG.cancelWebGate(); alert('OK');">대기표 초기화</button> 클릭 후 아래 동작방식 테스트 </p>
-                <a class="button is-large is-danger" href="/postIntro.html">CDN LANDING 방식(POST방식)</a>
+                <a class="button is-large is-danger" href="/backend_intro">INTRO (REDIRECT) 방식</a>
                 <p class="has-text-info"> Backend API 체크 + 대기용 CDN 페이지 Redirect 
                 </div>
                 <div class='box'>

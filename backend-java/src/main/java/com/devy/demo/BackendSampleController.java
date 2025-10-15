@@ -114,7 +114,7 @@ public class BackendSampleController {
 	/**
 	 * LANDING(REDIRECT) 방식 SAMPLE
 	 */
-    @GetMapping("/backend_redirect") 
+    @GetMapping("/backend_landing") 
     public String backend_redirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
     	
     	/* 	========================================================================
@@ -130,14 +130,24 @@ public class BackendSampleController {
     	
    	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String gateId 		= "4";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
     	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
     	{
        	 	// ★TO-DO : redirect할 intro 페이지 경로 SET 
-    		return "redirect:/intro.html";  
+            // 현재 요청 경로 + 쿼리
+            StringBuilder currentPath = new StringBuilder(request.getRequestURI());
+            if (request.getQueryString() != null) {
+                currentPath.append("?").append(request.getQueryString());
+            }
+
+            // URL 인코딩 (UTF-8)
+            String nextUrl = URLEncoder.encode(currentPath.toString(), "UTF-8");
+
+            // 동일 서버 내 landing.html로 리다이렉트
+    		return "redirect:/landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl;  // OR response.sendRedirect("landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl);
     	} 
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
     	
@@ -152,9 +162,65 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "backend_redirect";     
+    	return "backend_landing";     
+    }
+
+
+	/**
+	 * INTRO(REDIRECT) 방식 SAMPLE
+	 */
+    @GetMapping("/backend_intro") 
+    public String backend_intro(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	
+    	/* 	========================================================================
+    		Light business logic here ....
+    		========================================================================
+    		예) 로그인 체크 : 쿠키나 세션을 체크해서 Login 페이지로 redirect 등의 간단한 업무로직은 유량제어 코드 이전에 실행해도 됩니다.
+    	*/
+    	
+    	//log.info("[STEP-0] 유량제어 체크 시작");
+    	/*▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼  
+    	 * BEGIN OF 유량제어 코드삽입
+    	 * */
+    	
+   	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
+    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
+    	String gateId 		= "3";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	
+    	WebGate webgate = new WebGate();
+    	// 대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체
+    	if(!webgate.WG_IsValidToken(serviceId, gateId, request, response))
+    	{
+       	 	// ★TO-DO : redirect할 intro 페이지 경로 SET 
+            // 현재 요청 경로 + 쿼리
+            StringBuilder currentPath = new StringBuilder(request.getRequestURI());
+            if (request.getQueryString() != null) {
+                currentPath.append("?").append(request.getQueryString());
+            }
+
+            // URL 인코딩 (UTF-8)
+            String nextUrl = URLEncoder.encode(currentPath.toString(), "UTF-8");
+
+            // 외부 CDN or 웹사이트 내부 intro.html로 리다이렉트
+    		return "redirect:/intro.html";  // OR response.sendRedirect("intro.html");
+    	} 
+    	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
+    	
+    	
+    	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+    	 * 여기까지 왔다면 유량제어 체크가 완료된 상태입니다. 
+    	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    	/*	========================================================================
+    		Heavy business logic ....
+    		========================================================================
+    		예) 고객등급 GET : 고객 DB에서 고객등급(Bronze/Silver/Gold) 조회 
+    		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
+    	*/
+    	
+    	return "backend_intro";     
     }
     	
+	    
 	
     /**
      * API 미사용 SAMPLE Controller
