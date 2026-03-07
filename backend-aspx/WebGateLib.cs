@@ -22,7 +22,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         #region property
-        const string WG_VERSION = "25.1.914";
+        const string WG_VERSION = "26.1.306";
         public string WG_SERVICE_ID = "";
         public string WG_GATE_ID = "";
         const int WG_MAX_TRY_COUNT = 3;     // [fixed] failover api retry count
@@ -96,12 +96,6 @@ namespace devy.WebGateLib
                         WG_TOKEN_KEY = parameterValues[2];
                         WG_WAS_IP = parameterValues[3];
 
-                        // SSRF 대응
-                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                        {
-                            WG_WAS_IP = "";
-                        }
-
                         if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
                             !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
                             !string.IsNullOrEmpty(WG_WAS_IP))
@@ -160,13 +154,6 @@ namespace devy.WebGateLib
                     WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
 
-                    // SSRF 대응
-                    if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                    {
-                        WG_WAS_IP = "";
-                    }
-
-
                     string cookieGateId = ReadCookie("WG_GATE_ID");
 
                     if (string.IsNullOrEmpty(WG_TOKEN_KEY))
@@ -211,11 +198,6 @@ namespace devy.WebGateLib
                         WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO_S") ?? "";
                         WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
                         WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
-                        // SSRF 대응
-                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                        {
-                            WG_WAS_IP = "";
-                        }
 
                         cookieGateId = ReadCookie("WG_GATE_ID_S");
 
@@ -303,7 +285,7 @@ namespace devy.WebGateLib
                         {
                             apiUrl += "&IsLoadTest=Y";
                         }
-                        string responseText = WG_CallApi(apiUrl, 5 * (tryCount + 1));
+                        string responseText = WG_CallApi(apiUrl, 3 * (tryCount + 1));
 
                         // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
                         if (!string.IsNullOrEmpty(responseText))
@@ -406,19 +388,13 @@ namespace devy.WebGateLib
                         WG_TOKEN_KEY = parameterValues[2];
                         WG_WAS_IP = parameterValues[3];
 
-                        // SSRF 대응
-                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                        {
-                            WG_WAS_IP = "";
-                        }
-
                         if (!string.IsNullOrEmpty(WG_TOKEN_NO) &&
                             !string.IsNullOrEmpty(WG_TOKEN_KEY) &&
                             !string.IsNullOrEmpty(WG_WAS_IP))
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = WG_CallApi(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 10 * 1000);
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
                                 WG_IS_CHECKOUT_OK = true;
@@ -470,13 +446,6 @@ namespace devy.WebGateLib
                     WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID") ?? "";
                     WG_WAS_IP = ReadCookie("WG_WAS_IP");
 
-                    // SSRF 대응
-                    if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                    {
-                        WG_WAS_IP = "";
-                    }
-
-
                     string cookieGateId = ReadCookie("WG_GATE_ID");
 
                     if (string.IsNullOrEmpty(WG_TOKEN_KEY))
@@ -495,7 +464,7 @@ namespace devy.WebGateLib
                         {
                             // 대기표 Validation(checkout api call)
                             string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                            string responseText = WG_CallApi(apiUrl, 30 * 1000);
+                            string responseText = WG_CallApi(apiUrl, 10 * 1000);
 
                             if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                             {
@@ -520,11 +489,6 @@ namespace devy.WebGateLib
                         WG_TOKEN_NO = ReadCookie("WG_TOKEN_NO_S") ?? "";
                         WG_TOKEN_KEY = ReadCookie("WG_CLIENT_ID_S") ?? "";
                         WG_WAS_IP = ReadCookie("WG_WAS_IP_S");
-                        // SSRF 대응
-                        if (false == WG_IsValidApiUrl(WG_WAS_IP))
-                        {
-                            WG_WAS_IP = "";
-                        }
 
                         cookieGateId = ReadCookie("WG_GATE_ID_S");
 
@@ -544,7 +508,7 @@ namespace devy.WebGateLib
                             {
                                 // 대기표 Validation(checkout api call)
                                 string apiUrl = "https://" + WG_WAS_IP + "/?ServiceId=" + WG_SERVICE_ID + "&GateId=" + WG_GATE_ID + "&Action=OUT&TokenNo=" + WG_TOKEN_NO + "&TokenKey=" + WG_TOKEN_KEY;
-                                string responseText = WG_CallApi(apiUrl, 30 * 1000);
+                                string responseText = WG_CallApi(apiUrl, 10 * 1000);
 
                                 if (!string.IsNullOrEmpty(responseText) && responseText.IndexOf("\"ResultCode\":0") >= 0)
                                 {
@@ -656,7 +620,7 @@ namespace devy.WebGateLib
             sb.AppendLine("    <meta name='robots' content='noindex,nofollow'>");
             sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no' />");
             sb.AppendLine("    <title></title>");
-            sb.AppendLine($"    <link href='https://cdn2.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet' />");
+            sb.AppendLine($"    <link href='https://demo.devy.kr/WG_SERVICE_ID/css/webgate.css?v={versionTag}' rel='stylesheet' />");
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine($"    <script type='text/javascript' src='//cdn2.devy.kr/WG_SERVICE_ID/js/webgate.js?v={versionTag}'></script>");
@@ -664,7 +628,7 @@ namespace devy.WebGateLib
             //sb.AppendLine("        window.addEventListener('load', function () {");
             //sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");
             sb.AppendLine("        //V25.1.827");
-            sb.AppendLine("        function WG_PageLoaded {");
+            sb.AppendLine("        function WG_PageLoaded () {");
             sb.AppendLine("            WG_StartWebGate('WG_GATE_ID', window.location.href, 'BACKEND'); //reload ");
             sb.AppendLine("        }");
             sb.AppendLine("    </script>");
@@ -688,18 +652,30 @@ namespace devy.WebGateLib
         public static string WG_CallApi(string url, int timeout)
         {
 
-            WebRequest request = WebRequest.Create(url);
-            request.Method = "GET";
-            request.Timeout = timeout;
-
-
-            WebResponse response = request.GetResponse();
-            using (Stream stream = response.GetResponseStream())
+            if (false == WG_IsValidApiUrl(url))
             {
-                using (StreamReader sr = new StreamReader(stream))
+                return "";
+            }
+
+            try 
+            {
+                WebRequest request = WebRequest.Create(url);
+                request.Method = "GET";
+                request.Timeout = timeout;
+
+
+                WebResponse response = request.GetResponse();
+                using (Stream stream = response.GetResponseStream())
                 {
-                    return sr.ReadToEnd();
+                    using (StreamReader sr = new StreamReader(stream))
+                    {
+                        return sr.ReadToEnd();
+                    }
                 }
+            }
+            catch
+            {
+                return "";
             }
         }
 
@@ -740,7 +716,7 @@ namespace devy.WebGateLib
             // /^http[s]?:\/\/\d{4}-\w{1,2}\.devy\.kr[\/\?].*$/i
 
             Regex regEx = new Regex(
-                @"^http[s]?://\d{4}-\w{1,2}\.devy\.kr[\/\?].*$",
+                @"^http[s]?://\d{4,20}-\w{1,10}\.devy\.kr[\/\?].*$",
                 RegexOptions.IgnoreCase | RegexOptions.Compiled
             );
 

@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 public class WebGate {
 	
 	////////////////////////////////////////////////
-	static final String $WG_VERSION = "25.1.914";
+	static final String $WG_VERSION = "26.1.306";
 	////////////////////////////////////////////////
 	
 	//private Logger log = LoggerFactory.getLogger(WebGate.class);
@@ -141,7 +141,7 @@ public class WebGate {
 							$WG_TRACE += apiUrlText + "→";
 						}
 
-						String responseText = WG_CallApi(apiUrlText, 20);
+						String responseText = WG_CallApi(apiUrlText, 10);
 
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 							$WG_IS_CHECKOUT_OK = true;
@@ -220,7 +220,7 @@ public class WebGate {
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 20);
+					responseText = WG_CallApi(apiUrlText, 10);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -274,7 +274,7 @@ public class WebGate {
 	
 						// 대기표 Validation(checkout api call)
 						String responseText = "";
-						responseText = WG_CallApi(apiUrlText, 20);
+						responseText = WG_CallApi(apiUrlText, 10);
 						// log.info("responseText:" + responseText);
 	
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -327,7 +327,7 @@ public class WebGate {
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+					String responseText = WG_CallApi(apiUrlText, 3*($tryCount+1));
 					// log.info("responseText:" + responseText);
 
 					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -462,7 +462,7 @@ public class WebGate {
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+					String responseText = WG_CallApi(apiUrlText, 3*($tryCount+1));
 					// log.info("responseText:" + responseText);
 
 					// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -776,7 +776,7 @@ public class WebGate {
 							$WG_TRACE += apiUrlText + "→";
 						}
 
-						String responseText = WG_CallApi(apiUrlText, 20);
+						String responseText = WG_CallApi(apiUrlText, 10);
 
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 							$WG_IS_CHECKOUT_OK = true;
@@ -852,16 +852,13 @@ public class WebGate {
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 20);
+					responseText = WG_CallApi(apiUrlText, 10);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 						$WG_IS_CHECKOUT_OK = true;
 						$WG_TRACE += "OK→";
 						
-						// 유입량 COUNT 반영 
-						apiUrlText = apiUrlText.replace("Action=OUT", "Action=CHECK"); 
-						WG_CallApi(apiUrlText, 5);
 					} else {
 						$WG_TRACE += "FAIL→";
 					}
@@ -913,7 +910,7 @@ public class WebGate {
 	
 						// 대기표 Validation(checkout api call)
 						String responseText = "";
-						responseText = WG_CallApi(apiUrlText, 5);
+						responseText = WG_CallApi(apiUrlText, 10);
 						// log.info("responseText:" + responseText);
 	
 						if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -1095,7 +1092,7 @@ public class WebGate {
     	         * SSRF 방어용 
     	         * https://9000-0.devy.kr/?ServiceId=9000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
     	         */
-    	        "^http[s]?:\\/\\/\\d{4}-\\w{1,2}\\.devy\\.kr[\\/,\\?].*$",
+    	        "^http[s]?:\\/\\/\\d{4,20}-\\w{1,10}\\.devy\\.kr[\\/,\\?].*$",
     	        Pattern.CASE_INSENSITIVE
     	    );
 

@@ -10,6 +10,209 @@
     '* ==============================================================================================
     '*/
     
+    FUNCTION WG_IsValidToken(WG_SERVICE_ID, WG_GATE_ID)
+        Dim WG_VERSION         
+        Dim WG_MAX_TRY_COUNT   
+        Dim WG_IS_CHECKOUT_OK  
+        Dim WG_GATE_SERVER_MAX 
+        Dim WG_GATE_SERVERS()    
+        Dim WG_TOKEN_NO        
+        Dim WG_TOKEN_KEY       
+        Dim WG_WAS_IP          
+        Dim WG_TRACE           
+        Dim WG_IS_LOADTEST, WG_IS_LOADTEST_PARAM     
+        Dim WG_CLIENT_IP
+
+
+        WG_VERSION              = "26.1.306"
+        WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
+        WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
+        WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
+        WG_TOKEN_NO             = ""                           '대기표 ID
+        WG_TOKEN_KEY            = ""                           '대기표 key
+        WG_WAS_IP               = ""                           '대기표 발급서버
+        WG_TRACE                = ""                           'TRACE 정보 (쿠키응답)
+        WG_IS_LOADTEST          = "N"                          'jmeter 등으로 발생시킨 요청인지 여부
+        
+        'get client ip
+        WG_CLIENT_IP = GetClientIP()
+
+        'init gate server list 
+        ReDim WG_GATE_SERVERS(WG_GATE_SERVER_MAX)
+        Dim i
+        For i = 0 To WG_GATE_SERVER_MAX -1 Step 1   
+            WG_GATE_SERVERS(i) = WG_SERVICE_ID & "-" & i & ".devy.kr"   
+        Next 
+        
+	    'JMeter 등에서 부하테스트(LoadTest)용으로 호출된 경우를 위한 처리 (부하발생 시 URL에 IsLoadTest=Y parameter 추가해야 합니다)
+        WG_IS_LOADTEST_PARAM = Request.QueryString("IsLoadTest")
+        If Not IsNull(WG_IS_LOADTEST_PARAM) And Not IsEmpty(WG_IS_LOADTEST_PARAM) Then
+            WG_IS_LOADTEST = WG_IS_LOADTEST_PARAM
+        End If
+
+        'API Call Timeout : 2초 무응답 시 장애 간주
+        Dim ApiUrl, ResponseText
+        Dim XmlHttp : Set XmlHttp = Server.CreateObject("MSXML2.ServerXMLHTTP.6.0")
+
+        '******************************************************************************
+        'STEP-1 : URL Prameter로 대기표 검증 (CDN Landing 방식을 이용하는 경우에 해당)
+        '*******************************************************************************
+        'Try 시작
+        On Error Resume Next   
+        WG_TRACE = WG_TRACE & "STEP1:"
+        'WG_TOKEN paramter를 ','로 분리 및 분리된 개수 체크
+        Dim TokenParam
+        TokenParam = Request.QueryString("WG_TOKEN")
+        If Not IsNull(TokenParam) Then
+            Dim TokenValues
+            TokenValues = Split(TokenParam, ",")
+                
+            If Ubound(TokenValues) = Ubound(Split("GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP",",")) Then
+                WG_TOKEN_NO  = TokenValues(1)
+                WG_TOKEN_KEY = TokenValues(2)
+                WG_WAS_IP    = TokenValues(3)
+
+                    
+                if Right(LCase(WG_WAS_IP), Len(".devy.kr")) = ".devy.kr" Then 'Check SSRF
+                    
+                    '대기표 Validation(checkout api call)
+                    ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                    'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
+
+                    ' Call API
+                    XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
+                    ResponseText = WG_CallApi(ApiUrl, XmlHttp)
+                    If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
+                        WG_IS_CHECKOUT_OK = True
+                        WG_TRACE = WG_TRACE & "OK,"
+
+                        ' set cookie from WG_TOKEN param
+	                    WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
+	                    WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
+	                    WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
+
+                        'WG_TRACE = WG_TRACE & ", cookie write : " & "WG_CLIENT_ID=" & WG_TOKEN_KEY & ", WG_WAS_IP=" & WG_WAS_IP & ", WG_TOKEN_NO=" & WG_TOKEN_NO
+
+                    Else
+                        WG_TRACE = WG_TRACE & "FAIL,"
+                    End If
+                Else
+                    WG_TRACE = WG_TRACE & "FAIL(SSRF),"
+                End if
+            Else
+                WG_TRACE = WG_TRACE & "SKIP1,"
+            End If
+        Else
+            WG_TRACE = WG_TRACE & "SKIP2,"
+        End If
+        'Catch
+        If Err <> 0 Then   
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
+            'ignore & goto next
+        End If
+        'Error Clear
+        On Error GoTo 0 
+
+        
+    
+
+
+        '******************************************************************************
+        'STEP-2 : Cookie로 대기표 검증 (CDN Landing 방식 이외의 일반적인 방식에 해당)
+        '*******************************************************************************
+        'Try 시작
+        On Error Resume Next   
+        WG_TRACE = WG_TRACE & "→STEP2:"
+
+        'CHECK SSRF
+        'If Not IsEmpty(WG_WAS_IP) And Right(Lcase(WG_WAS_IP), Len(".devy.kr")) =  ".devy.kr" Then 
+        '    WG_WAS_IP = ""
+        'End if
+
+        
+
+        If IsEmpty(WG_TOKEN_KEY) OR Len(WG_TOKEN_KEY) = 0 Then
+            WG_TOKEN_KEY = WG_RandomString(8)
+        End If
+
+        If Not WG_IS_CHECKOUT_OK Then
+
+            Dim cookieGateId
+            cookieGateId = Request.Cookies("WG_GATE_ID") 
+                
+            WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
+            WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
+            WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
+                
+            If Len(WG_TOKEN_NO) > 0 And Len(WG_TOKEN_KEY) > 0 And Len(WG_WAS_IP) > 0 And Len(WG_GATE_ID) > 0 And Len(cookieGateId) > 0 Then
+                If StrComp(WG_GATE_ID, cookieGateId) = 0 Then
+                    '대기표 Validation(checkout api call)
+                    ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+
+                    ' Call API
+                    XmlHttp.SetTimeouts 20000, 20000, 20000, 20000
+                    ResponseText = WG_CallApi(ApiUrl, XmlHttp)
+                    If Not IsNull(ResponseText) And Not IsEmpty(ResponseText) And InStr(ResponseText, """ResultCode"":0") Then
+                        WG_IS_CHECKOUT_OK = True
+                        WG_TRACE = WG_TRACE & "OK,"
+                    Else
+                        WG_TRACE = WG_TRACE & "FAIL,"
+                    End If
+                Else
+                    WG_TRACE = WG_TRACE & "SKIP1,"
+                End If
+            Else
+                WG_TRACE = WG_TRACE & "SKIP2,"
+            End If
+        Else
+            WG_TRACE = WG_TRACE & "SKIP3,"
+        End If
+        'Catch
+        If Err <> 0 Then   
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description & ","
+            'ignore & goto next
+        End If
+
+        'Error Clear
+        On Error GoTo 0 
+
+        WG_IsValidToken = WG_IS_CHECKOUT_OK
+        WG_TRACE = WG_TRACE & "→Returns:" & Cstr(WG_IS_CHECKOUT_OK)
+
+        'Catch
+        If Err <> 0 Then   
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
+            'ignore & goto next
+        End If
+        'Error Clear
+        On Error GoTo 0 
+
+
+        'Cookie Write for trace
+        On Error Resume Next   
+        WG_WriteCookie "WG_TRACE", WG_TRACE
+        WG_WriteCookie "WG_MOD_BACKEND", "ASP"
+        WG_WriteCookie "WG_VER_BACKEND", WG_VERSION
+        Dim YmdHms : YmdHms = WG_UtcTimeFromat(Now()) 
+        WG_WriteCookie "WG_TIME", YmdHms
+        WG_WriteCookie "WG_CLIENT_IP", WG_CLIENT_IP
+        WG_WriteCookie "WG_WAS_IP", WG_WAS_IP
+        WG_WriteCookie "WG_GATE_ID", WG_GATE_ID
+        WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
+
+        'Catch
+        If Err <> 0 Then   
+            WG_TRACE = WG_TRACE & "ERROR:" & Err.Description
+            'ignore & goto next
+        End If
+
+
+        'Error Clear
+        On Error GoTo 0 
+
+    END FUNCTION
+
+
     FUNCTION WG_IsNeedToWaiting(WG_SERVICE_ID, WG_GATE_ID)
         Dim WG_VERSION         
         Dim WG_MAX_TRY_COUNT   
@@ -24,7 +227,7 @@
         Dim WG_CLIENT_IP
 
 
-        WG_VERSION              = "25.1.914"
+        WG_VERSION              = "26.1.208"
         WG_MAX_TRY_COUNT        = 3                            '[fixed] failover api retry count
         WG_IS_CHECKOUT_OK       = False                        '[fixed] 대기를 완료한 정상 대기표 여부 (true : 대기완료한 정상 대기표, false : 정상대기표 아님)
         WG_GATE_SERVER_MAX      = 6                            '[fixed] was dns record count
@@ -69,20 +272,16 @@
             TokenValues = Split(TokenParam, ",")
                 
             If Ubound(TokenValues) = Ubound(Split("GATE_ID,TOKEN_NO,TOKEN_KEY,WAS_IP",",")) Then
-                Dim TEMP_TOKEN_NO 
-                Dim TEMP_TOKEN_KEY
-                Dim TEMP_WAS_IP   
 
-                TEMP_TOKEN_NO  = TokenValues(1)
-                TEMP_TOKEN_KEY = TokenValues(2)
-                TEMP_WAS_IP    = TokenValues(3)
+                WG_TOKEN_NO  = TokenValues(1)
+                WG_TOKEN_KEY = TokenValues(2)
+                WG_WAS_IP    = TokenValues(3)
 
                     
-                if Right(LCase(TEMP_WAS_IP), Len(".devy.kr")) = ".devy.kr" Then 'Check SSRF
-                    'Response.Write( "WG_TOKEN_NO:" & TEMP_TOKEN_NO & ", WG_TOKEN_KEY:" & TEMP_TOKEN_KEY & ", WG_WAS_IP:" & TEMP_WAS_IP)                
+                if Right(LCase(WG_WAS_IP), Len(".devy.kr")) = ".devy.kr" Then 'Check SSRF
                     
                     '대기표 Validation(checkout api call)
-                    ApiUrl =  "https://" & TEMP_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & TEMP_TOKEN_NO & "&TokenKey=" & TEMP_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
+                    ApiUrl =  "https://" & WG_WAS_IP & "/?ServiceId=" & WG_SERVICE_ID & "&GateId=" & WG_GATE_ID & "&Action=OUT&TokenNo=" & WG_TOKEN_NO & "&TokenKey=" & WG_TOKEN_KEY & "&IsLoadTest=" & WG_IS_LOADTEST
                     'WG_TRACE = WG_TRACE & "API_URL:" & ApiUrl & ", "
 
                     ' Call API
@@ -129,10 +328,6 @@
         On Error Resume Next   
         WG_TRACE = WG_TRACE & "→STEP2:"
 
-        WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
-        WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
-        WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
-
         'CHECK SSRF
         'If Not IsEmpty(WG_WAS_IP) And Right(Lcase(WG_WAS_IP), Len(".devy.kr")) =  ".devy.kr" Then 
         '    WG_WAS_IP = ""
@@ -149,6 +344,11 @@
             Dim cookieGateId
             cookieGateId = Request.Cookies("WG_GATE_ID") 
                 
+            WG_TOKEN_NO  = Request.Cookies("WG_TOKEN_NO")
+            WG_TOKEN_KEY = Request.Cookies("WG_CLIENT_ID")
+            WG_WAS_IP    = Request.Cookies("WG_WAS_IP")
+
+
                 
             If Len(WG_TOKEN_NO) > 0 And Len(WG_TOKEN_KEY) > 0 And Len(WG_WAS_IP) > 0 And Len(WG_GATE_ID) > 0 And Len(cookieGateId) > 0 Then
                 If StrComp(WG_GATE_ID, cookieGateId) = 0 Then
@@ -396,7 +596,7 @@
     ' --------------------------------------------
     Function WG_IsValidApi(Url)
         Dim rx : Set rx = New RegExp
-        rx.Pattern    = "^https?://[0-9]{4}-[A-Za-z0-9_]{1,2}\.devy\.kr[/?].*$"
+        rx.Pattern    = "^https?://[0-9]{4,20}-[A-Za-z0-9_]{1,10}\.devy\.kr[/?].*$"
         rx.IgnoreCase = True
         rx.Global     = False
 

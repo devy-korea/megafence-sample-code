@@ -122,7 +122,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText, 20);
+					String responseText = WG_CallApi(apiUrlText, 10);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 						$WG_IS_CHECKOUT_OK = true;
@@ -200,7 +200,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 
 				// 대기표 Validation(checkout api call)
 				String responseText = "";
-				responseText = WG_CallApi(apiUrlText, 20);
+				responseText = WG_CallApi(apiUrlText, 10);
 				// log.info("responseText:" + responseText);
 
 				if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -259,7 +259,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 20);
+					responseText = WG_CallApi(apiUrlText, 10);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -312,7 +312,7 @@ public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRe
 					$WG_TRACE += apiUrlText + "→";
 				}
 
-				String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+				String responseText = WG_CallApi(apiUrlText, 3*($tryCount+1));
 				// log.info("responseText:" + responseText);
 
 				// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -448,7 +448,7 @@ public boolean WG_IsNeedToWaiting_V2(String serviceId, String gateId, HttpServle
 					$WG_TRACE += apiUrlText + "→";
 				}
 
-				String responseText = WG_CallApi(apiUrlText, 5*($tryCount+1));
+				String responseText = WG_CallApi(apiUrlText, 3*($tryCount+1));
 				// log.info("responseText:" + responseText);
 
 				// 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
@@ -581,7 +581,7 @@ public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletReque
 						$WG_TRACE += apiUrlText + "→";
 					}
 
-					String responseText = WG_CallApi(apiUrlText, 20);
+					String responseText = WG_CallApi(apiUrlText, 10);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
 						$WG_IS_CHECKOUT_OK = true;
@@ -657,7 +657,7 @@ public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletReque
 
 				// 대기표 Validation(checkout api call)
 				String responseText = "";
-				responseText = WG_CallApi(apiUrlText, 20);
+				responseText = WG_CallApi(apiUrlText, 10);
 				// log.info("responseText:" + responseText);
 
 				if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {
@@ -715,7 +715,7 @@ public boolean WG_IsValidToken(String serviceId, String gateId, HttpServletReque
 
 					// 대기표 Validation(checkout api call)
 					String responseText = "";
-					responseText = WG_CallApi(apiUrlText, 20);
+					responseText = WG_CallApi(apiUrlText, 10);
 					// log.info("responseText:" + responseText);
 
 					if (responseText != null && responseText.indexOf("\"ResultCode\":0") >= 0) {

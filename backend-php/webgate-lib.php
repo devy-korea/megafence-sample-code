@@ -9,7 +9,7 @@
     * All rights reserved to DEVY / https://devy.kr
     * ==============================================================================================
     */
-	define("WG_VERSION", "25.1.914");
+	define("WG_VERSION", "26.1.306");
 
 	function WG_IsNeedToWaiting($service_id, $gate_id)
     {
@@ -80,7 +80,6 @@
                     {
                         // 대기표 Validation(checkout api call)
                         $apiUrl = "https://" . $WG_WAS_IP . "/?ServiceId=" . $WG_SERVICE_ID . "&GateId=" . $WG_GATE_ID . "&Action=OUT&TokenNo=" . $WG_TOKEN_NO . "&TokenKey=" . $WG_TOKEN_KEY . "&ClientIp=" . $WG_CLIENT_IP . "&IsLoadTest=" . $WG_IS_LOADTEST;
-
                         $responseText = WG_CallApi($apiUrl);
                         if($responseText != null && $responseText != "" && strpos($responseText, "\"ResultCode\":0") !== false)
                         {
@@ -239,9 +238,9 @@
                     
                     //$WG_TRACE .=  $apiUrl.",";
                     $responseText = WG_CallApi($apiUrl);
+                    //$WG_TRACE .= "Response:".$responseText.",";
                     if($responseText == null || $responseText == "") { continue; }  
 
-                
                     // 현재 대기자가 있으면 응답문자열에 "WAIT"가 포함, 대기자 수가 없으면 "PASS"가 포함됨
                     if(strpos($responseText, "WAIT") !== false) 
                     {
@@ -793,8 +792,8 @@
         }
         // pattern validtion
         // $regEx = "/^\d{4}-\w{1,4}\.devy\.kr$/i";
-        // ex: https://9000-0.devy.kr/?ServiceId=9000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
-        $regEx = "/^http[s]?:\/\/\d{4}-\w{1,2}\.devy\.kr[\/\?].*$/i";
+        // ex: https://10000-0.devy.kr/?ServiceId=10000&GateId=1&Action=ACK&TokenNo=69&TokenKey=1MKE8AK4&MdsTurnstileToken=&v=0.02596159270602616
+        $regEx = "/^http[s]?:\/\/\d{4,20}-\w{1,10}\.devy\.kr[\/\?].*$/i";
         return (bool)preg_match($regEx, $url);
     }
 
