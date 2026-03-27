@@ -68,7 +68,7 @@ public class BackendSampleController {
     	 * */
    	 	// ★TO-DO : 할당된 SERVICE ID 및 GATE ID SET
     	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= "1";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String gateId 		= "3";  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
     	
     	WebGate webgate = new WebGate();
     	 
@@ -88,7 +88,7 @@ public class BackendSampleController {
         		PrintWriter out = response.getWriter();
     			out.write(uiHtml);
     			out.close();
-    			return "backend_replace"; // 환경(Framework)에 따라 void return을 해야할 수 도 있습니다. 
+    			return "backend_replace"; // !! 고객사 환경(Framework)에 따라 void 나 다른 형태의 return 처리를 해야 할 수 있습니다. 실 환경에 맞추어 return 처리 하세요 
 	    	} catch (Exception e) {
 	    		// 필요시 log write..
 	    	}
@@ -107,7 +107,7 @@ public class BackendSampleController {
     		예) 주문상태 GET : 주문 DB에서 주문상태(주문완료/배송중/배송완료)별 수량 조회
     	*/
     	
-    	return "backend_replace"; 
+    	return "backend_replace";  // !! 고객사 환경(Framework)에 따라 void 나 다른 형태의 return 처리를 해야 할 수 있습니다. 실 환경에 맞추어 return 처리 하세요
     }
 
 	
@@ -146,7 +146,7 @@ public class BackendSampleController {
             // URL 인코딩 (UTF-8)
             String nextUrl = URLEncoder.encode(currentPath.toString(), "UTF-8");
 
-            // 동일 서버 내 landing.html로 리다이렉트
+            // 동일 서버 내 Landing 페이지로 Redirect (landing.html이 Landing용 페이지인 경우) 
     		return "redirect:/landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl;  // OR response.sendRedirect("landing.html?GateId=" + gateId + "&NextUrl=" + nextUrl);
     	} 
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
@@ -201,7 +201,7 @@ public class BackendSampleController {
             // URL 인코딩 (UTF-8)
             String nextUrl = URLEncoder.encode(currentPath.toString(), "UTF-8");
 
-            // 외부 CDN or 웹사이트 내부 intro.html로 리다이렉트
+            // 외부 CDN or 웹사이트 내부 intro.html로 리다이렉트 (intro.html이 intro용 페이지인 경우)
     		return "redirect:/intro.html";  // OR response.sendRedirect("intro.html");
     	} 
     	/*▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ END OF 유량제어 코드삽입 */
