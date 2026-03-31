@@ -48,15 +48,15 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	/* *********************************************************************************************************
     	 * 유량제어 적용대상 PAGE이면 해당 GATE ID SET
     	 * *********************************************************************************************************/
-    	String serviceId 	= "9000"; 	// 할당된 SERVICE ID 
-    	String gateId 		= null;  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
+    	String serviceId 	= "9000"; 	// *할당된 SERVICE ID로 수정 요망
+    	String gateId 		= null;  	// 사용할 GATE ID (아래에서 별도 세팅)
 
-    	// 유량제어 적용대상 페이지인지 꼭 개별적으로 체크해서 해당 GATE ID SET (기타 잡다한 리소스 요청들에 의해 동작하지 않도록 주의!) 
+    	// 유량제어 적용대상 페이지인지 꼭 개별적으로 체크해서 해당 GATE ID로 수정 (기타 잡다한 리소스 요청들에 의해 동작하지 않도록 주의!) 
     	String uri = request.getRequestURI();
     	switch(uri) {
     		case "/" : 
-    		case "/Samples/BackendWithReplace":
-    			gateId = "1";
+    		case "/Samples/BackendWithReplace": // *실제 경로로 수정 요망
+    			gateId = "1"; 					// *실제 사용할 GATE ID로 수정 요망
     			break;
     		default : 
     			gateId = null;
