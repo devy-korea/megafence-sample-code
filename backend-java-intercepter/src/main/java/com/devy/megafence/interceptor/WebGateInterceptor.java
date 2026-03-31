@@ -20,7 +20,7 @@ public class WebGateInterceptor implements HandlerInterceptor {
                              Object handler) throws Exception {
 
     	
-    	// request 판단
+        /* log 필요 시 사용 
         String uri = request.getRequestURI();
         String url = request.getRequestURL().toString();
         String query = request.getQueryString();
@@ -31,7 +31,6 @@ public class WebGateInterceptor implements HandlerInterceptor {
         String referer = request.getHeader("Referer");
         String dispatcherType = request.getDispatcherType().name();
 
-        /* log 필요 시 사용 
         System.out.println("==================================================");
         System.out.println("[WebGateInterceptor] preHandle START" );
         System.out.println("method         : " + method);
@@ -53,6 +52,7 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	String gateId 		= null;  	// 사용할 GATE ID (할당된 GATE ID 범위내에서 사용)
 
     	// 유량제어 적용대상 페이지인지 꼭 개별적으로 체크해서 해당 GATE ID SET (기타 잡다한 리소스 요청들에 의해 동작하지 않도록 주의!) 
+    	String uri = request.getRequestURI();
     	switch(uri) {
     		case "/" : 
     		case "/Samples/BackendWithReplace":
