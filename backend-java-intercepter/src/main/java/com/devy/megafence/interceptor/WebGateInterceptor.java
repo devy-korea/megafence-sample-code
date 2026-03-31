@@ -56,7 +56,7 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	switch(uri) {
     		case "/" : 
     		case "/Samples/BackendWithReplace":
-    			gateId = "4";
+    			gateId = "1";
     			break;
     		default : 
     			gateId = null;
