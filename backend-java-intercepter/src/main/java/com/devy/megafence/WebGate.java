@@ -5,8 +5,10 @@ package com.devy.megafence;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
@@ -190,7 +192,7 @@ public class WebGate {
 				}
 
 				if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
-					$WG_TOKEN_KEY = WG_GetRandomString(8);
+					$WG_TOKEN_KEY = WG_GetRandomString(12);
 					WG_WriteCookie($RES, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 				}
 
@@ -443,48 +445,130 @@ public class WebGate {
 
 	}
 	
-	
+	/**
+	 * Random key 생성 (WG_CLIENT_ID용)
+	 * @param length
+	 * @return
+	 */
 	public String WG_GetRandomString(int length) {
-		StringBuffer buffer = new StringBuffer();
-		SecureRandom random = new SecureRandom();
+	    String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	    int charLen = characters.length();
+	    StringBuilder randstring = new StringBuilder();
+	    SecureRandom random = new SecureRandom();
 
-		String chars[] = "1,2,3,4,5,6,7,8,A,B,C,D,E,F,G,H,J,K,L,M,N,P,Q,R,S,T,W,X,Y,Z".split(",");
+	    // 기본 길이 12
+	    if (length < 12) {
+	        length = 12;
+	    }
 
-		for (int i = 0; i < length; i++) {
-			buffer.append(chars[random.nextInt(chars.length)]);
-		}
-		return buffer.toString();
+	    // 본문 생성 (뒤 2자리는 체크코드)
+	    for (int i = 0; i < (length - 2); i++) {
+	        randstring.append(characters.charAt(random.nextInt(charLen)));
+	    }
+
+	    // 최소 문자
+	    char minChar = randstring.charAt(0);
+	    for (int i = 1; i < randstring.length(); i++) {
+	        if (randstring.charAt(i) < minChar) {
+	            minChar = randstring.charAt(i);
+	        }
+	    }
+	    int minPos = characters.indexOf(minChar);
+
+	    // 최대 문자
+	    char maxChar = randstring.charAt(0);
+	    for (int i = 1; i < randstring.length(); i++) {
+	        if (randstring.charAt(i) > maxChar) {
+	            maxChar = randstring.charAt(i);
+	        }
+	    }
+	    int maxPos = characters.indexOf(maxChar);
+
+	    // 체크코드 2자리
+	    char minCheckCode = characters.charAt((minPos - 1 + charLen) % charLen);
+	    char maxCheckCode = characters.charAt((maxPos + 1 + charLen) % charLen);
+
+	    return randstring.toString() + minCheckCode + maxCheckCode;
 	}
-
+	
+	
+	/**
+	 * Read Cookie : URL Encoding 지원 
+	 * @param req
+	 * @param key
+	 * @return
+	 */
 	public String WG_ReadCookie(HttpServletRequest req, String key) {
-		Cookie[] cookies = req.getCookies();
+	    Cookie[] cookies = req.getCookies();
 
-		if (cookies != null) {
-			for (int i = 0; i < cookies.length; i++) {
-				if (cookies[i].getName().equals(key)) {
-					return cookies[i].getValue();
-				}
-			}
-		}
-		return null;
+	    if (cookies != null) {
+	        for (int i = 0; i < cookies.length; i++) {
+	            if (cookies[i].getName().equals(key)) {
+	                try {
+	                    return URLDecoder.decode(cookies[i].getValue(), StandardCharsets.UTF_8.name());
+	                } catch (Exception ex) {
+	                    return cookies[i].getValue();
+	                }
+	            }
+	        }
+	    }
+	    return "";
 	}
 	
 
-	/* 쿠키 저장*/
+	/**
+	 * Write Cookie : URL Encoding 지원, Lax default
+	 * @param res
+	 * @param key
+	 * @param value
+	 */
 	public void WG_WriteCookie(HttpServletResponse res, String key, String value) {
-		// default cookie (auto domain)
-		try {
-			String cookieValue = value;
-			Cookie cookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-			cookie.setMaxAge(86400 * 1);
-			cookie.setPath("/");
-			res.addCookie(cookie); 
-		} catch (Exception ex) {
-			// skip
-		}
-	}
-	
+	    try {
+	        int days = 1;
+
+	        if ("WG_CLIENT_ID".equals(key)) {
+	            days = 365;
+	        }
+
+	        if (value == null) {
+	            value = "";
+	        }
+
+	        String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+
+	        StringBuilder cookieText = new StringBuilder();
+	        cookieText.append(key).append("=").append(encodedValue);
+	        cookieText.append("; Max-Age=").append(86400 * days);
+	        cookieText.append("; Path=/");
+	        cookieText.append("; Secure");
+	        cookieText.append("; SameSite=Lax");
+
+	        // PHP 최종소스 기준 httponly=false 이므로 HttpOnly는 넣지 않음
+	        res.addHeader("Set-Cookie", cookieText.toString());
+	    } catch (Exception ex) {
+	        // skip
+	    }
+	}	
 		
+	/**
+	 * Delete cookie
+	 * @param res
+	 * @param key
+	 */
+	public void WG_DeleteCookie(HttpServletResponse res, String key) {
+	    try {
+	        StringBuilder cookieText = new StringBuilder();
+	        cookieText.append(key).append("=");
+	        cookieText.append("; Max-Age=0");
+	        cookieText.append("; Path=/");
+	        cookieText.append("; Secure");
+	        cookieText.append("; SameSite=Lax");
+
+	        res.addHeader("Set-Cookie", cookieText.toString());
+	    } catch (Exception ex) {
+	        // skip
+	    }
+	}	
 
 
 	String WG_CallApi(String urlText, int timeoutSeconds) {
