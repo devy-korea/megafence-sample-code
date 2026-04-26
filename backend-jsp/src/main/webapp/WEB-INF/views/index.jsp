@@ -38,10 +38,33 @@ BEGIN OF 유량제어 코드삽입
 	String gateId 		= "1"; 	  // 사용할 GATE ID (할당된 GATE ID 중에서 사용) 
 
 	// 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
-	if(!WG_IsValidToken(serviceId, gateId,  request, response))
+	if(WG_IsNeedToWait(serviceId, gateId,  request, response))
   	{
-	  	out.print(WG_GetWaitingUi(serviceId, gateId));
-	  	return; // 응답종료
+		/* ----------------------------------------------------
+		 * Replace MODE : 페이지 응답을 대기UI(uiHtml)로 교체 
+		 * ---------------------------------------------------
+		 
+			String uiHtml = WG_GetWaitingUi(serviceId, gateId);
+			response.setContentType("text/html");
+			out.print(WG_GetWaitingUi(serviceId, gateId));
+			out.close();
+			return; 
+		 
+		 */
+		
+		/* ----------------------------------------------------
+		 * Redirct MODE : 외부(CDN) 대기 페이지 이용하는 경우  
+		 * ---------------------------------------------------
+		 
+		 
+		 */
+		String redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; // 안내받은 CDN INTRO PAGE URL SET 
+        String nextUrl = URLEncoder.encode("http://localhost:8080/", "UTF-8"); // 이 페이지의 FULL URL
+
+        // redirect to Intro Page 
+        String redirectFullUrl = redirectBaseUrl + "?GateId=" + gateId + "&NextUrl=" + nextUrl;
+		response.sendRedirect(redirectFullUrl); 
+		return; 		
   	}
 %>
 <!--
@@ -73,29 +96,6 @@ Heavy business logic ....
             </div>
         </form>
     </div>
-    
-    
-    
-    <!--begin of megafence ------------------------------------------------------------------------>
-    <!-- 
-    Frontend에서 유량제어 유효성 검사를 하는 코드입니다.
-    Backend 적용된 경우 필수 적용 사항은 아님. (권장사항)
-    ※ 주의 : Landing Page가 웹사이트 내부 또는 외부 CDN에 배포되어 있는 경우에만 사용하세요.
-    --->
-    <script>
-        function WG_PreInit() {
-        }
-        function WG_PostInit() {
-            WG_SetACK({
-                gateId          : 1, /* 할당된 GATE ID */
-                invalidTokenUrl : "https://cdn2.devy.kr/9000/landing.html", /* 토큰 유효성실패(비정상 토큰) */
-                countdownUrl    : "https://cdn2.devy.kr/9000/landing.html", /* Countdown 기간 */
-                errorUrl        : "https://cdn2.devy.kr/9000/landing.html"  /* 기타 오류 */
-            });
-        }
-    </script>
-    <script src="https://cdn2.devy.kr/9000/js/webgate.js?v=1"></script>
-    <!--end of megafence -------------------------------------------------------------------->
     
 </body>
 

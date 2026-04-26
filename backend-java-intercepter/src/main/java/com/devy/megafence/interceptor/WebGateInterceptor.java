@@ -51,7 +51,6 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	 * *********************************************************************************************************/
     	String 	serviceId 		= "9000"; 	// *할당된 SERVICE ID로 수정 요망
     	String 	gateId 			= null;  	// 사용할 GATE ID (아래에서 별도 세팅)
-    	boolean isReplaceMode	= true;
 
     	// 유량제어 적용대상 페이지인지 꼭 개별적으로 체크해서 해당 GATE ID로 수정 (기타 잡다한 리소스 요청들에 의해 동작하지 않도록 주의!) 
     	String uri = request.getRequestURI();
@@ -68,7 +67,7 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	/* *********************************************************************************************************
     	 * 유량제어 적용대상 PAGE이면 호출코드 동작 (대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체)
     	 * *********************************************************************************************************/
-    	// 여기서 부터는 딱히 수정할 필요가 없습니다.....
+    	// 동작방식 (Replace / Redirect 모드)에 맞는 소스 사용 
     	WebGate webgate = new WebGate();
     	if(gateId != null && gateId.length() > 0)
     	{
@@ -76,31 +75,34 @@ public class WebGateInterceptor implements HandlerInterceptor {
         	{
         		try {
         			
-        			if(isReplaceMode)
-        			{
-        			/* Replace MODE : 페이지 응답을 대기UI(uiHtml)로 교체 */
+        			/* ----------------------------------------------------
+        			 * Replace MODE : 페이지 응답을 대기UI(uiHtml)로 교체 
+        			 * ---------------------------------------------------*/
         			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
         			response.setContentType("text/html");
             		PrintWriter out = response.getWriter();
         			out.write(uiHtml);
         			out.close();
         			return false; // false return 필요!
-        			}
-        			else {
-	    		    	String  redirectBaseUrl = "https://cdn.devy.kr/9000/intro.html"; // 안내받은 CDN INTRO PAGE URL SET 
-	    	            StringBuffer url = request.getRequestURL();
-	    	            String queryString =request.getQueryString(); 
-	    	            if( queryString != null)
-	    	            {
-	    	            	url.append("?").append(queryString);
-	    	            }
-	    	            String nextUrl = URLEncoder.encode(url.toString(), "UTF-8");
-	
-	    	            // redirect to Intro Page 
-	    	            String redirectFullUrl = redirectBaseUrl + "/?GateId=" + gateId + "&NextUrl=" + nextUrl;
-	    	    		response.sendRedirect(redirectFullUrl); 
-	    				return false; // false return 필요!
-        			}
+        			
+        			/* ----------------------------------------------------
+        			 * Redirct MODE : 외부(CDN) 대기 페이지 이용하는 경우  
+        			 * ---------------------------------------------------*/
+        			/*
+        			String  redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; // 안내받은 CDN INTRO PAGE URL SET 
+    	            StringBuffer url = request.getRequestURL();
+    	            String queryString =request.getQueryString(); 
+    	            if( queryString != null)
+    	            {
+    	            	url.append("?").append(queryString);
+    	            }
+    	            String nextUrl = URLEncoder.encode(url.toString(), "UTF-8");
+
+    	            // redirect to Intro Page 
+    	            String redirectFullUrl = redirectBaseUrl + "?GateId=" + gateId + "&NextUrl=" + nextUrl;
+    	    		response.sendRedirect(redirectFullUrl); 
+    				return false; // false return 필요!
+    				*/
     	    	} catch (Exception e) {
     	    		// 필요시 log write..
     	    	}

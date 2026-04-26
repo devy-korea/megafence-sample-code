@@ -48,7 +48,7 @@ import javax.servlet.http.HttpServletResponse;
 public class WebGate {
 	
 	////////////////////////////////////////////////
-	static final String $WG_VERSION = "26.1.422";
+	static final String $WG_VERSION = "26.1.426";
 	////////////////////////////////////////////////
 	
 	//private Logger log = LoggerFactory.getLogger(WebGate.class);
@@ -100,9 +100,11 @@ public class WebGate {
 	    String $WG_CLIENT_IP = WG_GetUserIpAddr(req);
 	    int $WG_OUT_COUNT = 0;
 	    int $WG_RESULT_CODE = 0;
-	    String $WG_RESULT_MESSAGE="";
+	    String $WG_RESULT_MESSAGE = "";
+	    String $WG_GATE_OPERATION_MODE = "";
 	    boolean $WG_IS_TRACE_DETAIL = false;
 	    boolean $WG_IS_NEED_TO_WAIT = false;
+	    boolean $WG_RETURN_FLAG   = false;
 
 	    if (req.getParameter("WG_IS_TRACE_DETAIL") != null
 	            && req.getParameter("WG_IS_TRACE_DETAIL").equals("Y")) {
@@ -149,83 +151,118 @@ public class WebGate {
 	                        && paramWasIp != null && !paramWasIp.equals("")
 	                        && paramGateId != null && paramGateId.equals($WG_GATE_ID)) {
 
-	                	// API ACTION=ACK
-	                	{
-	                		$WG_TRACE += "API_ACK:";
-		                	// prepare api
-			                String apiUrlText = WG_BuildApiUrl(paramWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK", paramTokenNo, paramTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-			                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-			                    $WG_TRACE += apiUrlText + ",";
-			                }
-	
-			                // call api
-			                Map<String, Object> json = WG_CallApi(apiUrlText, 5);
+	                    // API ACTION=ACK
+	                    {
+	                        $WG_TRACE += "API_ACK:";
+	                        String apiUrlText = WG_BuildApiUrl(
+	                                paramWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK",
+	                                paramTokenNo, paramTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
 
-			                // api result
-			                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-			                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-			                $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                        if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                            $WG_TRACE += apiUrlText + ",";
+	                        }
 
-			                $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE;
-			                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-			                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
-			                }
-			                $WG_TRACE += ",";
+	                        Map<String, Object> json = WG_CallApi(apiUrlText, 5);
 
-			                if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
-			                    $WG_TRACE += "OK,";
-			                    $WG_IS_CHECKOUT_OK = false;
-			                    $WG_IS_NEED_TO_WAIT = true; // 기존 대기 TOKEN 재사용 & 응답종료
-			                    $WG_TOKEN_NO = paramTokenNo;
-			                    $WG_TOKEN_KEY = paramTokenKey;
-			                    $WG_WAS_IP = paramWasIp;
-			                    WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-			                    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
-			                    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-			                } else {
-			                    $WG_TRACE += "FAIL1,";
-			                }
-	                	}
-	                	// API ACTION=OUT
-	                	if($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false)
-	                	{
-	                		$WG_TRACE += "API_OUT:";
-		                	// prepare api
-			                String apiUrlText = WG_BuildApiUrl(paramWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT", paramTokenNo, paramTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-			                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-			                    $WG_TRACE += apiUrlText + ",";
-			                }
-	
-			                // call api
-			                Map<String, Object> json = WG_CallApi(apiUrlText, 10);
-	
-			                // api result
-			                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-			                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-			                $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                        $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                        $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                        $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                        $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
 
-			                $WG_TRACE += $WG_RESULT_CODE;
-			                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-			                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
-			                }
-			                $WG_TRACE += ",";
-			                
-			                
-			                if ($WG_RESULT_CODE == 0) {
-			                    $WG_TRACE += "OK,";
-			                    $WG_IS_CHECKOUT_OK = true;
-			                    $WG_TOKEN_NO = paramTokenNo;
-			                    $WG_TOKEN_KEY = paramTokenKey;
-			                    $WG_WAS_IP = paramWasIp;
-			                    $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
-	
-			                    WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-			                    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
-			                    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-			                } else {
-			                    $WG_TRACE += "FAIL2,";
-			                }
-	                	}	                	
+	                        $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE + "/" + $WG_GATE_OPERATION_MODE;
+	                        if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                            $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
+	                        }
+	                        $WG_TRACE += ",";
+
+	                        if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                            $WG_TRACE += "ALERT,";
+	                            $WG_RETURN_FLAG = true;
+	                            $WG_IS_CHECKOUT_OK = false;
+	                            $WG_IS_NEED_TO_WAIT = true;
+	                            
+	                            $WG_TOKEN_NO = paramTokenNo;
+	                            $WG_TOKEN_KEY = paramTokenKey;
+	                            $WG_WAS_IP = paramWasIp;
+	                            $WG_TOKEN_STATE = "ALERT";
+
+	                            WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                            WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                            WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                        } else if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
+	                            $WG_TRACE += "OK,";
+	                            $WG_RETURN_FLAG = true;
+	                            $WG_IS_CHECKOUT_OK = false;
+	                            $WG_IS_NEED_TO_WAIT = true;
+	                            
+	                            $WG_TOKEN_NO = paramTokenNo;
+	                            $WG_TOKEN_KEY = paramTokenKey;
+	                            $WG_WAS_IP = paramWasIp;
+
+	                            WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                            WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                            WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                        } else {
+	                            $WG_TRACE += "FAIL1,";
+	                        }
+	                    }
+
+	                    // API ACTION=OUT
+	                    if ($WG_RETURN_FLAG == false) {
+	                        $WG_TRACE += "API_OUT:";
+	                        String apiUrlText = WG_BuildApiUrl(
+	                                paramWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT",
+	                                paramTokenNo, paramTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
+
+	                        if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                            $WG_TRACE += apiUrlText + ",";
+	                        }
+
+	                        Map<String, Object> json = WG_CallApi(apiUrlText, 10);
+
+	                        $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                        $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                        $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                        $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
+
+	                        $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_GATE_OPERATION_MODE;
+	                        if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                            $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
+	                        }
+	                        $WG_TRACE += ",";
+
+	                        if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                            $WG_TRACE += "ALERT,";
+	                            $WG_RETURN_FLAG = true;
+	                            $WG_IS_CHECKOUT_OK = false;
+	                            $WG_IS_NEED_TO_WAIT = true;
+	                            $WG_TOKEN_STATE = "ALERT";
+	                            
+	                            $WG_TOKEN_NO = paramTokenNo;
+	                            $WG_TOKEN_KEY = paramTokenKey;
+	                            $WG_WAS_IP = paramWasIp;
+
+	                            WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                            WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                            WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                        } else if ($WG_RESULT_CODE == 0) {
+	                            $WG_TRACE += "OK,";
+	                            $WG_RETURN_FLAG = true;
+	                            $WG_IS_CHECKOUT_OK = true;
+	                            $WG_IS_NEED_TO_WAIT = false;
+	                            
+	                            $WG_TOKEN_NO = paramTokenNo;
+	                            $WG_TOKEN_KEY = paramTokenKey;
+	                            $WG_WAS_IP = paramWasIp;
+	                            $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
+
+	                            WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                            WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                            WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                        } else {
+	                            $WG_TRACE += "FAIL2,";
+	                        }
+	                    }
 	                } else {
 	                    $WG_TRACE += "SKIP1,";
 	                }
@@ -245,8 +282,7 @@ public class WebGate {
 	    try {
 	        $WG_TRACE += "→STEP2:";
 
-	        if ($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false) 
-	        {
+	        if ($WG_RETURN_FLAG == false) {
 	            String cookieTokenNo = WG_ReadCookie(req, "WG_TOKEN_NO");
 	            String cookieTokenKey = WG_ReadCookie(req, "WG_CLIENT_ID");
 	            String cookieWasIp = WG_ReadCookie(req, "WG_WAS_IP");
@@ -268,81 +304,114 @@ public class WebGate {
 	                    && cookieTokenKey != null && cookieTokenKey.length() > 0
 	                    && cookieWasIp != null && cookieWasIp.length() > 0) {
 
-	            	// API ACTION=ACK
-                	{
-                		$WG_TRACE += "API_ACK:";
-	                	// prepare api
-    	                String apiUrlText = WG_BuildApiUrl(cookieWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK", cookieTokenNo, cookieTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-		                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += apiUrlText + ",";
-		                }
+	                // API ACTION=ACK
+	                {
+	                    $WG_TRACE += "API_ACK:";
+	                    String apiUrlText = WG_BuildApiUrl(
+	                            cookieWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK",
+	                            cookieTokenNo, cookieTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
 
-		                // call api
-		                Map<String, Object> json = WG_CallApi(apiUrlText, 5);
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += apiUrlText + ",";
+	                    }
 
-		                // api result
-		                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-		                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-		                $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                    Map<String, Object> json = WG_CallApi(apiUrlText, 5);
 
-		                $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE;
-		                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
-		                }
-		                $WG_TRACE += ",";
+	                    $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                    $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                    $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                    $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
 
-		                if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
-		                    $WG_TRACE += "OK,";
-		                    $WG_IS_CHECKOUT_OK = false;
-		                    $WG_IS_NEED_TO_WAIT = true; // 기존 대기 TOKEN 재사용 & 응답종료
-		                    $WG_TOKEN_NO = cookieTokenNo;
-		                    $WG_TOKEN_KEY = cookieTokenKey;
-		                    $WG_WAS_IP = cookieWasIp;
-		                    WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-		                    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
-		                    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-		                } else {
-		                    $WG_TRACE += "FAIL1,";
-		                }
-                	}
-                	
-                	// API ACTION=OUT
-                	if($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false)
-                	{	            	
-                		$WG_TRACE += "API_OUT:";
+	                    $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE + "/" + $WG_GATE_OPERATION_MODE;
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
+	                    }
+	                    $WG_TRACE += ",";
 
-                		// prepare api
-		                String apiUrlText = WG_BuildApiUrl(cookieWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT", cookieTokenNo, cookieTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-		                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += apiUrlText + ",";
-		                }
-	
-		                // call api
-		                Map<String, Object> json = WG_CallApi(apiUrlText, 10);
+	                    if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                        $WG_TRACE += "ALERT,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+	                        	                        
+	                        $WG_TOKEN_NO = cookieTokenNo;
+	                        $WG_TOKEN_KEY = cookieTokenKey;
+	                        $WG_WAS_IP = cookieWasIp;
+	                        $WG_TOKEN_STATE = "ALERT";
 
-		                
-		                // api result
-		                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-		                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-		                $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                    } else if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
+	                        $WG_TRACE += "OK,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+	                        
+	                        $WG_TOKEN_NO = cookieTokenNo;
+	                        $WG_TOKEN_KEY = cookieTokenKey;
+	                        $WG_WAS_IP = cookieWasIp;
 
-		                $WG_TRACE += $WG_RESULT_CODE;
-		                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
-		                }
-		                $WG_TRACE += ",";
-	
-		                if ($WG_RESULT_CODE == 0) {
-		                    $WG_TRACE += "OK,";
-		                    $WG_IS_CHECKOUT_OK = true;
-		                    $WG_TOKEN_NO = cookieTokenNo;
-		                    $WG_TOKEN_KEY = cookieTokenKey;
-		                    $WG_WAS_IP = cookieWasIp;
-		                    $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
-		                } else {
-		                    $WG_TRACE += "FAIL2,";
-		                }
-                	}
+	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                    } else {
+	                        $WG_TRACE += "FAIL1,";
+	                    }
+	                }
+
+	                // API ACTION=OUT
+	                if ($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false) {
+	                    $WG_TRACE += "API_OUT:";
+	                    String apiUrlText = WG_BuildApiUrl(
+	                            cookieWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT",
+	                            cookieTokenNo, cookieTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
+
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += apiUrlText + ",";
+	                    }
+
+	                    Map<String, Object> json = WG_CallApi(apiUrlText, 10);
+
+	                    $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                    $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                    $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                    $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
+
+	                    $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_GATE_OPERATION_MODE;
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
+	                    }
+	                    $WG_TRACE += ",";
+
+	                    if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                        $WG_TRACE += "ALERT,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+	                        
+	                        $WG_TOKEN_NO = cookieTokenNo;
+	                        $WG_TOKEN_KEY = cookieTokenKey;
+	                        $WG_WAS_IP = cookieWasIp;
+	                        
+	                    } else if ($WG_RESULT_CODE == 0) {
+	                        $WG_TRACE += "OK,";
+
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = true;
+	                        $WG_IS_NEED_TO_WAIT = false;
+
+	                        $WG_TOKEN_NO = cookieTokenNo;
+	                        $WG_TOKEN_KEY = cookieTokenKey;
+	                        $WG_WAS_IP = cookieWasIp;
+	                        $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
+	                    } else {
+	                        $WG_TRACE += "FAIL2,";
+	                    }
+	                }
 	            } else {
 	                $WG_TRACE += "SKIP1,";
 	            }
@@ -357,8 +426,7 @@ public class WebGate {
 	     * STEP-2B : subdomain cookie로 대기표 검증
 	     *******************************************************************************/
 	    try {
-	        if ($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false) 
-	        {
+	        if ($WG_RETURN_FLAG == false) {
 	            String subdomainTokenNo = WG_ReadCookie(req, "WG_TOKEN_NO_S");
 	            String subdomainWasIp = WG_ReadCookie(req, "WG_WAS_IP_S");
 	            String subdomainTokenKey = WG_ReadCookie(req, "WG_CLIENT_ID_S");
@@ -369,81 +437,119 @@ public class WebGate {
 	                    && subdomainTokenKey != null && subdomainTokenKey.length() > 0
 	                    && subdomainGateId != null && subdomainGateId.equals($WG_GATE_ID)) {
 
-	            	// API ACTION=ACK
-                	{
-                		$WG_TRACE += "API_ACK:";
-	                	// prepare api
-		                String apiUrlText = WG_BuildApiUrl(subdomainWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK", subdomainTokenNo, subdomainTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-		                $WG_TRACE += "APICall:";
-		                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += apiUrlText + ",";
-		                }
+	                // API ACTION=ACK
+	                {
+	                    $WG_TRACE += "API_ACK:";
+	                    String apiUrlText = WG_BuildApiUrl(
+	                            subdomainWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "ACK",
+	                            subdomainTokenNo, subdomainTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
+	                    $WG_TRACE += "APICall:";
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += apiUrlText + ",";
+	                    }
 
-		                // call api
-		                Map<String, Object> json = WG_CallApi(apiUrlText, 5);
+	                    Map<String, Object> json = WG_CallApi(apiUrlText, 5);
 
-		                // api result
-		                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-		                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-		                $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                    $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                    $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                    $WG_TOKEN_STATE = WG_GetJsonTokenState(json);
+	                    $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
 
-		                $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE;
-		                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
-		                }
-		                $WG_TRACE += ",";
-		                
-		                if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
-		                    $WG_TRACE += "OK,";
-		                    $WG_IS_CHECKOUT_OK = false;
-		                    $WG_IS_NEED_TO_WAIT = true; // 기존 대기 TOKEN 재사용 & 응답종료
+	                    $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_TOKEN_STATE + "/" + $WG_GATE_OPERATION_MODE;
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += ":" + $WG_RESULT_MESSAGE + ",";
+	                    }
+	                    $WG_TRACE += ",";
+
+	                    if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                        $WG_TRACE += "ALERT,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+
 	                        $WG_TOKEN_NO = subdomainTokenNo;
 	                        $WG_TOKEN_KEY = subdomainTokenKey;
 	                        $WG_WAS_IP = subdomainWasIp;
-		                    WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
-		                    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
-		                    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-		                } else {
-		                    $WG_TRACE += "FAIL1,";
-		                }
-                	}
-                	
-                	// API ACTION=OUT
-                	if($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false)
-                	{	            	
-                		$WG_TRACE += "API_OUT:";
 
-                		String apiUrlText = WG_BuildApiUrl(subdomainWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT", subdomainTokenNo, subdomainTokenKey, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
-		                if ($WG_TRACE_LEVEL >= 1 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += "API:" + apiUrlText + ",";
-		                }
-	
-		                // api call
-		                Map<String, Object> json = WG_CallApi(apiUrlText, 10);
-		                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
-		                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-		                
-		                $WG_TRACE += $WG_RESULT_CODE;
-		                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
-		                    $WG_TRACE += ":" + $WG_RESULT_MESSAGE;
-		                }
-		                $WG_TRACE += ",";
-	
-	                    if ($WG_RESULT_CODE == 0) {
+	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                    } else if ($WG_RESULT_CODE == 0 && $WG_TOKEN_STATE.equals("WAIT")) {
+	                        $WG_TRACE += "OK,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+
+	                        $WG_TOKEN_NO = subdomainTokenNo;
+	                        $WG_TOKEN_KEY = subdomainTokenKey;
+	                        $WG_WAS_IP = subdomainWasIp;
+
+	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                    } else {
+	                        $WG_TRACE += "FAIL1,";
+	                    }
+	                }
+
+	                // API ACTION=OUT
+	                if ($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false) {
+	                    $WG_TRACE += "API_OUT:";
+
+	                    String apiUrlText = WG_BuildApiUrl(
+	                            subdomainWasIp, $WG_SERVICE_ID, $WG_GATE_ID, "OUT",
+	                            subdomainTokenNo, subdomainTokenKey, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
+
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += "API:" + apiUrlText + ",";
+	                    }
+
+	                    Map<String, Object> json = WG_CallApi(apiUrlText, 10);
+	                    $WG_RESULT_CODE = WG_GetJsonResultCode(json);
+	                    $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
+	                    $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
+
+	                    $WG_TRACE += $WG_RESULT_CODE + "/" + $WG_GATE_OPERATION_MODE;
+	                    if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
+	                        $WG_TRACE += ":" + $WG_RESULT_MESSAGE;
+	                    }
+	                    $WG_TRACE += ",";
+
+	                    if ($WG_RESULT_CODE == 0 && "ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                        $WG_TRACE += "ALERT:subdomain,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+
+	                        $WG_TOKEN_NO = subdomainTokenNo;
+	                        $WG_TOKEN_KEY = subdomainTokenKey;
+	                        $WG_WAS_IP = subdomainWasIp;
+
+	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
+	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
+	                    } else if ($WG_RESULT_CODE == 0) {
 	                        $WG_TRACE += "OK:subdomain,";
+
+	                        $WG_RETURN_FLAG = true;
 	                        $WG_IS_CHECKOUT_OK = true;
+	                        $WG_IS_NEED_TO_WAIT = false;
+	                        
 	                        $WG_TOKEN_NO = subdomainTokenNo;
 	                        $WG_TOKEN_KEY = subdomainTokenKey;
 	                        $WG_WAS_IP = subdomainWasIp;
 	                        $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
-	
+
 	                        WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
 	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 	                        WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
 	                    } else {
 	                        $WG_TRACE += "FAIL2:subdomain[" + $WG_RESULT_CODE + "],";
 	                    }
-                	}
+	                }
 	            } else {
 	                $WG_TRACE += "SKIP:subdomain,";
 	            }
@@ -459,12 +565,11 @@ public class WebGate {
 
 	    int tryCount = 0;
 
-	    if ($WG_IS_CHECKOUT_OK == false && $WG_IS_NEED_TO_WAIT == false) 
-	    {
+	    if ($WG_RETURN_FLAG == false) {
 	        $WG_RESULT_CODE = -1;
 	        int serverCount = $WG_GATE_SERVERS.size();
 	        int drawResult = new SecureRandom().nextInt(serverCount);
-	        
+
 	        $WG_TOKEN_KEY = WG_ReadCookie(req, "WG_CLIENT_ID");
 	        if ($WG_TOKEN_KEY == null || $WG_TOKEN_KEY.equals("")) {
 	            $WG_TOKEN_KEY = WG_GetRandomString(12);
@@ -476,42 +581,60 @@ public class WebGate {
 
 	        for (tryCount = 0; tryCount < $WG_MAX_TRY_COUNT; tryCount++) {
 	            try {
-            		$WG_TRACE += "API_MATCHING" + (tryCount + 1) + ":";
+	                $WG_TRACE += "API_MATCHING" + (tryCount + 1) + ":";
 
-                    String serverIp;
+	                String serverIp;
 	                if (tryCount == 0 && $WG_WAS_IP != null && $WG_WAS_IP.length() > 0) {
 	                    serverIp = $WG_WAS_IP;
 	                } else {
 	                    serverIp = $WG_WAS_IP = $WG_GATE_SERVERS.get((drawResult++) % serverCount);
 	                }
 
-	                String apiUrlText = WG_BuildApiUrl(serverIp, $WG_SERVICE_ID, $WG_GATE_ID, "MATCHING", "", $WG_TOKEN_KEY, $WG_CLIENT_IP,  $WG_REQ_PAGE, $WG_IS_LOADTEST);
+	                String apiUrlText = WG_BuildApiUrl(
+	                        serverIp, $WG_SERVICE_ID, $WG_GATE_ID, "MATCHING",
+	                        "", $WG_TOKEN_KEY, $WG_CLIENT_IP, $WG_REQ_PAGE, $WG_IS_LOADTEST);
 
 	                Map<String, Object> json = WG_CallApi(apiUrlText, 3 * (tryCount + 1));
 	                $WG_RESULT_CODE = WG_GetJsonResultCode(json);
 	                $WG_RESULT_MESSAGE = WG_GetJsonResultMessage(json);
-	                
-                    $WG_TRACE += ":" + $WG_RESULT_CODE + ",";
+	                $WG_GATE_OPERATION_MODE = WG_GetJsonGateOperationMode(json);
+
+	                $WG_TRACE += ":" + $WG_RESULT_CODE + "/" + $WG_GATE_OPERATION_MODE + ",";
 	                if ($WG_TRACE_LEVEL >= 2 || $WG_IS_TRACE_DETAIL) {
 	                    $WG_TRACE += $WG_RESULT_MESSAGE + ",";
 	                }
 	                $WG_TRACE += ",";
-
 
 	                if ($WG_RESULT_CODE == 0) {
 	                    $WG_TOKEN_NO = WG_GetStringValue(json.get("TokenNo"));
 	                    $WG_TOKEN_STATE = WG_GetStringValue(json.get("TokenState"));
 	                    $WG_OUT_COUNT = WG_GetIntValue(json.get("OutCount"), 0);
 
-	                    if ("WAIT".equals($WG_TOKEN_STATE)) {
-	                        $WG_TRACE += "WAIT,";
+	                    if ("ALERT".equals($WG_GATE_OPERATION_MODE)) {
+	                        $WG_TRACE += "ALERT,";
+	                        
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
 	                        $WG_IS_NEED_TO_WAIT = true;
+	                        
+	                        break;
+	                    } else if ("WAIT".equals($WG_TOKEN_STATE)) {
+	                        $WG_TRACE += "WAIT,";
+
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = false;
+	                        $WG_IS_NEED_TO_WAIT = true;
+
 	                        break;
 	                    } else if ("CONNECT".equals($WG_TOKEN_STATE)
 	                            || "IN".equals($WG_TOKEN_STATE)
 	                            || "OUT".equals($WG_TOKEN_STATE)) {
 	                        $WG_TRACE += "PASS,";
+
+	                        $WG_RETURN_FLAG = true;
+	                        $WG_IS_CHECKOUT_OK = true;
 	                        $WG_IS_NEED_TO_WAIT = false;
+	                        
 	                        break;
 	                    } else {
 	                        $WG_TRACE += "ERROR_STATE:" + $WG_TOKEN_STATE + ",";
@@ -529,7 +652,7 @@ public class WebGate {
 	        if (tryCount >= $WG_MAX_TRY_COUNT) {
 	            $WG_TRACE += "RETRY_EXCEEDED,";
 
-	            if ($WG_RESULT_CODE < 0) { // HTTP 통신 오류 등 외부 오류이면 bypass
+	            if ($WG_RESULT_CODE < 0) {
 	                $WG_IS_NEED_TO_WAIT = false;
 	            } else {
 	                $WG_IS_NEED_TO_WAIT = true;
@@ -541,33 +664,53 @@ public class WebGate {
 
 	    $WG_TRACE += "TryCount:" + tryCount + ",";
 
-	    boolean result;
-	    if ($WG_IS_CHECKOUT_OK || !$WG_IS_NEED_TO_WAIT) {
-	        result = false;
-	    } else {
-	        result = true;
-	    }
+	    boolean result = $WG_IS_NEED_TO_WAIT;
 
-	    $WG_TRACE += "→returns:" + (result == true ? "true":"false") + "," + $WG_RESULT_CODE + "," + $WG_RESULT_MESSAGE;
+	    $WG_TRACE += "→returns:" + (result == true ? "true" : "false") + "," + $WG_RESULT_CODE + "," + $WG_RESULT_MESSAGE;
 	    $WG_TRACE = WG_LimitTrace($WG_TRACE);
 	    
-	    WG_WriteCookie(res, "WG_TRACE", $WG_TRACE);
-	    WG_WriteCookie(res, "WG_MOD_BACKEND", $WG_MODULE);
-	    WG_WriteCookie(res, "WG_VER_BACKEND", $WG_VERSION);
+
+	    /* 항상 생성하는 쿠키 */
 	    WG_WriteCookie(res, "WG_TIME", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(new Date()));
 	    WG_WriteCookie(res, "WG_GATE_ID", $WG_GATE_ID);
 	    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
-	    WG_WriteCookie(res, "WG_REQ_PAGE", $WG_REQ_PAGE);
-	    WG_WriteCookie(res, "WG_REQ_IP", $WG_REQ_IP);
-	    WG_WriteCookie(res, "WG_REFERRER", $WG_REFERRER);
-	    WG_WriteCookie(res, "WG_CLIENT_IP", $WG_CLIENT_IP);
 	    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-	    WG_WriteCookie(res, "WG_TOKEN_STATE", $WG_TOKEN_STATE);
-	    WG_WriteCookie(res, "WG_OUT_COUNT", String.valueOf($WG_OUT_COUNT));
-	    WG_WriteCookie(res, "WG_RESULT_CODE", String.valueOf($WG_RESULT_CODE));
-	    WG_WriteCookie(res, "WG_TRACE_LEVEL", "0"); // intentional reset after each request
-	    //WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+	    
+	    /* 조건부 생성 쿠키 */
+	    WG_DeleteCookie(res, "WG_TRACE");
+	    WG_DeleteCookie(res, "WG_MOD_BACKEND");
+	    WG_DeleteCookie(res, "WG_VER_BACKEND");
+	    WG_DeleteCookie(res, "WG_REQ_PAGE");
+	    WG_DeleteCookie(res, "WG_REQ_IP");
+	    WG_DeleteCookie(res, "WG_REFERRER");
+	    WG_DeleteCookie(res, "WG_CLIENT_IP");
+	    WG_DeleteCookie(res, "WG_TOKEN_STATE");
+	    WG_DeleteCookie(res, "WG_OUT_COUNT");
+	    WG_DeleteCookie(res, "WG_RESULT_CODE");
+	    WG_DeleteCookie(res, "WG_GATE_OPERATION_MODE");
 
+	    if($WG_TRACE_LEVEL >= 2)
+	    {
+		    WG_WriteCookie(res, "WG_TRACE", $WG_TRACE);
+		    WG_WriteCookie(res, "WG_REQ_PAGE", $WG_REQ_PAGE);
+		    WG_WriteCookie(res, "WG_REQ_IP", $WG_REQ_IP);
+		    WG_WriteCookie(res, "WG_GATE_OPERATION_MODE", $WG_GATE_OPERATION_MODE);
+		    WG_WriteCookie(res, "WG_REFERRER", $WG_REFERRER);
+		    WG_WriteCookie(res, "WG_CLIENT_IP", $WG_CLIENT_IP);
+		    WG_WriteCookie(res, "WG_TOKEN_STATE", $WG_TOKEN_STATE);
+		    WG_WriteCookie(res, "WG_RESULT_CODE", String.valueOf($WG_RESULT_CODE));
+	    }
+	    else if($WG_TRACE_LEVEL >= 1)
+	    {
+		    WG_WriteCookie(res, "WG_MOD_BACKEND", $WG_MODULE);
+		    WG_WriteCookie(res, "WG_VER_BACKEND", $WG_VERSION);
+		    WG_WriteCookie(res, "WG_TRACE", $WG_TRACE);
+		    WG_WriteCookie(res, "WG_OUT_COUNT", String.valueOf($WG_OUT_COUNT));
+	    }
+	    else if($WG_TRACE_LEVEL <= 0) {
+	    	WG_DeleteCookie(res, "WG_TRACE_LEVEL");
+	    }
+	    	
 	    return result;
 	}
 	
@@ -969,6 +1112,12 @@ public class WebGate {
 	    return WG_GetStringValue(json.get("TokenState"));
 	}	
 	
+	private String WG_GetJsonGateOperationMode(Map<String, Object> json) {
+	    if (json == null) {
+	        return "";
+	    }
+	    return WG_GetStringValue(json.get("GateOperationMode"));
+	}	
 	
 	
 	private Map<String, Object> WG_MakeErrorMap(int resultCode, String resultMessage) {
