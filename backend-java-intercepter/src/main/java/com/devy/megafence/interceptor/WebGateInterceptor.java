@@ -49,15 +49,15 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	/* *********************************************************************************************************
     	 * 유량제어 적용대상 PAGE이면 해당 GATE ID SET
     	 * *********************************************************************************************************/
-    	String 	serviceId 		= "9000"; 	// *할당된 SERVICE ID로 수정 요망
+    	String 	serviceId 		= "9000"; 	// **할당된 SERVICE ID로 수정 요망
     	String 	gateId 			= null;  	// 사용할 GATE ID (아래에서 별도 세팅)
 
     	// 유량제어 적용대상 페이지인지 꼭 개별적으로 체크해서 해당 GATE ID로 수정 (기타 잡다한 리소스 요청들에 의해 동작하지 않도록 주의!) 
     	String uri = request.getRequestURI();
     	switch(uri) {
     		case "/" : 
-    		case "/Samples/YourEventPage": 	// *실제 경로로 수정 요망
-    			gateId = "1"; 				// *실제 사용할 GATE ID로 수정 요망
+    		case "/Samples/YourEventPage": 	// **실제 경로로 수정 요망
+    			gateId = "1"; 				// **실제 사용할 GATE ID로 수정 요망
     			break;
     		default : 
     			gateId = null;
@@ -77,7 +77,8 @@ public class WebGateInterceptor implements HandlerInterceptor {
         			
         			/* ----------------------------------------------------
         			 * Replace MODE : 페이지 응답을 대기UI(uiHtml)로 교체 
-        			 * ---------------------------------------------------*/
+        			 * ---------------------------------------------------
+        			 */
         			String uiHtml = webgate.WG_GetWaitingUi(serviceId, gateId);
         			response.setContentType("text/html");
             		PrintWriter out = response.getWriter();
@@ -87,22 +88,15 @@ public class WebGateInterceptor implements HandlerInterceptor {
         			
         			/* ----------------------------------------------------
         			 * Redirct MODE : 외부(CDN) 대기 페이지 이용하는 경우  
-        			 * ---------------------------------------------------*/
-        			/*
-        			String  redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; // 안내받은 CDN INTRO PAGE URL SET 
-    	            StringBuffer url = request.getRequestURL();
-    	            String queryString =request.getQueryString(); 
-    	            if( queryString != null)
-    	            {
-    	            	url.append("?").append(queryString);
-    	            }
-    	            String nextUrl = URLEncoder.encode(url.toString(), "UTF-8");
+        			 * ---------------------------------------------------
+					String redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; 		// **안내받은 CDN INTRO PAGE URL SET 
+	        		String nextUrl = URLEncoder.encode("http://localhost:8080/", "UTF-8"); 	// **현재 페이지의 FULL URL이 세팅되도록 코딩하세요
 
     	            // redirect to Intro Page 
     	            String redirectFullUrl = redirectBaseUrl + "?GateId=" + gateId + "&NextUrl=" + nextUrl;
     	    		response.sendRedirect(redirectFullUrl); 
     				return false; // false return 필요!
-    				*/
+        			 */
     	    	} catch (Exception e) {
     	    		// 필요시 log write..
     	    	}

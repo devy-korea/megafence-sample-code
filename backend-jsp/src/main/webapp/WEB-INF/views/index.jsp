@@ -34,8 +34,8 @@ BEGIN OF 유량제어 코드삽입
 <%@ include file="./webgate-lib.jsp" %>
 <%
 	// Setting 
-	String serviceId 	= "9000"; // 할당된 SERVICE ID
-	String gateId 		= "1"; 	  // 사용할 GATE ID (할당된 GATE ID 중에서 사용) 
+	String serviceId 	= "9000"; // **할당된 SERVICE ID
+	String gateId 		= "1"; 	  // **사용할 GATE ID (할당된 GATE ID 중에서 사용) 
 
 	// 유량제어 체크 : 접속자가 많으면 대기UI로 응답 대체
 	if(WG_IsNeedToWait(serviceId, gateId,  request, response))
@@ -43,28 +43,26 @@ BEGIN OF 유량제어 코드삽입
 		/* ----------------------------------------------------
 		 * Replace MODE : 페이지 응답을 대기UI(uiHtml)로 교체 
 		 * ---------------------------------------------------
-		 
+		 */
 			String uiHtml = WG_GetWaitingUi(serviceId, gateId);
 			response.setContentType("text/html");
 			out.print(WG_GetWaitingUi(serviceId, gateId));
 			out.close();
 			return; 
 		 
-		 */
-		
 		/* ----------------------------------------------------
 		 * Redirct MODE : 외부(CDN) 대기 페이지 이용하는 경우  
 		 * ---------------------------------------------------
 		 
+			String redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; 		// **안내받은 CDN INTRO PAGE URL SET 
+	        String nextUrl = URLEncoder.encode("http://localhost:8080/", "UTF-8"); 	// **현재 페이지의 FULL URL이 세팅되도록 코딩하세요
+
+	        // redirect to Intro Page 
+	        String redirectFullUrl = redirectBaseUrl + "?GateId=" + gateId + "&NextUrl=" + nextUrl;
+			response.sendRedirect(redirectFullUrl); 
+			return; 		
 		 
 		 */
-		String redirectBaseUrl = "https://cdn2.devy.kr/9000/intro.html"; // 안내받은 CDN INTRO PAGE URL SET 
-        String nextUrl = URLEncoder.encode("http://localhost:8080/", "UTF-8"); // 이 페이지의 FULL URL
-
-        // redirect to Intro Page 
-        String redirectFullUrl = redirectBaseUrl + "?GateId=" + gateId + "&NextUrl=" + nextUrl;
-		response.sendRedirect(redirectFullUrl); 
-		return; 		
   	}
 %>
 <!--
