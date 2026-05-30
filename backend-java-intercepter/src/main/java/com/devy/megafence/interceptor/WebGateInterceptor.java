@@ -59,15 +59,21 @@ public class WebGateInterceptor implements HandlerInterceptor {
     		case "/Samples/YourEventPage": 	// **실제 경로로 수정 요망
     			gateId = "1"; 				// **실제 사용할 GATE ID로 수정 요망
     			break;
+    		case "/test":
+    			gateId = "3";
+    			break;
     		default : 
     			gateId = null;
     			break;
     	}
     	
+    	
+    	
     	/* *********************************************************************************************************
     	 * 유량제어 적용대상 PAGE이면 호출코드 동작 (대기표 검증하여 유효하지 않으면 대기UI 화면 컨텐츠로 응답 교체)
     	 * *********************************************************************************************************/
-    	// 동작방식 (Replace / Redirect 모드)에 맞는 소스 사용 
+    	// 동작방식 (Replace / Redirect 모드)에 맞는 소스 사용
+    	
     	WebGate webgate = new WebGate();
     	if(gateId != null && gateId.length() > 0)
     	{
