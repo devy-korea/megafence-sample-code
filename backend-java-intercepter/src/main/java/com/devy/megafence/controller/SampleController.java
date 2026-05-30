@@ -25,4 +25,9 @@ public class SampleController {
     public String landing() {
         return "landing";
     }
+    
+    @GetMapping("/test") 
+    public String test() {
+        return "test";
+    }
 }
