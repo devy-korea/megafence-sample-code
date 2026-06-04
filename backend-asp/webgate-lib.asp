@@ -372,6 +372,7 @@ Function WG_IsNeedToWaiting(serviceId, gateId)
     WG_WriteCookie "WG_GATE_ID",  WG_GATE_ID
     WG_WriteCookie "WG_WAS_IP",   WG_WAS_IP
     WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
+    WG_WriteCookie "WG_OUT_COUNT", CStr(WG_OUT_COUNT)
 
     ' 조건부 삭제 쿠키
     WG_DeleteCookie "WG_TRACE"
@@ -382,7 +383,6 @@ Function WG_IsNeedToWaiting(serviceId, gateId)
     WG_DeleteCookie "WG_REFERRER"
     WG_DeleteCookie "WG_CLIENT_IP"
     WG_DeleteCookie "WG_TOKEN_STATE"
-    WG_DeleteCookie "WG_OUT_COUNT"
     WG_DeleteCookie "WG_RESULT_CODE"
     WG_DeleteCookie "WG_GATE_OPERATION_MODE"
 
@@ -401,7 +401,6 @@ Function WG_IsNeedToWaiting(serviceId, gateId)
         WG_WriteCookie "WG_LANG_BACKEND", WG_LANG_BACKEND
         WG_WriteCookie "WG_VER_BACKEND",  WG_VER_BACKEND
         WG_WriteCookie "WG_TRACE",        WG_TRACE
-        WG_WriteCookie "WG_OUT_COUNT",    CStr(WG_OUT_COUNT)
     End If
 
     If WG_TRACE_LEVEL <= 0 Then

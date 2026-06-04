@@ -454,7 +454,8 @@ public class WebGate {
 	    WG_WriteCookie(res, "WG_GATE_ID", $WG_GATE_ID);
 	    WG_WriteCookie(res, "WG_WAS_IP", $WG_WAS_IP);
 	    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
-	    
+	    WG_WriteCookie(res, "WG_OUT_COUNT", String.valueOf($WG_OUT_COUNT));
+
 	    /* 조건부 생성 쿠키 */
 	    WG_DeleteCookie(res, "WG_TRACE");
 	    WG_DeleteCookie(res, "WG_LANG_BACKEND");
@@ -464,7 +465,6 @@ public class WebGate {
 	    WG_DeleteCookie(res, "WG_REFERRER");
 	    WG_DeleteCookie(res, "WG_CLIENT_IP");
 	    WG_DeleteCookie(res, "WG_TOKEN_STATE");
-	    WG_DeleteCookie(res, "WG_OUT_COUNT");
 	    WG_DeleteCookie(res, "WG_RESULT_CODE");
 	    WG_DeleteCookie(res, "WG_GATE_OPERATION_MODE");
 
@@ -484,7 +484,6 @@ public class WebGate {
 		    WG_WriteCookie(res, "WG_LANG_BACKEND", $WG_LANG_BACKEND);
 		    WG_WriteCookie(res, "WG_VER_BACKEND", $WG_VER_BACKEND);
 		    WG_WriteCookie(res, "WG_TRACE", $WG_TRACE);
-		    WG_WriteCookie(res, "WG_OUT_COUNT", String.valueOf($WG_OUT_COUNT));
 	    }
 	    
 	    if($WG_TRACE_LEVEL <= 0) {
