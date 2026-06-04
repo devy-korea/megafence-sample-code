@@ -41,6 +41,14 @@ namespace AspNetWebForm
             }
             /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             END OF 유량제어 코드삽입 */
+
+            // [개발자 정보 배너] 유량제어를 통과한 경우 마스터에 배너 표시 플래그 설정
+            var siteMaster = this.Master as SiteMaster;
+            if (siteMaster != null)
+            {
+                siteMaster.ShowWebGateInfo = true;
+                siteMaster.WebGateServiceId = serviceId;
+            }
         }
     }
 }

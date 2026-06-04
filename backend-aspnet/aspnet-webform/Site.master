@@ -44,10 +44,19 @@
         .field label { display: block; margin-bottom: 6px; color: #b9bee0; font-size: 14px; }
         .field input, .field select { width: 100%; padding: 12px; background: #0d1330; border: 1px solid #2d3570; border-radius: 8px; color: #fff; font-size: 15px; }
         footer { border-top: 1px solid #23284d; color: #6e74a0; font-size: 13px; padding: 24px 0; }
+        /* 개발자용 유량제어 적용 안내 Fixed 배너 (gated 페이지에서만 표시) */
+        .wg-devbar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; height: 36px; display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(90deg,#ffd166,#ffb703); color: #1a1a1a; font-size: 13px; font-weight: 700; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+        body.wg-dev { padding-top: 36px; }
+        body.wg-dev header { top: 36px; }
     </style>
 </head>
-<body>
+<body class="<%= ShowWebGateInfo ? "wg-dev" : "" %>">
     <form id="form1" runat="server">
+        <% if (ShowWebGateInfo) { %>
+        <div class="wg-devbar" data-service-id="<%= WebGateServiceId %>">
+            <span id="wg-devbar-text">이 페이지는 유량제어가 적용된 페이지입니다.</span>
+        </div>
+        <% } %>
         <header>
             <div class="wrap nav">
                 <a class="logo" href="Default.aspx">🚀 To<span class="accent">The</span>Moon</a>
@@ -70,6 +79,22 @@
                 © 2026 ToTheMoon Inc. · 달나라 로켓여행 패키지 선착순 한정 판매 · 본 사이트는 메가펜스 유량제어 데모입니다.
             </div>
         </footer>
+
+        <% if (ShowWebGateInfo) { %>
+        <script>
+            // 개발자 정보 배너: WG_GATE_ID / WG_OUT_COUNT 쿠키를 읽어 표시 (ServiceId는 페이지 설정값)
+            (function () {
+                var bar = document.querySelector('.wg-devbar');
+                if (!bar) return;
+                function gc(n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; }
+                var sid = bar.getAttribute('data-service-id') || '-';
+                var gate = gc('WG_GATE_ID') || '-';
+                var cnt = gc('WG_OUT_COUNT') || '0';
+                document.getElementById('wg-devbar-text').textContent =
+                    '🛡️ 이 페이지는 유량제어가 적용된 페이지입니다.   ServiceId: ' + sid + ',   GATE: ' + gate + ',   Page Load Count: ' + cnt;
+            })();
+        </script>
+        <% } %>
     </form>
 </body>
 </html>
