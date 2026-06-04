@@ -1,0 +1,22 @@
+# Visual Studio / MSBuild 빌드 산출물
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+*.user
+*.suo
+*.cache
+
+# NuGet
+packages/
+*.nupkg
+
+# ASP.NET Core
+bin/
+obj/
+
+# 업그레이드 마법사 잔여물
+Backup*/
+UpgradeLog*.htm
+_UpgradeReport_Files/

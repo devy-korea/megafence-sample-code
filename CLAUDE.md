@@ -35,17 +35,21 @@ N/A
 
 ## 소스 관계 (마스터 → 컨버팅)
 
-**`backend-java-intercepter/src/main/java/com/devy/megafence/WebGate.java`가 마스터 소스**이며, 나머지 4개 언어 파일은 이를 각 환경에 맞게 컨버팅한 결과물이다.
+**`backend-java-intercepter/src/main/java/com/devy/megafence/WebGate.java`가 마스터 소스**이며, 나머지 언어 파일은 이를 각 환경에 맞게 컨버팅한 결과물이다.
 
 ```
 WebGate.java (backend-java-intercepter)  ← 마스터 소스
-    ├── webgate-lib.jsp   (backend-jsp/src/main/webapp/WEB-INF/views/)   ← Java → JSP 문법
-    ├── webgate-lib.php   (backend-php/)                                 ← Java → PHP
-    ├── webgate-lib.asp   (backend-asp/)                                 ← Java → VBScript
-    └── WebGateLib.cs     (backend-aspx/)                                ← Java → C#
+    ├── webgate-lib.jsp   (backend-jsp/src/main/webapp/WEB-INF/views/)        ← Java → JSP 문법
+    ├── webgate-lib.php   (backend-php/)                                      ← Java → PHP
+    ├── webgate-lib.asp   (backend-asp/)                                      ← Java → VBScript
+    └── C#  ┬ WebGateLib.cs (backend-aspnet/aspnet-webform/)                  ← Java → C# (.NET Framework)
+            │   └ backend-aspnet/aspnet-mvc/ 는 위 파일을 **링크 참조**(단일 소스)
+            └ WebGateLib.cs (backend-aspnet/aspnet-core/Lib/)                 ← Java → C# (ASP.NET Core 컨버팅)
 ```
 
-현재 버전: **5개 언어 모두 V26.1.530 동기화 완료**
+현재 버전: **모든 구현체 V26.1.530 동기화 완료** (java, jsp, php, asp, C#-Framework, C#-Core).
+
+> ⚠️ **C#은 변형이 2개다.** .NET Framework용(aspnet-webform, mvc가 공유)과 ASP.NET Core용(aspnet-core/Lib)을 **둘 다** 반영해야 한다. Core는 `System.Web` 미지원으로 `HttpContext` 주입/`System.Text.Json`/`HttpClient` 기반이라 구현이 다르되 로직은 동일하다.
 
 ## 로직 동기화 규칙
 
@@ -64,7 +68,8 @@ WebGate.java (backend-java-intercepter)  ← 마스터 소스
 ### 언어별 컨버팅 주의사항
 - **JSP**: Java 클래스 문법을 `<%! %>` 선언부 방식으로 변환. 버전 변수는 `static final` 클래스 멤버로 선언(메서드 지역변수 선언 불가).
 - **PHP**: `WG_BuildApiUrl`(http_build_query), `WG_ParseJson`(json_decode), cURL 기반 `WG_CallApi` 사용.
-- **ASP.NET(C#)**: 클래스 프로퍼티가 아닌 메서드 로컬 변수 방식으로 작성. `JavaScriptSerializer`로 JSON 파싱, `HttpWebRequest` 사용.
+- **C# (.NET Framework / aspnet-webform·mvc 공유)**: 클래스 프로퍼티가 아닌 메서드 로컬 변수 방식. `HttpContext.Current` 사용, `JavaScriptSerializer`로 JSON 파싱, `HttpWebRequest` 사용.
+- **C# (ASP.NET Core / aspnet-core/Lib)**: `System.Web` 미지원 → 생성자로 `HttpContext` 주입, `System.Text.Json`(`JsonDocument`)으로 파싱, `HttpClient.Send`(동기) 사용, 쿠키는 `Request/Response.Cookies` + `CookieOptions`. 로직은 Framework판과 동일.
 - **ASP(VBScript)**: JSON 파서가 없어 `WG_JsonGetStr/Int`(RegExp 기반) 헬퍼로 파싱. try/catch가 없어 `On Error Resume Next` + `Err` 체크로 모사. `WG_CallApi`는 실패 시 ErrorJson을 반환해 ResultCode 음수 처리 일관성 유지.
 
 ## 빌드 및 실행
