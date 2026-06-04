@@ -77,7 +77,7 @@ public class WebGateInterceptor implements HandlerInterceptor {
     	WebGate webgate = new WebGate();
     	if(gateId != null && gateId.length() > 0)
     	{
-        	if(webgate.WG_IsNeedToWaiting(serviceId, gateId, request, response))
+        	if(webgate.WG_IsNeedToWait(serviceId, gateId, request, response))
         	{
         		try {
         			

@@ -1,4 +1,4 @@
-using devy.WebGateLib;
+﻿using devy.WebGateLib;
 using System;
 using System.Web.UI;
 
@@ -30,30 +30,16 @@ namespace AspNetWebForm
             string serviceId = "9000"; // 할당받은 SERVICE ID로 수정
             string gateId    = "1";    // 사용할 GATE ID로 수정
 
-            bool isReplaceMode = true; // true:응답교체(Replace), false:리다이렉트(Redirect)
-
             try
             {
                 WebGate webgate = new WebGate(serviceId, gateId);
 
                 // WG_IsNeedToWaiting() == true → 대기 필요 → 대기UI 표시
-                if (webgate.WG_IsNeedToWaiting())
-                {
-                    /* (A) 응답교체 : 대기UI로 응답을 교체하고 종료 */
-                    if (isReplaceMode)
-                    {
-                        Response.Clear();
-                        Response.ContentType = "text/html";
-                        Response.Write(webgate.WG_GetWaitingUi());
-                        Response.Flush();
-                        Response.End();
-                    }
-                    /* (B) 리다이렉트 : 별도 작성된 landing 페이지로 이동 */
-                    else
-                    {
-                        Response.Redirect("landing.html");
-                    }
-                }
+                Response.Clear();
+                Response.ContentType = "text/html";
+                Response.Write(webgate.WG_GetWaitingUi());
+                Response.Flush();
+                Response.End();
             }
             catch
             {
