@@ -55,7 +55,7 @@
     @if (ViewBag.WgDev == true)
     {
         <div class="wg-devbar" data-service-id="@ViewBag.WgServiceId">
-            <span id="wg-devbar-text">이 페이지는 유량제어가 적용된 페이지입니다.</span>
+            <span id="wg-devbar-text">유량제어가 적용 페이지</span>
         </div>
     }
     <header>
@@ -82,7 +82,7 @@
     </footer>
 
     <script>
-        // 개발자 정보 배너: WG_GATE_ID / WG_OUT_COUNT 쿠키를 읽어 표시 (ServiceId는 페이지 설정값)
+        // 개발자용 안내: 개발 참고용 로직이므로 운영페이지에 적용/포함할 필요 없음
         (function () {
             var bar = document.querySelector('.wg-devbar');
             if (!bar) return;
@@ -91,7 +91,7 @@
             var gate = gc('WG_GATE_ID') || '-';
             var cnt = gc('WG_OUT_COUNT') || '0';
             document.getElementById('wg-devbar-text').textContent =
-                '🛡️ 이 페이지는 유량제어가 적용된 페이지입니다.   ServiceId: ' + sid + ',   GATE: ' + gate + ',   Page Load Count: ' + cnt;
+                'Backend 유량제어 적용된 페이지 입니다. ServiceId: ' + sid + ',   GATE: ' + gate + ',   Page Load Count: ' + cnt + ', ※FreePass 설정을 초과하는 새로고침 시도 시 토큰 재발급됨';
         })();
     </script>
 </body>
