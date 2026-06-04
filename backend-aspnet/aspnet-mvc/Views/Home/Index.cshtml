@@ -1,7 +1,61 @@
 ﻿@{
-    ViewBag.Title = "대문";
+    ViewBag.Title = "홈";
 }
 
-<h1>SAMPLE BACKEND PAGE (ASP.NET MVC)</h1>
-<p>Backend 방식의 유량제어가 적용된 대문(업무) 페이지입니다.</p>
-<p>이 페이지는 <code>[WebGateFilter]</code> 액션 필터(OnActionExecuting)를 통해 유량제어가 적용됩니다.</p>
+<section class="wrap" style="text-align:center;">
+    <span class="badge">🌙 선착순 한정 100석 · 2026년 12월 출발</span>
+    <h1>달까지, 인류 단 100명의 여행<br />ToTheMoon 로켓여행 패키지</h1>
+    <p class="lead">지구를 떠나 달 궤도에 진입하고, 월면에 발자국을 남기는 7일간의 여정.<br />이 기회는 다시 오지 않습니다. 선착순 마감 시 예약이 종료됩니다.</p>
+
+    <div style="margin:28px 0;">
+        <a class="btn btn-lg" href="/Home/Purchase">지금 예약하기</a>
+    </div>
+
+    <div class="card" style="display:inline-block; margin-top:10px;">
+        <div class="muted" style="margin-bottom:8px;">예약 마감까지</div>
+        <div id="countdown" class="price" style="font-variant-numeric:tabular-nums;">--일 --:--:--</div>
+    </div>
+</section>
+
+<section class="wrap">
+    <div class="grid grid-3">
+        <div class="card">
+            <h2>🚀 왕복 로켓</h2>
+            <p class="muted">차세대 유인 우주선 LUNA-X로 지구↔달 왕복. 최첨단 안전 시스템 탑재.</p>
+        </div>
+        <div class="card">
+            <h2>🏨 우주호텔 3박</h2>
+            <p class="muted">달 궤도 우주정거장 'Selene'에서 무중력 숙박 3박 제공.</p>
+        </div>
+        <div class="card">
+            <h2>👨‍🚀 월면 트레킹</h2>
+            <p class="muted">전문 우주비행사 동행 하에 월면 직접 탐사 및 기념 촬영.</p>
+        </div>
+    </div>
+</section>
+
+<section class="wrap" style="text-align:center;">
+    <h2>지금이 아니면, 평생 없습니다</h2>
+    <p class="lead">선착순 100석 한정. 마감 시 대기 없이 종료됩니다.</p>
+    <div style="margin-top:20px;"><a class="btn btn-lg" href="/Home/Purchase">선착순 예약하기</a></div>
+</section>
+
+<script>
+    // 데모용 마감 카운트다운 (실제 운영 시 서버 시간 기준으로 교체)
+    (function () {
+        var target = new Date();
+        target.setDate(target.getDate() + 7);
+        var el = document.getElementById('countdown');
+        function tick() {
+            var diff = Math.max(0, target - new Date());
+            var d = Math.floor(diff / 86400000);
+            var h = Math.floor(diff % 86400000 / 3600000);
+            var m = Math.floor(diff % 3600000 / 60000);
+            var s = Math.floor(diff % 60000 / 1000);
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            el.textContent = d + '일 ' + pad(h) + ':' + pad(m) + ':' + pad(s);
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
+</script>

@@ -6,7 +6,11 @@
 
 namespace AspNetWebForm
 {
-    public partial class Default
+    public partial class SiteMaster
     {
+        /// <summary>
+        /// MainContent ContentPlaceHolder입니다.
+        /// </summary>
+        protected global::System.Web.UI.WebControls.ContentPlaceHolder MainContent;
     }
 }

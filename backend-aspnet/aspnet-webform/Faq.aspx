@@ -1,0 +1,18 @@
+﻿<%@ Page Title="FAQ" Language="C#" MasterPageFile="~/Site.master" AutoEventWireup="true" CodeBehind="Faq.aspx.cs" Inherits="AspNetWebForm.Faq" %>
+
+<asp:Content ContentPlaceHolderID="MainContent" runat="server">
+    <section class="wrap">
+        <span class="badge">FAQ</span>
+        <h1>자주 묻는 질문</h1>
+
+        <div class="grid" style="margin-top:24px;">
+            <div class="card"><h2>Q. 정말 안전한가요?</h2><p class="muted">LUNA-X는 1,200회 무인 시험비행을 통과했으며, 전 좌석 이중 생명유지 장치와 비상 탈출 시스템을 갖추고 있습니다. 전 일정 의료진이 동행합니다.</p></div>
+            <div class="card"><h2>Q. 참가 자격이 있나요?</h2><p class="muted">만 19세 이상, 기본 건강검진 통과자라면 누구나 신청 가능합니다. 발사 전 6주간의 우주 적응 훈련을 이수해야 합니다.</p></div>
+            <div class="card"><h2>Q. 환불이 가능한가요?</h2><p class="muted">출발 90일 전까지 예약금 전액 환불, 이후에는 약관에 따라 부분 환불됩니다. 선착순 마감 후에는 대기열 양도만 가능합니다.</p></div>
+            <div class="card"><h2>Q. 선착순은 어떻게 진행되나요?</h2><p class="muted">홈·구매 페이지는 접속자가 몰릴 경우 순서대로 대기열이 운영됩니다. 결제 완료 순으로 100석이 확정되며 마감 시 즉시 종료됩니다.</p></div>
+            <div class="card"><h2>Q. 동반자와 함께 갈 수 있나요?</h2><p class="muted">좌석 단위 구매로 동반 탑승이 가능하나, 모든 탑승자는 개별 훈련 이수가 필요합니다.</p></div>
+        </div>
+
+        <div style="text-align:center; margin-top:32px;"><a class="btn btn-lg" href="Purchase.aspx">예약하러 가기</a></div>
+    </section>
+</asp:Content>

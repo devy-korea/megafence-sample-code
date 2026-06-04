@@ -1,0 +1,55 @@
+﻿<%@ Page Title="구매 / 예약" Language="C#" MasterPageFile="~/Site.master" AutoEventWireup="true" CodeBehind="Purchase.aspx.cs" Inherits="AspNetWebForm.Purchase" %>
+
+<asp:Content ContentPlaceHolderID="MainContent" runat="server">
+    <section class="wrap">
+        <span class="badge">🔒 선착순 한정 · 유량제어 적용 페이지</span>
+        <h1>선착순 예약</h1>
+        <p class="lead">접속자가 많을 경우 대기열이 운영됩니다. 결제 완료 순으로 100석이 확정됩니다.</p>
+
+        <div class="grid grid-2" style="margin-top:24px;">
+            <div class="card">
+                <h2>예약 정보 입력</h2>
+                <div class="field">
+                    <label>탑승자 성함</label>
+                    <input type="text" placeholder="홍길동" />
+                </div>
+                <div class="field">
+                    <label>연락처</label>
+                    <input type="text" placeholder="010-0000-0000" />
+                </div>
+                <div class="field">
+                    <label>좌석 수</label>
+                    <select>
+                        <option>1석</option>
+                        <option>2석</option>
+                        <option>3석</option>
+                        <option>4석</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>결제 수단</label>
+                    <select>
+                        <option>신용카드 (12개월 무이자)</option>
+                        <option>계좌이체</option>
+                        <option>암호화폐</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-lg" style="width:100%;"
+                        onclick="alert('데모 화면입니다. 실제 결제는 진행되지 않습니다.');">
+                    예약금 결제하기 (₩120,000,000)
+                </button>
+            </div>
+            <div class="card">
+                <h2>주문 요약</h2>
+                <table class="tbl">
+                    <tr><th>상품</th><td>달나라 로켓여행 패키지</td></tr>
+                    <tr><th>출발</th><td>2026년 12월 · 고흥 우주센터</td></tr>
+                    <tr><th>정가</th><td>₩ 1,200,000,000 / 석</td></tr>
+                    <tr><th>예약금</th><td>₩ 120,000,000 (10%)</td></tr>
+                    <tr><th>잔여 좌석</th><td class="muted">선착순 마감 임박</td></tr>
+                </table>
+                <p class="muted" style="margin-top:16px; font-size:13px;">※ 본 페이지는 메가펜스 유량제어가 적용된 데모입니다. 접속 폭주 시 대기 화면이 표시될 수 있습니다.</p>
+            </div>
+        </div>
+    </section>
+</asp:Content>

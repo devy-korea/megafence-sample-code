@@ -1,16 +1,16 @@
-﻿<!DOCTYPE html>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="AspNetWebForm.SiteMaster" %>
+<!DOCTYPE html>
 <html lang="ko">
-<head>
+<head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewBag.Title - ToTheMoon</title>
+    <title>ToTheMoon - 달나라 로켓여행 패키지</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #0a0e27; color: #e8eaf6; line-height: 1.6; }
         a { color: inherit; text-decoration: none; }
         .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-
-        header { position: sticky; top: 0; z-index: 10; background: rgba(10,14,39,.92); backdrop-filter: blur(6px); border-bottom: 1px solid #23284d; }
+        header { position: sticky; top: 0; z-index: 10; background: rgba(10,14,39,.92); border-bottom: 1px solid #23284d; }
         .nav { display: flex; align-items: center; height: 64px; gap: 28px; }
         .logo { font-weight: 800; font-size: 20px; color: #fff; letter-spacing: .5px; }
         .logo .accent { color: #7c5cff; }
@@ -21,7 +21,6 @@
         .btn { display: inline-block; background: linear-gradient(135deg,#7c5cff,#4f8cff); color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 700; border: 0; cursor: pointer; }
         .btn:hover { filter: brightness(1.1); }
         .btn-lg { padding: 14px 30px; font-size: 17px; }
-
         main { min-height: calc(100vh - 64px - 70px); }
         .badge { display: inline-block; background: #1b2150; color: #9db0ff; border: 1px solid #2d3570; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
         h1 { font-size: 44px; line-height: 1.2; color: #fff; margin: 18px 0; }
@@ -32,7 +31,7 @@
         .grid { display: grid; gap: 18px; }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
         .grid-2 { grid-template-columns: repeat(2, 1fr); }
-        @@media (max-width: 760px) { .grid-3,.grid-2 { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
+        @media (max-width: 760px) { .grid-3,.grid-2 { grid-template-columns: 1fr; } h1 { font-size: 32px; } }
         .price { font-size: 34px; font-weight: 800; color: #fff; }
         .muted { color: #8a90bd; }
         ul.check { list-style: none; }
@@ -48,27 +47,29 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="wrap nav">
-            <a class="logo" href="/Home/Index">🚀 To<span class="accent">The</span>Moon</a>
-            <nav class="menu">
-                <a href="/Home/Index">홈</a>
-                <a href="/Home/Package">패키지 소개</a>
-                <a href="/Home/Itinerary">여행 일정</a>
-                <a href="/Home/Faq">FAQ</a>
-            </nav>
-            <div class="cta"><a class="btn" href="/Home/Purchase">구매하기</a></div>
-        </div>
-    </header>
+    <form id="form1" runat="server">
+        <header>
+            <div class="wrap nav">
+                <a class="logo" href="Default.aspx">🚀 To<span class="accent">The</span>Moon</a>
+                <nav class="menu">
+                    <a href="Default.aspx">홈</a>
+                    <a href="Package.aspx">패키지 소개</a>
+                    <a href="Itinerary.aspx">여행 일정</a>
+                    <a href="Faq.aspx">FAQ</a>
+                </nav>
+                <div class="cta"><a class="btn" href="Purchase.aspx">구매하기</a></div>
+            </div>
+        </header>
 
-    <main>
-        @RenderBody()
-    </main>
+        <main>
+            <asp:ContentPlaceHolder ID="MainContent" runat="server" />
+        </main>
 
-    <footer>
-        <div class="wrap">
-            © 2026 ToTheMoon Inc. · 달나라 로켓여행 패키지 선착순 한정 판매 · 본 사이트는 메가펜스 유량제어 데모입니다.
-        </div>
-    </footer>
+        <footer>
+            <div class="wrap">
+                © 2026 ToTheMoon Inc. · 달나라 로켓여행 패키지 선착순 한정 판매 · 본 사이트는 메가펜스 유량제어 데모입니다.
+            </div>
+        </footer>
+    </form>
 </body>
 </html>
