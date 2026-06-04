@@ -477,7 +477,7 @@ function WG_IsNeedToWaiting($service_id, $gate_id)
     WG_WriteCookie("WG_TOKEN_NO", $WG_TOKEN_NO);
     WG_WriteCookie("WG_OUT_COUNT", $WG_OUT_COUNT);
 
-    /* 조건부 삭제 쿠키 */
+    /* 조건부 삭제 쿠키 : 존재하는 쿠키만 삭제 (무조건 삭제하지 않음) */
     WG_DeleteCookie("WG_TRACE");
     WG_DeleteCookie("WG_LANG_BACKEND");
     WG_DeleteCookie("WG_VER_BACKEND");
@@ -686,10 +686,15 @@ function WG_WriteCookie($key, $value)
 }
 
 /**
- * Cookie 삭제 함수
+ * Cookie 삭제 함수 : 존재하는 쿠키만 삭제 (요청에 없는 쿠키는 무조건 삭제하지 않음)
  */
 function WG_DeleteCookie($key)
 {
+    // 존재하지 않는 쿠키는 삭제 헤더를 보내지 않음
+    if (!isset($_COOKIE[$key])) {
+        return;
+    }
+
     if (PHP_VERSION_ID >= 70300) {
         setcookie($key, "", array(
             'expires'  => time() - 3600,

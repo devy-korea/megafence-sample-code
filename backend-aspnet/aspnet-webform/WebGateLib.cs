@@ -471,7 +471,7 @@ namespace devy.WebGateLib
             WG_WriteCookie("WG_TOKEN_NO", WG_TOKEN_NO);
             WG_WriteCookie("WG_OUT_COUNT", WG_OUT_COUNT.ToString());
 
-            /* 조건부 삭제 쿠키 */
+            /* 조건부 삭제 쿠키 : 존재하는 쿠키만 삭제 (무조건 삭제하지 않음) */
             WG_DeleteCookie("WG_TRACE");
             WG_DeleteCookie("WG_LANG_BACKEND");
             WG_DeleteCookie("WG_VER_BACKEND");
@@ -676,10 +676,16 @@ namespace devy.WebGateLib
         }
 
         /// <summary>
-        /// Delete cookie
+        /// Delete cookie : 존재하는 쿠키만 삭제 (요청에 없는 쿠키는 무조건 삭제하지 않음)
         /// </summary>
         private void WG_DeleteCookie(string key)
         {
+            // 존재하지 않는 쿠키는 삭제 헤더를 보내지 않음
+            if (REQ.Cookies[key] == null)
+            {
+                return;
+            }
+
             HttpCookie cookie = new HttpCookie(key);
             cookie.Value   = "";
             cookie.Path    = "/";

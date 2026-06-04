@@ -374,7 +374,7 @@ Function WG_IsNeedToWaiting(serviceId, gateId)
     WG_WriteCookie "WG_TOKEN_NO", WG_TOKEN_NO
     WG_WriteCookie "WG_OUT_COUNT", CStr(WG_OUT_COUNT)
 
-    ' 조건부 삭제 쿠키
+    ' 조건부 삭제 쿠키 : 존재하는 쿠키만 삭제 (무조건 삭제하지 않음)
     WG_DeleteCookie "WG_TRACE"
     WG_DeleteCookie "WG_LANG_BACKEND"
     WG_DeleteCookie "WG_VER_BACKEND"
@@ -680,8 +680,17 @@ End Function
 
 
 ' Delete cookie
+' Delete cookie : 존재하는 쿠키만 삭제 (요청에 없는 쿠키는 무조건 삭제하지 않음)
 Function WG_DeleteCookie(key)
+    ' 존재하지 않는 쿠키는 삭제 헤더를 보내지 않음
+    If Not WG_HasCookie(key) Then Exit Function
     Response.AddHeader "Set-Cookie", key & "=; Max-Age=0; Path=/; SameSite=Lax"
+End Function
+
+
+' 요청에 해당 쿠키가 존재하는지 여부 (VBScript는 값 존재로 판단)
+Function WG_HasCookie(key)
+    WG_HasCookie = (Len(WG_Nz(Request.Cookies(key))) > 0)
 End Function
 
 

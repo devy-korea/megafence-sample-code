@@ -453,17 +453,17 @@
 	    WG_WriteCookie(res, "WG_TOKEN_NO", $WG_TOKEN_NO);
 	    WG_WriteCookie(res, "WG_OUT_COUNT", String.valueOf($WG_OUT_COUNT));
 
-	    /* 조건부 생성 쿠키 */
-	    WG_DeleteCookie(res, "WG_TRACE");
-	    WG_DeleteCookie(res, "WG_LANG_BACKEND");
-	    WG_DeleteCookie(res, "WG_VER_BACKEND");
-	    WG_DeleteCookie(res, "WG_REQ_PAGE");
-	    WG_DeleteCookie(res, "WG_REQ_IP");
-	    WG_DeleteCookie(res, "WG_REFERRER");
-	    WG_DeleteCookie(res, "WG_CLIENT_IP");
-	    WG_DeleteCookie(res, "WG_TOKEN_STATE");
-	    WG_DeleteCookie(res, "WG_RESULT_CODE");
-	    WG_DeleteCookie(res, "WG_GATE_OPERATION_MODE");
+	    /* 조건부 삭제 쿠키 : 존재하는 쿠키만 삭제 (무조건 삭제하지 않음) */
+	    WG_DeleteCookie(req, res, "WG_TRACE");
+	    WG_DeleteCookie(req, res, "WG_LANG_BACKEND");
+	    WG_DeleteCookie(req, res, "WG_VER_BACKEND");
+	    WG_DeleteCookie(req, res, "WG_REQ_PAGE");
+	    WG_DeleteCookie(req, res, "WG_REQ_IP");
+	    WG_DeleteCookie(req, res, "WG_REFERRER");
+	    WG_DeleteCookie(req, res, "WG_CLIENT_IP");
+	    WG_DeleteCookie(req, res, "WG_TOKEN_STATE");
+	    WG_DeleteCookie(req, res, "WG_RESULT_CODE");
+	    WG_DeleteCookie(req, res, "WG_GATE_OPERATION_MODE");
 
 	    if($WG_TRACE_LEVEL >= 2)
 	    {
@@ -484,7 +484,7 @@
 	    }
 
 	    if($WG_TRACE_LEVEL <= 0) {
-	    	WG_DeleteCookie(res, "WG_TRACE_LEVEL");
+	    	WG_DeleteCookie(req, res, "WG_TRACE_LEVEL");
 	    }
 
 	    return result;
@@ -829,12 +829,18 @@
 	}
 
 	/**
-	 * Delete cookie
+	 * Delete cookie : 존재하는 쿠키만 삭제 (요청에 없는 쿠키는 무조건 삭제하지 않음)
+	 * @param req
 	 * @param res
 	 * @param key
 	 */
-	private void WG_DeleteCookie(HttpServletResponse res, String key) {
+	private void WG_DeleteCookie(HttpServletRequest req, HttpServletResponse res, String key) {
 	    try {
+	        // 존재하지 않는 쿠키는 삭제 헤더를 보내지 않음
+	        if (!WG_HasCookie(req, key)) {
+	            return;
+	        }
+
 	        StringBuilder cookieText = new StringBuilder();
 	        cookieText.append(key).append("=");
 	        cookieText.append("; Max-Age=0");
@@ -846,6 +852,24 @@
 	    } catch (Exception ex) {
 	        // skip
 	    }
+	}
+
+	/**
+	 * 요청에 해당 쿠키가 존재하는지 여부
+	 * @param req
+	 * @param key
+	 * @return
+	 */
+	private boolean WG_HasCookie(HttpServletRequest req, String key) {
+	    Cookie[] cookies = req.getCookies();
+	    if (cookies != null) {
+	        for (int i = 0; i < cookies.length; i++) {
+	            if (cookies[i].getName().equals(key)) {
+	                return true;
+	            }
+	        }
+	    }
+	    return false;
 	}
 
 
