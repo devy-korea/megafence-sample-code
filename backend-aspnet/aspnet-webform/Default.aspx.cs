@@ -34,12 +34,15 @@ namespace AspNetWebForm
             {
                 WebGate webgate = new WebGate(serviceId, gateId);
 
-                // WG_IsNeedToWaiting() == true → 대기 필요 → 대기UI 표시
-                Response.Clear();
-                Response.ContentType = "text/html";
-                Response.Write(webgate.WG_GetWaitingUi());
-                Response.Flush();
-                Response.End();
+                // WG_IsNeedToWait() == true → 대기 필요 → 대기UI로 응답 교체
+                if (webgate.WG_IsNeedToWait())
+                {
+                    Response.Clear();
+                    Response.ContentType = "text/html";
+                    Response.Write(webgate.WG_GetWaitingUi());
+                    Response.Flush();
+                    Response.End();
+                }
             }
             catch
             {

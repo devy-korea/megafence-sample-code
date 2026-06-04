@@ -22,16 +22,8 @@ namespace AspNetMvc.Filters
     */
     public class WebGateFilterAttribute : ActionFilterAttribute
     {
-        public string ServiceId { get; set; }
-        public string GateId { get; set; }
-        public bool IsReplaceMode { get; set; }
-
-        public WebGateFilterAttribute()
-        {
-            ServiceId     = "9000";
-            GateId        = "1";
-            IsReplaceMode = true;
-        }
+        public string ServiceId { get; set; } = "9000";
+        public string GateId { get; set; } = "1";
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
@@ -44,22 +36,14 @@ namespace AspNetMvc.Filters
             {
                 WebGate webgate = new WebGate(ServiceId, GateId);
 
-                // 대기 필요 시 응답 교체(또는 리다이렉트)로 액션 단락
-                if (webgate.WG_IsNeedToWaiting())
+                // WG_IsNeedToWait() == true → 대기 필요 → 대기UI로 응답 교체
+                if (webgate.WG_IsNeedToWait())
                 {
-                    if (IsReplaceMode)
+                    filterContext.Result = new ContentResult
                     {
-                        filterContext.Result = new ContentResult
-                        {
-                            Content     = webgate.WG_GetWaitingUi(),
-                            ContentType = "text/html"
-                        };
-                    }
-                    else
-                    {
-                        filterContext.Result = new RedirectResult("~/landing.html");
-                    }
-                    return;
+                        Content     = webgate.WG_GetWaitingUi(),
+                        ContentType = "text/html"
+                    };
                 }
             }
             catch

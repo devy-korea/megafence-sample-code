@@ -14,7 +14,7 @@ namespace AspNetMvc.Controllers
     public class HomeController : Controller
     {
         // 대문 페이지 : 유량제어 적용 (응답교체 방식)
-        [WebGateFilter(ServiceId = "9000", GateId = "1", IsReplaceMode = true)]
+        [WebGateFilter(ServiceId = "9000", GateId = "1")]
         public ActionResult Index()
         {
             /*

@@ -18,9 +18,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
-// 정적 파일(landing.html 등) 제공
-app.UseStaticFiles();
-
 app.UseRouting();
 
 // 기본 라우트 : 대문 = Home/Index

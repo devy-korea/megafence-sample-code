@@ -32,14 +32,14 @@ namespace AspNetCoreDemo.Filters
             {
                 var webgate = new WebGate(ServiceId, GateId, context.HttpContext);
 
-                // 대기 필요 시 응답 교체(또는 리다이렉트)로 액션 단락
+                // WG_IsNeedToWait() == true → 대기 필요 → 대기UI로 응답 교체
                 if (webgate.WG_IsNeedToWait())
                 {
-                        context.Result = new ContentResult
-                        {
-                            Content     = webgate.WG_GetWaitingUi(),
-                            ContentType = "text/html"
-                        };
+                    context.Result = new ContentResult
+                    {
+                        Content     = webgate.WG_GetWaitingUi(),
+                        ContentType = "text/html"
+                    };
                 }
             }
             catch
