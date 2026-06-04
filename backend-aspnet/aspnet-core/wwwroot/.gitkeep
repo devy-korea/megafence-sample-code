@@ -1,0 +1,3 @@
+# ASP.NET Core web root(wwwroot) 폴더 유지용 placeholder.
+# 이 폴더가 없으면 WebApplication.CreateBuilder() 시 web root 해석 오류가 발생하므로 비어있어도 반드시 존재해야 함.
+# 정적 리소스(css/js)는 CDN(cdn2.devy.kr)에서 로드하므로 이 폴더는 비어 있음.
