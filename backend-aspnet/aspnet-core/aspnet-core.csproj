@@ -10,7 +10,7 @@
 
   <!--
     WebGateLib.cs 는 .NET Framework용(System.Web)을 ASP.NET Core(HttpContext/System.Text.Json/HttpClient)로
-    컨버팅한 별도 버전(Lib/WebGateLib.cs)을 사용한다. 동작 로직은 마스터(V26.1.605)와 동일.
+    컨버팅한 별도 버전(Lib/WebGateLib.cs)을 사용한다. 동작 로직은 마스터(V26.1.605.1)와 동일.
   -->
 
 </Project>

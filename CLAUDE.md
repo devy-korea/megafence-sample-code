@@ -47,7 +47,7 @@ WebGate.java (backend-java-intercepter)  ← 마스터 소스
             └ WebGateLib.cs (backend-aspnet/aspnet-core/Lib/)                 ← Java → C# (ASP.NET Core 컨버팅)
 ```
 
-현재 버전: **모든 구현체 V26.1.605 동기화 완료** (java, jsp, php, asp, C#-Framework, C#-Core).
+현재 버전: **모든 구현체 V26.1.605.1 동기화 완료** (java, jsp, php, asp, C#-Framework, C#-Core).
 
 > ⚠️ **C#은 변형이 2개다.** .NET Framework용(aspnet-webform, mvc가 공유)과 ASP.NET Core용(aspnet-core/Lib)을 **둘 다** 반영해야 한다. Core는 `System.Web` 미지원으로 `HttpContext` 주입/`System.Text.Json`/`HttpClient` 기반이라 구현이 다르되 로직은 동일하다.
 

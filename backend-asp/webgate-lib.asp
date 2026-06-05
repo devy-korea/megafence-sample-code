@@ -17,7 +17,7 @@
 '*/
 
 '/////////////////////////////////
-'// VER 26.1.605
+'// VER 26.1.605.1
 '/////////////////////////////////
 
 
@@ -30,7 +30,7 @@ End Function
 ' 대기판정 메인함수 (true:대기필요, false:대기불필요)
 Function WG_IsNeedToWaiting(serviceId, gateId)
 
-    Dim WG_VER_BACKEND         : WG_VER_BACKEND         = "26.1.605"
+    Dim WG_VER_BACKEND         : WG_VER_BACKEND         = "26.1.605.1"
     Dim WG_LANG_BACKEND        : WG_LANG_BACKEND        = "ASP"
     Dim WG_SERVICE_ID          : WG_SERVICE_ID          = serviceId
     Dim WG_GATE_ID             : WG_GATE_ID             = gateId
@@ -120,6 +120,9 @@ Function WG_IsNeedToWaiting(serviceId, gateId)
                         WG_GATE_OPERATION_MODE = WG_JsonGetStrDef(responseText, "GateOperationMode", "GATE")
                         WG_TOKEN_NO            = WG_JsonGetStr(responseText, "TokenNo")
                         WG_OUT_COUNT           = WG_JsonGetInt(responseText, "OutCount", 0)
+
+                        ' CDN에서 발급받은 WG_CLIENT_ID로 COOKIE OVERWRITE
+                        WG_WriteCookie "WG_CLIENT_ID", WG_TOKEN_KEY
 
                         If WG_GATE_OPERATION_MODE = "ALERT" Then
                             WG_TRACE = WG_TRACE & "ALERT,"

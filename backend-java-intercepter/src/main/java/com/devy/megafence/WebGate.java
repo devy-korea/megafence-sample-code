@@ -47,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 /////////////////////////////////
-// VER 26.1.605
+// VER 26.1.605.1
 /////////////////////////////////
 public class WebGate {
 	
@@ -72,7 +72,7 @@ public class WebGate {
 	 * @return
 	 */
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
-	    String 			$WG_VER_BACKEND 		= "26.1.605";
+	    String 			$WG_VER_BACKEND 		= "26.1.605.1";
 		String 			$WG_LANG_BACKEND 		= "JAVA/" + System.getProperty("java.version");
 	    String 			$WG_SERVICE_ID 			= serviceId;
 	    String 			$WG_GATE_ID 			= gateId;
@@ -174,7 +174,10 @@ public class WebGate {
 	    	                    $WG_TOKEN_NO 			= WG_GetStringValue(json.get("TokenNo"));
 	    	                    $WG_OUT_COUNT 			= WG_GetIntValue(json.get("OutCount"), 0);
 
-	    	                    if ("ALERT".equals($WG_GATE_OPERATION_MODE)) {
+    	                        // CDN에서 발급받은 WG_CLIENT_ID로 COOKIE OVERWRITE
+    	                        WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
+
+    	                        if ("ALERT".equals($WG_GATE_OPERATION_MODE)) {
 	    	                        $WG_TRACE += "ALERT,";
 	    	                        $WG_RETURN_FLAG = true;
 	    	                        $WG_IS_CHECKOUT_OK = false;
@@ -192,6 +195,7 @@ public class WebGate {
 		    	                        $WG_RETURN_FLAG = true;
 		    	                        $WG_IS_CHECKOUT_OK = true;
 		    	                        $WG_IS_NEED_TO_WAIT = false;
+		    	                        
 		    	                    } else {
 		    	                        $WG_TRACE += "FAIL1[TokenState:" + $WG_TOKEN_STATE + "],";
 		    	                    }

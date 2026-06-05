@@ -32,7 +32,7 @@ function WG_IsNeedToWait($service_id, $gate_id)
  */
 function WG_IsNeedToWaiting($service_id, $gate_id)
 {
-    $WG_VER_BACKEND         = "26.1.605";
+    $WG_VER_BACKEND         = "26.1.605.1";
     $WG_LANG_BACKEND        = "PHP/" . PHP_VERSION;
     $WG_SERVICE_ID          = $service_id;
     $WG_GATE_ID             = $gate_id;
@@ -137,6 +137,9 @@ function WG_IsNeedToWaiting($service_id, $gate_id)
                             $WG_GATE_OPERATION_MODE = isset($json['GateOperationMode'])  ? $json['GateOperationMode']  : "GATE";
                             $WG_TOKEN_NO            = isset($json['TokenNo'])            ? $json['TokenNo']            : "";
                             $WG_OUT_COUNT           = isset($json['OutCount'])           ? intval($json['OutCount'])   : 0;
+
+                            // CDN에서 발급받은 WG_CLIENT_ID로 COOKIE OVERWRITE
+                            WG_WriteCookie("WG_CLIENT_ID", $WG_TOKEN_KEY);
 
                             if ($WG_GATE_OPERATION_MODE == "ALERT") {
 

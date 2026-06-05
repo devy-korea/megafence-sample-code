@@ -29,7 +29,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         /////////////////////////////////
-        // VER 26.1.605
+        // VER 26.1.605.1
         /////////////////////////////////
 
         private readonly string     _serviceId;
@@ -59,7 +59,7 @@ namespace devy.WebGateLib
         /// </summary>
         public bool WG_IsNeedToWaiting()
         {
-            string       WG_VER_BACKEND         = "26.1.605";
+            string       WG_VER_BACKEND         = "26.1.605.1";
             string       WG_LANG_BACKEND        = "ASPNET/" + Environment.Version.ToString();
             string       WG_SERVICE_ID          = _serviceId;
             string       WG_GATE_ID             = _gateId;
@@ -162,6 +162,9 @@ namespace devy.WebGateLib
                                     WG_GATE_OPERATION_MODE = WG_GetStrValue(json, "GateOperationMode", "GATE");
                                     WG_TOKEN_NO            = WG_GetStrValue(json, "TokenNo");
                                     WG_OUT_COUNT           = WG_GetIntValue(json, "OutCount", 0);
+
+                                    // CDN에서 발급받은 WG_CLIENT_ID로 COOKIE OVERWRITE
+                                    WG_WriteCookie("WG_CLIENT_ID", WG_TOKEN_KEY);
 
                                     if (WG_GATE_OPERATION_MODE == "ALERT")
                                     {

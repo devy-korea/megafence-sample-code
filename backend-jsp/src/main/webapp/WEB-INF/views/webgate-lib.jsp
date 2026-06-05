@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8"  pageEncoding="UTF-8"%>
 <%
 /*
 * ==============================================================================================
@@ -46,7 +46,7 @@
 
 
 	////////////////////////////////////////////////
-	static final String $WG_VER_BACKEND = "26.1.605";
+	static final String $WG_VER_BACKEND = "26.1.605.1";
 	////////////////////////////////////////////////
 
 	/**
@@ -170,6 +170,9 @@
 		                        $WG_GATE_OPERATION_MODE = WG_GetStringValue(json.get("GateOperationMode"));
 	    	                    $WG_TOKEN_NO 			= WG_GetStringValue(json.get("TokenNo"));
 	    	                    $WG_OUT_COUNT 			= WG_GetIntValue(json.get("OutCount"), 0);
+
+	    	                    // CDN에서 발급받은 WG_CLIENT_ID로 COOKIE OVERWRITE
+	    	                    WG_WriteCookie(res, "WG_CLIENT_ID", $WG_TOKEN_KEY);
 
 	    	                    if ("ALERT".equals($WG_GATE_OPERATION_MODE)) {
 	    	                        $WG_TRACE += "ALERT,";
