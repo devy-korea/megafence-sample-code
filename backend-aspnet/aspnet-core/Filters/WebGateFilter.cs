@@ -18,13 +18,20 @@ namespace AspNetCoreDemo.Filters
     */
     public class WebGateFilterAttribute : ActionFilterAttribute
     {
-        public string ServiceId { get; set; } = "9000";
-        public string GateId { get; set; } = "1";
+        public string ServiceId { get; set; } = "";
+        public string GateId { get; set; } = "";
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             if (context == null)
             {
+                return;
+            }
+
+            // ServiceId / GateId가 지정된 경우에만 유량제어 동작 (미지정 액션은 통과)
+            if (string.IsNullOrEmpty(ServiceId) || string.IsNullOrEmpty(GateId))
+            {
+                base.OnActionExecuting(context);
                 return;
             }
 

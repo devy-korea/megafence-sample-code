@@ -10,8 +10,8 @@ namespace AspNetMvc.Filters
     * BACKEND 방식 : 액션 실행 직전(OnActionExecuting)에 유량제어 서비스 호출
     *
     * <적용 위치 선정 사유>
-    *   ⊙ Action Filter는 WebForms의 Page_Load / Java Interceptor에 대응하는 MVC 관용 위치이다.
-    *   ⊙ OnActionExecuting은 컨트롤러 액션(무거운 업무로직) 실행 "이전"에 동작한다.
+    *   ⊙ Action Filter는 WebForms의 Page_Load / Java Interceptor에 대응하는 MVC 대응 위치임.
+    *   ⊙ OnActionExecuting은 컨트롤러 액션(무거운 업무로직) 실행 "이전"에 동작하여 유량제어 결과에 따른 응답 교체가 가능하다.
     *   ⊙ filterContext.Result 를 설정하면 액션이 단락(short-circuit)되어,
     *      Response.End()(ThreadAbortException)보다 안전하게 응답을 교체한다.
     *
@@ -22,13 +22,20 @@ namespace AspNetMvc.Filters
     */
     public class WebGateFilterAttribute : ActionFilterAttribute
     {
-        public string ServiceId { get; set; } = "9000";
-        public string GateId { get; set; } = "1";
+        public string ServiceId { get; set; } = "";
+        public string GateId { get; set; } = "";
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             if (filterContext == null)
             {
+                return;
+            }
+
+            // ServiceId / GateId가 지정된 경우에만 유량제어 동작 (미지정 액션은 통과)
+            if (string.IsNullOrEmpty(ServiceId) || string.IsNullOrEmpty(GateId))
+            {
+                base.OnActionExecuting(filterContext);
                 return;
             }
 

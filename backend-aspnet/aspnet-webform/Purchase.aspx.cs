@@ -21,34 +21,38 @@ namespace AspNetWebForm
             string serviceId = "9000"; // 할당받은 SERVICE ID로 수정
             string gateId    = "1";    // 홈(대문)과 동일 GATE ID
 
-            try
+            // ServiceId / GateId가 지정된 경우에만 유량제어 동작 (미지정 시 통과)
+            if (!string.IsNullOrEmpty(serviceId) && !string.IsNullOrEmpty(gateId))
             {
-                WebGate webgate = new WebGate(serviceId, gateId);
-
-                // WG_IsNeedToWait() == true → 대기 필요 → 대기UI 표시
-                if (webgate.WG_IsNeedToWait())
+                try
                 {
-                    Response.Clear();
-                    Response.ContentType = "text/html";
-                    Response.Write(webgate.WG_GetWaitingUi());
-                    Response.Flush();
-                    Response.End();
+                    WebGate webgate = new WebGate(serviceId, gateId);
+
+                    // WG_IsNeedToWait() == true → 대기 필요 → 대기UI 표시
+                    if (webgate.WG_IsNeedToWait())
+                    {
+                        Response.Clear();
+                        Response.ContentType = "text/html";
+                        Response.Write(webgate.WG_GetWaitingUi());
+                        Response.Flush();
+                        Response.End();
+                    }
                 }
-            }
-            catch
-            {
-                // 유량제어 호출 실패 시 통과(서비스 중단 방지)
+                catch
+                {
+                    // 유량제어 호출 실패 시 통과(서비스 중단 방지)
+                }
+
+                // [개발자 정보 배너] 유량제어를 통과한 경우 마스터에 배너 표시 플래그 설정
+                var siteMaster = this.Master as SiteMaster;
+                if (siteMaster != null)
+                {
+                    siteMaster.ShowWebGateInfo = true;
+                    siteMaster.WebGateServiceId = serviceId;
+                }
             }
             /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             END OF 유량제어 코드삽입 */
-
-            // [개발자 정보 배너] 유량제어를 통과한 경우 마스터에 배너 표시 플래그 설정
-            var siteMaster = this.Master as SiteMaster;
-            if (siteMaster != null)
-            {
-                siteMaster.ShowWebGateInfo = true;
-                siteMaster.WebGateServiceId = serviceId;
-            }
         }
     }
 }
