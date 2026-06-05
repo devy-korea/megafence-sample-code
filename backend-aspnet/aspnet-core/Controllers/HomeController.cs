@@ -16,6 +16,7 @@ namespace AspNetCoreDemo.Controllers
     public class HomeController : Controller
     {
         // [대문] 이벤트 랜딩 - 유량제어 적용
+        // TO-DO : ServiceId/GateId는 실제 할당된 정보로 변경 필요
         [WebGateFilter(ServiceId = "9000", GateId = "1")]
         public IActionResult Index()
         {
@@ -40,7 +41,8 @@ namespace AspNetCoreDemo.Controllers
             return View();
         }
 
-        // [구매/예약] 선착순 한정 구매 - 유량제어 적용 (홈과 동일 GateId)
+        // [구매/예약] 선착순 한정 구매 - 유량제어 적용 (홈과 동일 GateId를 사용했으나 별도의 GateId를 사용하는 것도 가능)
+        // TO-DO : ServiceId/GateId는 실제 할당된 정보로 변경 필요
         [WebGateFilter(ServiceId = "9000", GateId = "1")]
         public IActionResult Purchase()
         {

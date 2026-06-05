@@ -44,19 +44,21 @@
         .field label { display: block; margin-bottom: 6px; color: #b9bee0; font-size: 14px; }
         .field input, .field select { width: 100%; padding: 12px; background: #0d1330; border: 1px solid #2d3570; border-radius: 8px; color: #fff; font-size: 15px; }
         footer { border-top: 1px solid #23284d; color: #6e74a0; font-size: 13px; padding: 24px 0; }
-        /* 개발자용 유량제어 적용 안내 Fixed 배너 (gated 페이지에서만 표시) */
-        .wg-devbar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; height: 36px; display: flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(90deg,#ffd166,#ffb703); color: #1a1a1a; font-size: 13px; font-weight: 700; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
-        body.wg-dev { padding-top: 36px; }
-        body.wg-dev header { top: 36px; }
+        /* 개발자용 안내 Fixed 배너 (상시 표시, 적용/미적용 구분) */
+        .wg-devbar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; height: 36px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+        .wg-devbar.gated   { background: linear-gradient(90deg,#ffd166,#ffb703); color: #1a1a1a; }
+        .wg-devbar.ungated { background: #2a2f55; color: #b9bee0; }
+        body { padding-top: 36px; }
+        header { top: 36px; }
     </style>
 </head>
-<body class="<%= ShowWebGateInfo ? "wg-dev" : "" %>">
+<body>
     <form id="form1" runat="server">
-        <% if (ShowWebGateInfo) { %>
-        <div class="wg-devbar" data-service-id="<%= WebGateServiceId %>">
-            <span id="wg-devbar-text">유량제어가 적용 페이지</span>
+        <!-- begin of demo 전용영역입니다. 적용하는 페이지에는 사용할 필요 없음 -->
+        <div class="wg-devbar <%= ShowWebGateInfo ? "gated" : "ungated" %>" data-gated="<%= ShowWebGateInfo ? "1" : "0" %>" data-service-id="<%= WebGateServiceId %>">
+            <span id="wg-devbar-text"><%= ShowWebGateInfo ? "유량제어가 적용 페이지" : "유량제어 미적용 페이지 입니다" %></span>
         </div>
-        <% } %>
+        <!-- end of demo 전용영역-->
         <header>
             <div class="wrap nav">
                 <a class="logo" href="Default.aspx">🚀 To<span class="accent">The</span>Moon</a>
@@ -80,21 +82,24 @@
             </div>
         </footer>
 
-        <% if (ShowWebGateInfo) { %>
         <script>
-            // 개발자용 안내: 개발 참고용 로직이므로 운영페이지에 적용/포함할 필요 없음
+            // 데모페이지 전용(유량제어 적용 여부 및 서비스ID 표시) 처리입니다. 적용하는 페이지에는 사용할 필요 없습니다.
             (function () {
                 var bar = document.querySelector('.wg-devbar');
                 if (!bar) return;
-                function gc(n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; }
-                var sid = bar.getAttribute('data-service-id') || '-';
-                var gate = gc('WG_GATE_ID') || '-';
-                var cnt = gc('WG_OUT_COUNT') || '0';
-                document.getElementById('wg-devbar-text').textContent =
-                    'Backend 유량제어 적용된 페이지 입니다. ServiceId: ' + sid + ',   GATE: ' + gate + ',   Page Load Count: ' + cnt + ', ※FreePass 설정을 초과하는 새로고침 시도 시 토큰 재발급됨';
+                var el = document.getElementById('wg-devbar-text');
+                if (bar.getAttribute('data-gated') === '1') {
+                    function gc(n) { var m = document.cookie.match('(?:^|; )' + n + '=([^;]*)'); return m ? decodeURIComponent(m[1]) : ''; }
+                    var sid = bar.getAttribute('data-service-id') || '-';
+                    var gate = gc('WG_GATE_ID') || '-';
+                    var cnt = gc('WG_OUT_COUNT') || '0';
+                    el.textContent =
+                        'Backend 유량제어 적용된 페이지 입니다. ServiceId: ' + sid + ',   GATE: ' + gate + ',   Page Load Count: ' + cnt + ', ※FreePass 설정을 초과하는 새로고침 시도 시 토큰 재발급됨';
+                } else {
+                    el.textContent = '유량제어 미적용 페이지 입니다';
+                }
             })();
         </script>
-        <% } %>
     </form>
 </body>
 </html>
