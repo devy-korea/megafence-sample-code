@@ -47,7 +47,7 @@ import javax.servlet.http.HttpServletResponse;
 
 
 /////////////////////////////////
-// VER 26.1.530
+// VER 26.1.605
 /////////////////////////////////
 public class WebGate {
 	
@@ -72,7 +72,7 @@ public class WebGate {
 	 * @return
 	 */
 	public boolean WG_IsNeedToWaiting(String serviceId, String gateId, HttpServletRequest req, HttpServletResponse res) {
-	    String 			$WG_VER_BACKEND 		= "26.1.530";
+	    String 			$WG_VER_BACKEND 		= "26.1.605";
 		String 			$WG_LANG_BACKEND 		= "JAVA/" + System.getProperty("java.version");
 	    String 			$WG_SERVICE_ID 			= serviceId;
 	    String 			$WG_GATE_ID 			= gateId;

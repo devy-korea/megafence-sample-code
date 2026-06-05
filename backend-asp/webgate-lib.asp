@@ -17,7 +17,7 @@
 '*/
 
 '/////////////////////////////////
-'// VER 26.1.530
+'// VER 26.1.605
 '/////////////////////////////////
 
 
@@ -30,7 +30,7 @@ End Function
 ' 대기판정 메인함수 (true:대기필요, false:대기불필요)
 Function WG_IsNeedToWaiting(serviceId, gateId)
 
-    Dim WG_VER_BACKEND         : WG_VER_BACKEND         = "26.1.530"
+    Dim WG_VER_BACKEND         : WG_VER_BACKEND         = "26.1.605"
     Dim WG_LANG_BACKEND        : WG_LANG_BACKEND        = "ASP"
     Dim WG_SERVICE_ID          : WG_SERVICE_ID          = serviceId
     Dim WG_GATE_ID             : WG_GATE_ID             = gateId

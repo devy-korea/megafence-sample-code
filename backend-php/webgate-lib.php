@@ -32,7 +32,7 @@ function WG_IsNeedToWait($service_id, $gate_id)
  */
 function WG_IsNeedToWaiting($service_id, $gate_id)
 {
-    $WG_VER_BACKEND         = "26.1.530";
+    $WG_VER_BACKEND         = "26.1.605";
     $WG_LANG_BACKEND        = "PHP/" . PHP_VERSION;
     $WG_SERVICE_ID          = $service_id;
     $WG_GATE_ID             = $gate_id;

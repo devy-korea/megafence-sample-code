@@ -29,7 +29,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         /////////////////////////////////
-        // VER 26.1.530
+        // VER 26.1.605
         /////////////////////////////////
 
         private readonly string     _serviceId;
@@ -59,7 +59,7 @@ namespace devy.WebGateLib
         /// </summary>
         public bool WG_IsNeedToWaiting()
         {
-            string       WG_VER_BACKEND         = "26.1.530";
+            string       WG_VER_BACKEND         = "26.1.605";
             string       WG_LANG_BACKEND        = "ASPNET/" + Environment.Version.ToString();
             string       WG_SERVICE_ID          = _serviceId;
             string       WG_GATE_ID             = _gateId;

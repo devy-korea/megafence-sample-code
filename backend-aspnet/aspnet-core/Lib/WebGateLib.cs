@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Http;
 * ## 안내 ##
 *   .NET Framework용 WebGateLib.cs(System.Web 기반)를 ASP.NET Core 환경에 맞게 컨버팅한 버전.
 *   동작 로직(STEP-1/2/3, TokenState/GateOperationMode 분기, TRACE_LEVEL 쿠키 처리 등)은
-*   마스터 소스(WebGate.java V26.1.530)와 동일하게 유지한다.
+*   마스터 소스(WebGate.java V26.1.605)와 동일하게 유지한다.
 *
 *   [컨버팅 포인트]
 *   - HttpContext.Current → 생성자로 HttpContext 주입
@@ -28,7 +28,7 @@ namespace devy.WebGateLib
     public class WebGate
     {
         /////////////////////////////////
-        // VER 26.1.530
+        // VER 26.1.605
         /////////////////////////////////
 
         private readonly string _serviceId;
@@ -58,7 +58,7 @@ namespace devy.WebGateLib
         /// <summary>대기판정 메인함수 (true:대기필요, false:대기불필요)</summary>
         public bool WG_IsNeedToWaiting()
         {
-            string       WG_VER_BACKEND         = "26.1.530";
+            string       WG_VER_BACKEND         = "26.1.605";
             string       WG_LANG_BACKEND        = "ASPNETCORE/" + Environment.Version.ToString();
             string       WG_SERVICE_ID          = _serviceId;
             string       WG_GATE_ID             = _gateId;
