@@ -27,6 +27,7 @@ namespace AspNetWebForm
 
             /* BEGIN OF 유량제어 코드삽입
             ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ */
+            // TO-DO : ServiceId/GateId는 데모용으로 동작 확인용. 별도 안내되는 실제 세팅값으로 변경 필요
             string serviceId = "9000"; // 할당받은 SERVICE ID로 수정
             string gateId    = "1";    // 사용할 GATE ID로 수정
 
@@ -52,7 +53,7 @@ namespace AspNetWebForm
                     // 유량제어 호출 실패 시 통과(서비스 중단 방지)
                 }
 
-                // [개발자 정보 배너] 유량제어를 통과한 경우 마스터에 배너 표시 플래그 설정
+                // 데모 전용 처리 (유량제어 적용 페이지 안내문구 표시용) → 적용하는 페이지에서는 사용할 필요 없음
                 var siteMaster = this.Master as SiteMaster;
                 if (siteMaster != null)
                 {
